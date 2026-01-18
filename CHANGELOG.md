@@ -7,14 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-01-18
+
 ### Added
 - Pre-commit hooks for ruff and mypy
 - Ruff configuration in pyproject.toml with isort, bugbear, and pyupgrade rules
 - CI enforcement of linting (ruff, mypy, bandit)
+- Pytest markers for e2e, slow, and integration tests
+- Integration tests validating component workflows
+- Comprehensive tests for adf_helper.py (coverage: 59% → 93%)
+- Tests for xhtml_helper.py (coverage: 8% → 92%)
+- Tests for confluence_client.py (coverage: 15% → 89%)
+- Tests for config_manager.py (coverage: 24% → 100%)
+- Extended tests for formatters.py (coverage: 65% → 85%)
 
 ### Changed
 - Code formatted with ruff formatter
 - Improved type annotations throughout codebase
+- Overall test coverage improved from 31% to 40%
 
 ## [0.3.1] - 2025-01-18
 
@@ -74,7 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - XHTML Helper for legacy storage format conversion
 - Cache functionality from assistant-skills-lib
 
-[Unreleased]: https://github.com/grandcamel/confluence-assistant-skills-lib/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/grandcamel/confluence-assistant-skills-lib/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/grandcamel/confluence-assistant-skills-lib/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/grandcamel/confluence-assistant-skills-lib/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/grandcamel/confluence-assistant-skills-lib/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/grandcamel/confluence-assistant-skills-lib/compare/v0.1.1...v0.2.0
