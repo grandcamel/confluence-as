@@ -29,6 +29,8 @@ Usage:
 import re
 from typing import Any, Dict, List, Optional
 
+from .markdown_parser import parse_markdown, is_block_start
+
 
 def create_adf_doc(content: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
@@ -303,86 +305,37 @@ def markdown_to_adf(markdown: str) -> Dict[str, Any]:
     if not markdown:
         return create_adf_doc([create_paragraph(text="")])
 
+    # Parse markdown into intermediate representation
+    blocks = parse_markdown(markdown)
+
+    if not blocks:
+        return create_adf_doc([create_paragraph(text="")])
+
+    # Convert blocks to ADF nodes
     content = []
-    lines = markdown.split('\n')
-    i = 0
+    for block in blocks:
+        block_type = block['type']
 
-    while i < len(lines):
-        line = lines[i]
-        stripped = line.strip()
+        if block_type == 'heading':
+            content.append(create_heading(block['content'], block['level']))
 
-        # Empty line
-        if not stripped:
-            i += 1
-            continue
-
-        # Heading
-        heading_match = re.match(r'^(#{1,6})\s+(.+)$', stripped)
-        if heading_match:
-            level = len(heading_match.group(1))
-            text = heading_match.group(2)
-            content.append(create_heading(text, level))
-            i += 1
-            continue
-
-        # Horizontal rule
-        if re.match(r'^[-*_]{3,}$', stripped):
+        elif block_type == 'horizontal_rule':
             content.append(create_rule())
-            i += 1
-            continue
 
-        # Code block (fenced)
-        if stripped.startswith('```'):
-            lang_match = re.match(r'^```(\w*)$', stripped)
-            language = lang_match.group(1) if lang_match else None
-            code_lines = []
-            i += 1
-            while i < len(lines) and not lines[i].strip().startswith('```'):
-                code_lines.append(lines[i])
-                i += 1
-            content.append(create_code_block('\n'.join(code_lines), language))
-            i += 1  # Skip closing ```
-            continue
+        elif block_type == 'code_block':
+            content.append(create_code_block(block['content'], block.get('language')))
 
-        # Blockquote
-        if stripped.startswith('>'):
-            quote_lines = []
-            while i < len(lines) and lines[i].strip().startswith('>'):
-                quote_text = re.sub(r'^>\s*', '', lines[i].strip())
-                quote_lines.append(quote_text)
-                i += 1
-            content.append(create_blockquote('\n'.join(quote_lines)))
-            continue
+        elif block_type == 'blockquote':
+            content.append(create_blockquote(block['content']))
 
-        # Bullet list
-        if re.match(r'^[-*]\s+', stripped):
-            items = []
-            while i < len(lines) and re.match(r'^[-*]\s+', lines[i].strip()):
-                item_text = re.sub(r'^[-*]\s+', '', lines[i].strip())
-                items.append(item_text)
-                i += 1
-            content.append(create_bullet_list(items))
-            continue
+        elif block_type == 'bullet_list':
+            content.append(create_bullet_list(block['items']))
 
-        # Ordered list
-        if re.match(r'^\d+\.\s+', stripped):
-            items = []
-            while i < len(lines) and re.match(r'^\d+\.\s+', lines[i].strip()):
-                item_text = re.sub(r'^\d+\.\s+', '', lines[i].strip())
-                items.append(item_text)
-                i += 1
-            content.append(create_ordered_list(items))
-            continue
+        elif block_type == 'ordered_list':
+            content.append(create_ordered_list(block['items']))
 
-        # Regular paragraph - collect consecutive non-empty lines
-        para_lines = []
-        while i < len(lines) and lines[i].strip() and not _is_block_element(lines[i].strip()):
-            para_lines.append(lines[i].strip())
-            i += 1
-
-        if para_lines:
-            para_text = ' '.join(para_lines)
-            para_content = _parse_inline_markdown(para_text)
+        elif block_type == 'paragraph':
+            para_content = _parse_inline_markdown(block['content'])
             content.append({
                 "type": "paragraph",
                 "content": para_content
@@ -391,32 +344,11 @@ def markdown_to_adf(markdown: str) -> Dict[str, Any]:
     return create_adf_doc(content if content else [create_paragraph(text="")])
 
 
-def is_markdown_block_start(line: str) -> bool:
-    """
-    Check if a line starts a Markdown block element.
-
-    This function is shared between adf_helper and xhtml_helper modules
-    to ensure consistent Markdown parsing behavior.
-
-    Args:
-        line: A line of Markdown text
-
-    Returns:
-        True if the line starts a block element (heading, code fence,
-        blockquote, list item, or horizontal rule)
-    """
-    return bool(
-        line.startswith('#') or
-        line.startswith('```') or
-        line.startswith('>') or
-        re.match(r'^[-*]\s+', line) or
-        re.match(r'^\d+\.\s+', line) or
-        re.match(r'^[-*_]{3,}$', line)
-    )
-
+# Re-export from shared module for backward compatibility
+is_markdown_block_start = is_block_start
 
 # Alias for internal use
-_is_block_element = is_markdown_block_start
+_is_block_element = is_block_start
 
 
 def _parse_inline_markdown(text: str) -> List[Dict[str, Any]]:
