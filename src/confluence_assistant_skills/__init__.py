@@ -105,6 +105,7 @@ from .formatters import (
     print_warning,
     print_info,
     truncate,
+    strip_html_tags,
 )
 
 # ADF Helper
@@ -203,6 +204,7 @@ __all__ = [
     "print_warning",
     "print_info",
     "truncate",
+    "strip_html_tags",
     # ADF Helper
     "create_adf_doc",
     "create_paragraph",

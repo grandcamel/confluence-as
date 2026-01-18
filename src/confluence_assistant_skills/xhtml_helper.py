@@ -28,6 +28,7 @@ import html
 from typing import Dict, Any, Optional, Tuple
 
 from .adf_helper import is_markdown_block_start
+from .formatters import strip_html_tags
 
 
 def xhtml_to_markdown(xhtml: str) -> str:
@@ -148,9 +149,7 @@ def xhtml_to_markdown(xhtml: str) -> str:
 
 def _clean_text(text: str) -> str:
     """Clean text content, removing extra whitespace."""
-    text = re.sub(r'<[^>]+>', '', text)  # Remove any HTML tags
-    text = re.sub(r'\s+', ' ', text)  # Collapse whitespace
-    return text.strip()
+    return strip_html_tags(text, collapse_whitespace=True)
 
 
 def _process_macros(text: str) -> str:
