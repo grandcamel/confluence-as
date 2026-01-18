@@ -23,6 +23,11 @@ Python library for Confluence Cloud REST API - shared utilities for the [Conflue
 pip install confluence-assistant-skills-lib
 ```
 
+> **Note:** This is the **library** package. For the CLI tool, install `confluence-assistant-skills` instead:
+> ```bash
+> pip install confluence-assistant-skills  # CLI with 'confluence' command
+> ```
+
 ## Quick Start
 
 ```python
