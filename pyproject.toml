@@ -51,6 +51,7 @@ dev = [
     "ruff>=0.4.0",
     "mypy>=1.8.0",
     "bandit>=1.7.0",
+    "click>=8.0.0",  # Required for CLI tests
 ]
 
 [project.urls]
