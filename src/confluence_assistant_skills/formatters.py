@@ -7,10 +7,10 @@ Inherits generic formatters from the base library.
 
 import re
 from typing import Any, Dict, List, Optional
-from pathlib import Path
 
 # Import generic formatters and color utilities from the base library
-from assistant_skills_lib.formatters import (
+# Re-exported for convenience - these are used by __init__.py
+from assistant_skills_lib.formatters import (  # noqa: F401
     Colors,
     _colorize,
     format_json,
@@ -96,7 +96,7 @@ def format_page(page: Dict[str, Any], detailed: bool = False) -> str:
 
     if detailed:
         if labels := page.get('labels', {}).get('results', []):
-            label_names = [l.get('name', l.get('label', '')) for l in labels]
+            label_names = [lbl.get('name', lbl.get('label', '')) for lbl in labels]
             lines.append(f"  Labels: {', '.join(label_names)}")
         if storage := page.get('body', {}).get('storage', {}).get('value', ''):
             preview = truncate(storage.replace('\n', ' '), 200)
@@ -227,7 +227,7 @@ def format_search_results(
             lines.append(f"   Path: {' > '.join(ancestor_titles)}")
 
         if show_labels and (labels := content.get('metadata', {}).get('labels', {}).get('results', [])):
-            label_names = [l.get('name', '') for l in labels if l.get('name')]
+            label_names = [lbl.get('name', '') for lbl in labels if lbl.get('name')]
             if label_names:
                 lines.append(f"   Labels: {', '.join(label_names)}")
 

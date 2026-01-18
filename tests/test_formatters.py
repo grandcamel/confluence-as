@@ -1,7 +1,6 @@
 """Tests for formatters module."""
 
 import pytest
-import json
 import tempfile
 from pathlib import Path
 from confluence_assistant_skills import (

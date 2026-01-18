@@ -27,7 +27,7 @@ Usage:
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from .markdown_parser import parse_markdown, is_block_start
 

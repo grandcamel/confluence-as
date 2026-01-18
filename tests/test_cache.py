@@ -8,7 +8,7 @@ import pytest
 import tempfile
 import time
 from datetime import timedelta
-from confluence_assistant_skills import Cache, cached, get_cache
+from confluence_assistant_skills import Cache, cached
 
 
 class TestCache:

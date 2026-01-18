@@ -144,7 +144,7 @@ class TestYAMLSuites:
             pytest.skip("E2E disabled")
 
         results = e2e_runner.run_all()
-        success = e2e_runner.print_summary(results)
+        e2e_runner.print_summary(results)
 
         failures = [
             f"{s.suite_name}::{t.test_id}"

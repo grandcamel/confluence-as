@@ -7,7 +7,6 @@ error handler from assistant_skills_lib.
 
 import sys
 import functools
-import traceback
 from typing import Optional, Callable, Any
 
 import requests

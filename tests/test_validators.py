@@ -1,7 +1,6 @@
 """Tests for validators module."""
 
 import pytest
-from pathlib import Path
 from confluence_assistant_skills import (
     validate_page_id,
     validate_space_key,
