@@ -25,6 +25,25 @@ pytest tests/test_validators.py
 pytest tests/test_validators.py::test_validate_page_id
 ```
 
+## Code Quality
+
+```bash
+# Linting (ruff)
+ruff check .                    # Check for issues
+ruff check --fix .              # Auto-fix issues
+
+# Type checking (mypy)
+mypy src/                       # Check types (expect 3 warnings about dependency stubs)
+
+# Security scanning (bandit)
+bandit -r src/ -q               # Quiet mode, only show issues
+```
+
+**Notes:**
+- Ruff may remove "unused" imports that are actually re-exports. Mark these with `# noqa: F401`
+- Mypy will warn about missing stubs in `assistant_skills_lib` - these are expected
+- Run all three before committing significant changes
+
 ## Architecture
 
 The library is organized into focused modules under `src/confluence_assistant_skills/`:
