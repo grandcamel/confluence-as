@@ -7,7 +7,7 @@ error handler from assistant_skills_lib.
 
 import sys
 import functools
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, Literal
 
 import requests
 
@@ -178,8 +178,8 @@ class ErrorContext:
     def __enter__(self) -> 'ErrorContext':
         return self
 
-    def __exit__(self, exc_type: Optional[type], exc_val: Optional[BaseAPIError], exc_tb: Any) -> bool:
-        if exc_type is not None and issubclass(exc_type, BaseAPIError):
+    def __exit__(self, exc_type: Optional[type], exc_val: Optional[BaseAPIError], exc_tb: Any) -> Literal[False]:
+        if exc_type is not None and exc_val is not None and issubclass(exc_type, BaseAPIError):
             context_str = ", ".join(f"{k}={v}" for k, v in self.context.items())
             exc_val.operation = f"{self.operation} ({context_str})" if context_str else self.operation
         return False

@@ -27,7 +27,7 @@ Usage:
 """
 
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from .markdown_parser import parse_markdown, is_block_start
 
@@ -49,7 +49,7 @@ def create_adf_doc(content: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 
-def create_paragraph(content: List[Dict[str, Any]] = None, text: str = None) -> Dict[str, Any]:
+def create_paragraph(content: Optional[List[Dict[str, Any]]] = None, text: Optional[str] = None) -> Dict[str, Any]:
     """
     Create an ADF paragraph node.
 
@@ -71,7 +71,7 @@ def create_paragraph(content: List[Dict[str, Any]] = None, text: str = None) -> 
     }
 
 
-def create_text(text: str, marks: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+def create_text(text: str, marks: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
     """
     Create an ADF text node.
 
@@ -82,7 +82,7 @@ def create_text(text: str, marks: List[Dict[str, Any]] = None) -> Dict[str, Any]
     Returns:
         ADF text node
     """
-    node = {
+    node: Dict[str, Any] = {
         "type": "text",
         "text": text
     }
@@ -156,7 +156,7 @@ def create_ordered_list(items: List[str], start: int = 1) -> Dict[str, Any]:
     }
 
 
-def create_code_block(code: str, language: str = None) -> Dict[str, Any]:
+def create_code_block(code: str, language: Optional[str] = None) -> Dict[str, Any]:
     """
     Create an ADF code block.
 
@@ -167,7 +167,7 @@ def create_code_block(code: str, language: str = None) -> Dict[str, Any]:
     Returns:
         ADF codeBlock node
     """
-    node = {
+    node: Dict[str, Any] = {
         "type": "codeBlock",
         "content": [create_text(code)]
     }

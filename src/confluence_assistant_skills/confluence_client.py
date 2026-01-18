@@ -24,7 +24,7 @@ Usage:
 """
 
 import logging
-from typing import Optional, Any, Dict, Union
+from typing import Optional, Any, Dict, List, Union
 from pathlib import Path
 
 import requests
@@ -206,7 +206,7 @@ class ConfluenceClient:
         method: str,
         endpoint: str,
         data: Optional[Dict[str, Any]] = None,
-        json_data: Optional[Dict[str, Any]] = None,
+        json_data: Optional[Union[Dict[str, Any], List[Any]]] = None,
         params: Optional[Dict[str, Any]] = None,
         operation: Optional[str] = None,
     ) -> Dict[str, Any]:
@@ -245,7 +245,7 @@ class ConfluenceClient:
         self,
         endpoint: str,
         data: Optional[Dict[str, Any]] = None,
-        json_data: Optional[Dict[str, Any]] = None,
+        json_data: Optional[Union[Dict[str, Any], List[Any]]] = None,
         params: Optional[Dict[str, Any]] = None,
         operation: str = "POST request",
     ) -> Dict[str, Any]:
@@ -268,7 +268,7 @@ class ConfluenceClient:
         self,
         endpoint: str,
         data: Optional[Dict[str, Any]] = None,
-        json_data: Optional[Dict[str, Any]] = None,
+        json_data: Optional[Union[Dict[str, Any], List[Any]]] = None,
         params: Optional[Dict[str, Any]] = None,
         operation: str = "PUT request",
     ) -> Dict[str, Any]:
@@ -418,6 +418,118 @@ class ConfluenceClient:
                     f.write(chunk)
 
         return output_path
+
+    def upload_attachment(
+        self,
+        page_id: str,
+        file_path: Union[str, Path],
+        comment: Optional[str] = None,
+        operation: str = "upload attachment",
+    ) -> Dict[str, Any]:
+        """
+        Upload an attachment to a Confluence page.
+
+        Uses the v1 API endpoint for attachment uploads.
+
+        Args:
+            page_id: ID of the page to attach to
+            file_path: Path to the file to upload
+            comment: Optional comment for the attachment
+            operation: Description for error messages
+
+        Returns:
+            Parsed JSON response with attachment details
+        """
+        endpoint = f"/rest/api/content/{page_id}/child/attachment"
+        additional_data = {}
+        if comment:
+            additional_data["comment"] = comment
+
+        return self.upload_file(
+            endpoint=endpoint,
+            file_path=file_path,
+            additional_data=additional_data if additional_data else None,
+            operation=operation,
+        )
+
+    def download_attachment(
+        self,
+        attachment_id: str,
+        operation: str = "download attachment",
+    ) -> bytes:
+        """
+        Download an attachment's content as bytes.
+
+        Args:
+            attachment_id: ID of the attachment to download
+            operation: Description for error messages
+
+        Returns:
+            Attachment content as bytes
+        """
+        # Get attachment info to find download URL
+        att_info = self.get(
+            f"/api/v2/attachments/{attachment_id}",
+            operation="get attachment info",
+        )
+
+        download_url = att_info.get("downloadLink")
+        if not download_url:
+            raise ValidationError(f"No download link found for attachment {attachment_id}")
+
+        # Handle relative URLs
+        if download_url.startswith("/"):
+            url = self._build_url(download_url)
+        else:
+            url = download_url
+
+        logger.debug(f"Downloading attachment from {url}")
+
+        response = self.session.get(
+            url,
+            timeout=self.timeout * 3,
+            verify=self.verify_ssl,
+        )
+
+        if not response.ok:
+            handle_confluence_error(response, operation)
+
+        return response.content
+
+    def update_attachment(
+        self,
+        attachment_id: str,
+        page_id: str,
+        file_path: Union[str, Path],
+        comment: Optional[str] = None,
+        operation: str = "update attachment",
+    ) -> Dict[str, Any]:
+        """
+        Update an existing attachment with a new file.
+
+        Uses the v1 API endpoint for attachment updates.
+
+        Args:
+            attachment_id: ID of the attachment to update
+            page_id: ID of the page the attachment belongs to
+            file_path: Path to the new file
+            comment: Optional comment for the update
+            operation: Description for error messages
+
+        Returns:
+            Parsed JSON response with updated attachment details
+        """
+        endpoint = f"/rest/api/content/{page_id}/child/attachment/{attachment_id}/data"
+        additional_data = {}
+        if comment:
+            additional_data["comment"] = comment
+
+        return self.upload_file(
+            endpoint=endpoint,
+            file_path=file_path,
+            additional_data=additional_data if additional_data else None,
+            operation=operation,
+        )
 
     def paginate(
         self,

@@ -464,7 +464,7 @@ def validate_xhtml(xhtml: str) -> Tuple[bool, Optional[str]]:
         Tuple of (is_valid, error_message)
     """
     # Basic validation - check for unbalanced tags
-    tag_stack = []
+    tag_stack: list[str] = []
     tag_pattern = re.compile(r'<(/?)(\w+)[^>]*(/?)>')
 
     for match in tag_pattern.finditer(xhtml):
