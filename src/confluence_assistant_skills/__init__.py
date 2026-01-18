@@ -40,7 +40,7 @@ Usage:
     page = client.get("/api/v2/pages/12345")
 """
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 # Client
 from .confluence_client import ConfluenceClient, create_client
