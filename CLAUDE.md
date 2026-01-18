@@ -33,7 +33,8 @@ The library is organized into focused modules under `src/confluence_assistant_sk
 - **config_manager.py** - Multi-source configuration from environment variables and JSON profiles (`.claude/settings.local.json`)
 - **error_handler.py** - Exception hierarchy mapping HTTP status codes to specific error types (`AuthenticationError`, `NotFoundError`, `RateLimitError`, etc.)
 - **validators.py** - Input validation functions that raise `ValidationError` on failure
-- **formatters.py** - Output formatting for pages, spaces, tables, JSON, and CSV export
+- **formatters.py** - Output formatting for pages, spaces, tables, JSON, and CSV export. Also provides shared utilities like `strip_html_tags()`.
+- **markdown_parser.py** - Shared Markdown parser producing intermediate representation. Used by both adf_helper and xhtml_helper for consistent parsing.
 - **adf_helper.py** - Atlassian Document Format (ADF) conversion: Markdown ↔ ADF, programmatic node creation
 - **xhtml_helper.py** - Legacy XHTML storage format conversion
 
@@ -43,6 +44,9 @@ The library is organized into focused modules under `src/confluence_assistant_sk
 - Cache functionality is inherited from `assistant-skills-lib` base library
 - Confluence API endpoints use `/wiki` prefix in URLs; the client handles this automatically
 - Supports both v2 (`/api/v2`) and legacy v1 (`/rest/api`) Confluence endpoints
+- Shared utilities live in the most general module (e.g., `strip_html_tags` in formatters, `parse_markdown` in markdown_parser)
+- When two modules need the same logic, extract to a shared module with an intermediate representation pattern
+- Use `__version__` from `__init__.py` dynamically (e.g., in User-Agent headers) rather than hardcoding
 
 ## Required Environment Variables
 
@@ -79,8 +83,12 @@ Trusted Publishers on PyPI are configured **per-package**, not per-repository:
 ### Release Process
 
 ```bash
-# Bump version in pyproject.toml, then:
-git tag v0.2.0
-git push origin v0.2.0
+# Bump __version__ in src/confluence_assistant_skills/__init__.py, then:
+git add -A && git commit -m "chore: bump version to 0.3.0"
+git push
+git tag v0.3.0
+git push origin v0.3.0
 # GitHub Actions publishes to PyPI automatically
 ```
+
+Note: Version is defined in `__init__.py` and read dynamically by pyproject.toml via hatch.
