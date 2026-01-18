@@ -377,6 +377,8 @@ def copy_page(
 
     source_title = source_page.get("title", "Untitled")
     source_space_id = source_page.get("spaceId")
+    if not source_space_id:
+        raise ValidationError("Source page has no space ID")
 
     if title:
         new_title = validate_title(title)
@@ -456,7 +458,10 @@ def move_page(
         space_key = validate_space_key(space)
         target_space_id = get_space_id(client, space_key)
     else:
-        target_space_id = current_page.get("spaceId")
+        space_id_from_page = current_page.get("spaceId")
+        if not space_id_from_page:
+            raise ValidationError("Current page has no space ID")
+        target_space_id = space_id_from_page
 
     update_data: dict[str, Any] = {
         "id": page_id,

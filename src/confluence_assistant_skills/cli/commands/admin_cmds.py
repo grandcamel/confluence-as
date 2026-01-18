@@ -868,8 +868,8 @@ def get_template(
         click.echo(f"Type: {template.get('templateType', 'N/A')}")
         click.echo(f"Space: {template.get('space', {}).get('key', 'Global')}")
 
-        if template.get("description"):
-            click.echo(f"Description: {template.get('description')[:100]}")
+        if description := template.get("description"):
+            click.echo(f"Description: {description[:100]}")
 
         if template.get("body"):
             body = template["body"]
