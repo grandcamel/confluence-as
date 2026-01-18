@@ -41,6 +41,29 @@ def truncate(text: str, max_length: int = 100, suffix: str = "...") -> str:
     return text[: max_length - len(suffix)] + suffix
 
 
+def strip_html_tags(text: str, collapse_whitespace: bool = False) -> str:
+    """
+    Remove HTML tags from text.
+
+    This is a shared utility used by both formatters and xhtml_helper
+    for cleaning HTML/XHTML content.
+
+    Args:
+        text: Text containing HTML tags.
+        collapse_whitespace: If True, collapse multiple whitespace to single space.
+
+    Returns:
+        Text with HTML tags removed and optionally whitespace collapsed.
+    """
+    if not text:
+        return text
+    # Remove HTML tags
+    result = re.sub(r'<[^>]+>', '', text)
+    if collapse_whitespace:
+        result = re.sub(r'\s+', ' ', result)
+    return result.strip()
+
+
 def format_page(page: Dict[str, Any], detailed: bool = False) -> str:
     """
     Format a Confluence page for display.
@@ -149,7 +172,7 @@ def format_comment(comment: Dict[str, Any], show_body: bool = True) -> str:
 
     if show_body:
         if storage := comment.get('body', {}).get('storage', {}).get('value', ''):
-            text = truncate(re.sub(r'<[^>]+>', '', storage).strip(), 200)
+            text = truncate(strip_html_tags(storage), 200)
             lines.append(f"  Content: {text}")
 
     return '\n'.join(lines)
@@ -195,7 +218,7 @@ def format_search_results(
         lines.append(f"   ID: {content_id} | Type: {content_type} | Space: {space_key}")
 
         if show_excerpt and (excerpt := result.get('excerpt', '')):
-            clean = truncate(re.sub(r'<[^>]+>', '', excerpt).strip(), 150)
+            clean = truncate(strip_html_tags(excerpt), 150)
             if clean:
                 lines.append(f"   Excerpt: {clean}...")
         
