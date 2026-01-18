@@ -14,7 +14,7 @@ Usage:
 """
 
 import re
-from typing import List, Optional, TypedDict
+from typing import Optional, TypedDict
 
 
 class MarkdownBlock(TypedDict, total=False):
@@ -34,7 +34,7 @@ class MarkdownBlock(TypedDict, total=False):
     content: str
     level: int
     language: Optional[str]
-    items: List[str]
+    items: list[str]
 
 
 def is_block_start(line: str) -> bool:
@@ -61,7 +61,7 @@ def is_block_start(line: str) -> bool:
     )
 
 
-def parse_markdown(markdown: str) -> List[MarkdownBlock]:
+def parse_markdown(markdown: str) -> list[MarkdownBlock]:
     """
     Parse Markdown into a list of block elements.
 
@@ -83,7 +83,7 @@ def parse_markdown(markdown: str) -> List[MarkdownBlock]:
     if not markdown:
         return []
 
-    blocks: List[MarkdownBlock] = []
+    blocks: list[MarkdownBlock] = []
     lines = markdown.split("\n")
     i = 0
 

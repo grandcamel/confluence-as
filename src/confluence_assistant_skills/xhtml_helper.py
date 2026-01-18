@@ -23,12 +23,12 @@ Usage:
     xhtml = markdown_to_xhtml("# Heading\n\nParagraph")
 """
 
-import re
 import html
-from typing import Dict, Any, Optional, Tuple
+import re
+from typing import Any, Optional
 
-from .markdown_parser import parse_markdown, is_block_start
 from .formatters import strip_html_tags
+from .markdown_parser import is_block_start, parse_markdown
 
 
 def xhtml_to_markdown(xhtml: str) -> str:
@@ -64,14 +64,15 @@ def xhtml_to_markdown(xhtml: str) -> str:
     text = _process_macros(text)
 
     # Headings (h1-h6)
+    def make_heading_replacer(lv: int):
+        def replacer(m: re.Match[str]) -> str:
+            return f"\n{'#' * lv} {_clean_text(m.group(1))}\n"
+
+        return replacer
+
     for level in range(1, 7):
         pattern = rf"<h{level}[^>]*>(.*?)</h{level}>"
-        text = re.sub(
-            pattern,
-            lambda m: f"\n{'#' * level} {_clean_text(m.group(1))}\n",
-            text,
-            flags=re.DOTALL,
-        )
+        text = re.sub(pattern, make_heading_replacer(level), text, flags=re.DOTALL)
 
     # Paragraphs
     text = re.sub(
@@ -190,15 +191,16 @@ def _process_macros(text: str) -> str:
     )
 
     # Info/Warning/Note panels
+    def make_panel_replacer(pt: str):
+        def replacer(m: re.Match[str]) -> str:
+            return f"\n> **{pt.title()}:** {_clean_text(m.group(1))}\n"
+
+        return replacer
+
     panel_types = ["info", "warning", "note", "tip", "panel"]
     for panel_type in panel_types:
         pattern = rf'<structured-macro[^>]*name="{panel_type}"[^>]*>.*?<rich-text-body>(.*?)</rich-text-body>.*?</structured-macro>'
-        text = re.sub(
-            pattern,
-            lambda m: f"\n> **{panel_type.title()}:** {_clean_text(m.group(1))}\n",
-            text,
-            flags=re.DOTALL,
-        )
+        text = re.sub(pattern, make_panel_replacer(panel_type), text, flags=re.DOTALL)
 
     # Status macro (colored labels)
     text = re.sub(
@@ -408,7 +410,7 @@ def _markdown_inline_to_xhtml(text: str) -> str:
     return text
 
 
-def xhtml_to_adf(xhtml: str) -> Dict[str, Any]:
+def xhtml_to_adf(xhtml: str) -> dict[str, Any]:
     """
     Convert Confluence XHTML storage format to ADF.
 
@@ -429,7 +431,7 @@ def xhtml_to_adf(xhtml: str) -> Dict[str, Any]:
     return markdown_to_adf(markdown)
 
 
-def adf_to_xhtml(adf: Dict[str, Any]) -> str:
+def adf_to_xhtml(adf: dict[str, Any]) -> str:
     """
     Convert ADF to XHTML storage format.
 
@@ -482,7 +484,7 @@ def wrap_in_storage_format(content: str) -> str:
     return content
 
 
-def validate_xhtml(xhtml: str) -> Tuple[bool, Optional[str]]:
+def validate_xhtml(xhtml: str) -> tuple[bool, Optional[str]]:
     """
     Validate XHTML storage format.
 

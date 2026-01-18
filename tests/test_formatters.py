@@ -1,15 +1,17 @@
 """Tests for formatters module."""
 
-import pytest
 import tempfile
 from pathlib import Path
+
+import pytest
+
 from confluence_assistant_skills import (
+    export_csv,
+    format_json,
     format_page,
     format_space,
     format_table,
-    format_json,
     format_timestamp,
-    export_csv,
     truncate,
 )
 

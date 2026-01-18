@@ -27,12 +27,12 @@ Usage:
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
-from .markdown_parser import parse_markdown, is_block_start
+from .markdown_parser import is_block_start, parse_markdown
 
 
-def create_adf_doc(content: List[Dict[str, Any]]) -> Dict[str, Any]:
+def create_adf_doc(content: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Create an ADF document wrapper.
 
@@ -46,8 +46,8 @@ def create_adf_doc(content: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def create_paragraph(
-    content: Optional[List[Dict[str, Any]]] = None, text: Optional[str] = None
-) -> Dict[str, Any]:
+    content: Optional[list[dict[str, Any]]] = None, text: Optional[str] = None
+) -> dict[str, Any]:
     """
     Create an ADF paragraph node.
 
@@ -67,8 +67,8 @@ def create_paragraph(
 
 
 def create_text(
-    text: str, marks: Optional[List[Dict[str, Any]]] = None
-) -> Dict[str, Any]:
+    text: str, marks: Optional[list[dict[str, Any]]] = None
+) -> dict[str, Any]:
     """
     Create an ADF text node.
 
@@ -79,13 +79,13 @@ def create_text(
     Returns:
         ADF text node
     """
-    node: Dict[str, Any] = {"type": "text", "text": text}
+    node: dict[str, Any] = {"type": "text", "text": text}
     if marks:
         node["marks"] = marks
     return node
 
 
-def create_heading(text: str, level: int = 1) -> Dict[str, Any]:
+def create_heading(text: str, level: int = 1) -> dict[str, Any]:
     """
     Create an ADF heading node.
 
@@ -104,7 +104,7 @@ def create_heading(text: str, level: int = 1) -> Dict[str, Any]:
     }
 
 
-def create_bullet_list(items: List[str]) -> Dict[str, Any]:
+def create_bullet_list(items: list[str]) -> dict[str, Any]:
     """
     Create an ADF bullet list.
 
@@ -123,7 +123,7 @@ def create_bullet_list(items: List[str]) -> Dict[str, Any]:
     }
 
 
-def create_ordered_list(items: List[str], start: int = 1) -> Dict[str, Any]:
+def create_ordered_list(items: list[str], start: int = 1) -> dict[str, Any]:
     """
     Create an ADF ordered list.
 
@@ -144,7 +144,7 @@ def create_ordered_list(items: List[str], start: int = 1) -> Dict[str, Any]:
     }
 
 
-def create_code_block(code: str, language: Optional[str] = None) -> Dict[str, Any]:
+def create_code_block(code: str, language: Optional[str] = None) -> dict[str, Any]:
     """
     Create an ADF code block.
 
@@ -155,13 +155,13 @@ def create_code_block(code: str, language: Optional[str] = None) -> Dict[str, An
     Returns:
         ADF codeBlock node
     """
-    node: Dict[str, Any] = {"type": "codeBlock", "content": [create_text(code)]}
+    node: dict[str, Any] = {"type": "codeBlock", "content": [create_text(code)]}
     if language:
         node["attrs"] = {"language": language}
     return node
 
 
-def create_blockquote(text: str) -> Dict[str, Any]:
+def create_blockquote(text: str) -> dict[str, Any]:
     """
     Create an ADF blockquote.
 
@@ -174,7 +174,7 @@ def create_blockquote(text: str) -> Dict[str, Any]:
     return {"type": "blockquote", "content": [create_paragraph(text=text)]}
 
 
-def create_rule() -> Dict[str, Any]:
+def create_rule() -> dict[str, Any]:
     """
     Create an ADF horizontal rule.
 
@@ -184,7 +184,7 @@ def create_rule() -> Dict[str, Any]:
     return {"type": "rule"}
 
 
-def create_table(rows: List[List[str]], header: bool = True) -> Dict[str, Any]:
+def create_table(rows: list[list[str]], header: bool = True) -> dict[str, Any]:
     """
     Create an ADF table.
 
@@ -211,7 +211,7 @@ def create_table(rows: List[List[str]], header: bool = True) -> Dict[str, Any]:
     return {"type": "table", "content": table_rows}
 
 
-def create_link(text: str, url: str) -> Dict[str, Any]:
+def create_link(text: str, url: str) -> dict[str, Any]:
     """
     Create an ADF text node with link mark.
 
@@ -225,7 +225,7 @@ def create_link(text: str, url: str) -> Dict[str, Any]:
     return create_text(text, marks=[{"type": "link", "attrs": {"href": url}}])
 
 
-def text_to_adf(text: str) -> Dict[str, Any]:
+def text_to_adf(text: str) -> dict[str, Any]:
     """
     Convert plain text to ADF.
 
@@ -253,7 +253,7 @@ def text_to_adf(text: str) -> Dict[str, Any]:
     return create_adf_doc(content if content else [create_paragraph(text="")])
 
 
-def markdown_to_adf(markdown: str) -> Dict[str, Any]:
+def markdown_to_adf(markdown: str) -> dict[str, Any]:
     """
     Convert Markdown to ADF.
 
@@ -320,7 +320,7 @@ is_markdown_block_start = is_block_start
 _is_block_element = is_block_start
 
 
-def _parse_inline_markdown(text: str) -> List[Dict[str, Any]]:
+def _parse_inline_markdown(text: str) -> list[dict[str, Any]]:
     """
     Parse inline Markdown elements (bold, italic, code, links).
 
@@ -373,7 +373,7 @@ def _parse_inline_markdown(text: str) -> List[Dict[str, Any]]:
     return nodes
 
 
-def adf_to_text(adf: Dict[str, Any]) -> str:
+def adf_to_text(adf: dict[str, Any]) -> str:
     """
     Convert ADF to plain text.
 
@@ -386,7 +386,7 @@ def adf_to_text(adf: Dict[str, Any]) -> str:
     if not adf:
         return ""
 
-    def extract_text(node: Dict[str, Any]) -> str:
+    def extract_text(node: dict[str, Any]) -> str:
         """Recursively extract text from a node."""
         if node.get("type") == "text":
             return node.get("text", "")
@@ -437,7 +437,7 @@ def adf_to_text(adf: Dict[str, Any]) -> str:
     return "\n\n".join(lines)
 
 
-def adf_to_markdown(adf: Dict[str, Any]) -> str:
+def adf_to_markdown(adf: dict[str, Any]) -> str:
     """
     Convert ADF to Markdown.
 
@@ -450,7 +450,7 @@ def adf_to_markdown(adf: Dict[str, Any]) -> str:
     if not adf:
         return ""
 
-    def convert_node(node: Dict[str, Any], indent: str = "") -> str:
+    def convert_node(node: dict[str, Any], indent: str = "") -> str:
         """Convert a single ADF node to Markdown."""
         node_type = node.get("type", "")
         content = node.get("content", [])
@@ -549,7 +549,7 @@ def adf_to_markdown(adf: Dict[str, Any]) -> str:
     return "\n\n".join(blocks)
 
 
-def validate_adf(adf: Dict[str, Any]) -> bool:
+def validate_adf(adf: dict[str, Any]) -> bool:
     """
     Validate basic ADF structure.
 

@@ -4,10 +4,12 @@ Tests the SkillCache class from assistant-skills-lib.
 The cache uses SQLite for persistent storage.
 """
 
-import pytest
 import tempfile
 import time
 from datetime import timedelta
+
+import pytest
+
 from confluence_assistant_skills import Cache, cached
 
 

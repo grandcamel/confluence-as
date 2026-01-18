@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import yaml
 
@@ -37,7 +37,7 @@ class TestResult:
     duration: float
     output: str = ""
     error: str = ""
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -46,7 +46,7 @@ class SuiteResult:
 
     suite_name: str
     description: str
-    tests: List[TestResult] = field(default_factory=list)
+    tests: list[TestResult] = field(default_factory=list)
 
     @property
     def passed(self) -> int:
@@ -88,10 +88,10 @@ class ClaudeCodeRunner:
             )
             if result.returncode != 0:
                 raise RuntimeError(f"Claude CLI error: {result.stderr}")
-        except FileNotFoundError:
+        except FileNotFoundError as err:
             raise RuntimeError(
                 "Claude Code CLI not found. Install: npm install -g @anthropic-ai/claude-code"
-            )
+            ) from err
 
     def _check_authentication(self) -> bool:
         """Check if authentication is configured."""
@@ -102,7 +102,7 @@ class ClaudeCodeRunner:
             return True
         return False
 
-    def send_prompt(self, prompt: str, timeout: Optional[int] = None) -> Dict[str, Any]:
+    def send_prompt(self, prompt: str, timeout: Optional[int] = None) -> dict[str, Any]:
         """Send a prompt to Claude Code and capture the response."""
         timeout = timeout or self.timeout
         start_time = time.time()
@@ -154,7 +154,7 @@ class ClaudeCodeRunner:
                 "duration": time.time() - start_time,
             }
 
-    def install_plugin(self, plugin_path: str = ".") -> Dict[str, Any]:
+    def install_plugin(self, plugin_path: str = ".") -> dict[str, Any]:
         """Install a plugin from the given path."""
         return self.send_prompt(f"/plugin {plugin_path}")
 
@@ -163,7 +163,7 @@ class TestCaseValidator:
     """Validates test output against expected outcomes."""
 
     @staticmethod
-    def validate(output: str, error: str, expect: Dict[str, Any]) -> Dict[str, Any]:
+    def validate(output: str, error: str, expect: dict[str, Any]) -> dict[str, Any]:
         """Validate output against expectations."""
         failures = []
         details = {}
@@ -237,12 +237,12 @@ class E2ETestRunner:
         )
         self.validator = TestCaseValidator()
 
-    def load_test_cases(self) -> Dict[str, Any]:
+    def load_test_cases(self) -> dict[str, Any]:
         """Load test cases from YAML file."""
         with open(self.test_cases_path) as f:
             return yaml.safe_load(f)
 
-    def run_test(self, test: Dict[str, Any]) -> TestResult:
+    def run_test(self, test: dict[str, Any]) -> TestResult:
         """Run a single test case."""
         test_id = test["id"]
         name = test["name"]
@@ -278,7 +278,7 @@ class E2ETestRunner:
             details={"validation": validation, "exit_code": result["exit_code"]},
         )
 
-    def run_suite(self, suite_name: str, suite: Dict[str, Any]) -> SuiteResult:
+    def run_suite(self, suite_name: str, suite: dict[str, Any]) -> SuiteResult:
         """Run all tests in a suite."""
         result = SuiteResult(
             suite_name=suite_name, description=suite.get("description", "")
@@ -297,7 +297,7 @@ class E2ETestRunner:
 
         return result
 
-    def run_all(self, suites: Optional[List[str]] = None) -> List[SuiteResult]:
+    def run_all(self, suites: Optional[list[str]] = None) -> list[SuiteResult]:
         """Run all test suites."""
         test_cases = self.load_test_cases()
         results = []
@@ -310,7 +310,7 @@ class E2ETestRunner:
 
         return results
 
-    def print_summary(self, results: List[SuiteResult]) -> bool:
+    def print_summary(self, results: list[SuiteResult]) -> bool:
         """Print test execution summary."""
         total_passed = sum(r.passed for r in results)
         total_failed = sum(r.failed for r in results)
@@ -337,7 +337,7 @@ class E2ETestRunner:
         print("=" * 60)
         return total_failed == 0
 
-    def write_json_report(self, results: List[SuiteResult], output_path: Path):
+    def write_json_report(self, results: list[SuiteResult], output_path: Path):
         """Write results to JSON file."""
         data = {
             "timestamp": datetime.now().isoformat(),
@@ -364,7 +364,7 @@ class E2ETestRunner:
         with open(output_path, "w") as f:
             json.dump(data, f, indent=2)
 
-    def write_junit_report(self, results: List[SuiteResult], output_path: Path):
+    def write_junit_report(self, results: list[SuiteResult], output_path: Path):
         """Write results to JUnit XML format."""
         from xml.etree import ElementTree as ET
 
@@ -397,7 +397,7 @@ class E2ETestRunner:
         tree = ET.ElementTree(testsuites)
         tree.write(output_path, encoding="unicode", xml_declaration=True)
 
-    def write_html_report(self, results: List[SuiteResult], output_path: Path):
+    def write_html_report(self, results: list[SuiteResult], output_path: Path):
         """Write results to HTML report."""
         total_passed = sum(r.passed for r in results)
         total_failed = sum(r.failed for r in results)

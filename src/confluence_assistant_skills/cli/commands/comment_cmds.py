@@ -7,7 +7,6 @@ from typing import Any
 
 import click
 
-from confluence_assistant_skills.cli.helpers import is_markdown_file, read_file_content
 from confluence_assistant_skills import (
     ValidationError,
     format_json,
@@ -20,6 +19,7 @@ from confluence_assistant_skills import (
     validate_limit,
     validate_page_id,
 )
+from confluence_assistant_skills.cli.helpers import is_markdown_file, read_file_content
 
 
 def _format_comment(comment: dict[str, Any], detailed: bool = False) -> dict[str, Any]:

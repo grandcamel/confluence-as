@@ -1,18 +1,20 @@
 """Tests for error_handler module."""
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
+
 from confluence_assistant_skills import (
-    ConfluenceError,
     AuthenticationError,
-    PermissionError,
-    NotFoundError,
-    RateLimitError,
     ConflictError,
+    ConfluenceError,
+    NotFoundError,
+    PermissionError,
+    RateLimitError,
     ServerError,
+    extract_error_message,
     handle_confluence_error,
     sanitize_error_message,
-    extract_error_message,
 )
 from confluence_assistant_skills.error_handler import ValidationError
 

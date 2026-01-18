@@ -5,24 +5,43 @@ Provides a Confluence-specific exception hierarchy that builds upon the base
 error handler from assistant_skills_lib.
 """
 
-import sys
 import functools
-from typing import Optional, Callable, Any, Literal
+import sys
+from typing import Any, Callable, Literal, Optional
 
 import requests
-
+from assistant_skills_lib.error_handler import (
+    AuthenticationError as BaseAuthenticationError,
+)
 from assistant_skills_lib.error_handler import (
     BaseAPIError,
-    AuthenticationError as BaseAuthenticationError,
-    PermissionError as BasePermissionError,
-    ValidationError as BaseValidationError,
-    NotFoundError as BaseNotFoundError,
-    RateLimitError as BaseRateLimitError,
+)
+from assistant_skills_lib.error_handler import (
     ConflictError as BaseConflictError,
+)
+from assistant_skills_lib.error_handler import (
+    NotFoundError as BaseNotFoundError,
+)
+from assistant_skills_lib.error_handler import (
+    PermissionError as BasePermissionError,
+)
+from assistant_skills_lib.error_handler import (
+    RateLimitError as BaseRateLimitError,
+)
+from assistant_skills_lib.error_handler import (
     ServerError as BaseServerError,
-    sanitize_error_message as base_sanitize_error_message,
-    print_error as base_print_error,
+)
+from assistant_skills_lib.error_handler import (
+    ValidationError as BaseValidationError,
+)
+from assistant_skills_lib.error_handler import (
     handle_errors as base_handle_errors,
+)
+from assistant_skills_lib.error_handler import (
+    print_error as base_print_error,
+)
+from assistant_skills_lib.error_handler import (
+    sanitize_error_message as base_sanitize_error_message,
 )
 
 

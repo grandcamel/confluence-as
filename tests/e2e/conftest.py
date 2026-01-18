@@ -4,7 +4,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 
@@ -17,11 +17,11 @@ class ResponseLogger:
     def __init__(self, output_dir: Path, enabled: bool = True):
         self.output_dir = output_dir
         self.enabled = enabled
-        self.responses: List[Dict[str, Any]] = []
+        self.responses: list[dict[str, Any]] = []
         if enabled:
             self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def log(self, test_name: str, prompt: str, result: Dict[str, Any]) -> None:
+    def log(self, test_name: str, prompt: str, result: dict[str, Any]) -> None:
         """Log a response for later analysis."""
         entry = {
             "timestamp": datetime.now().isoformat(),
@@ -51,7 +51,7 @@ class ResponseLogger:
 
 
 def assert_response_contains(
-    result: Dict[str, Any], terms: List[str], message: str, match_any: bool = True
+    result: dict[str, Any], terms: list[str], message: str, match_any: bool = True
 ) -> None:
     """
     Assert that response contains expected terms, with helpful error message.

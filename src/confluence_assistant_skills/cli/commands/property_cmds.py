@@ -88,8 +88,8 @@ def list_properties(
             try:
                 if not re.search(pattern, key):
                     continue
-            except re.error:
-                raise ValidationError(f"Invalid regex pattern: {pattern}")
+            except re.error as err:
+                raise ValidationError(f"Invalid regex pattern: {pattern}") from err
 
         properties.append(prop)
 

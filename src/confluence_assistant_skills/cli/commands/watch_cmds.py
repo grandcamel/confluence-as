@@ -6,7 +6,6 @@ from typing import Any, cast
 
 import click
 
-from confluence_assistant_skills.cli.helpers import get_space_by_key
 from confluence_assistant_skills import (
     format_json,
     format_table,
@@ -16,6 +15,7 @@ from confluence_assistant_skills import (
     validate_page_id,
     validate_space_key,
 )
+from confluence_assistant_skills.cli.helpers import get_space_by_key
 
 
 def _get_current_user(client: Any) -> dict[str, Any]:

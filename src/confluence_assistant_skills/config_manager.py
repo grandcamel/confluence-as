@@ -19,7 +19,7 @@ Usage:
     client = get_confluence_client()
 """
 
-from typing import Any, Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from assistant_skills_lib.config_manager import BaseConfigManager
 from assistant_skills_lib.error_handler import ValidationError
@@ -37,7 +37,7 @@ class ConfigManager(BaseConfigManager):
         """Returns the name of the service, which is 'confluence'."""
         return "confluence"
 
-    def get_default_config(self) -> Dict[str, Any]:
+    def get_default_config(self) -> dict[str, Any]:
         """Returns the default configuration dictionary for Confluence."""
         return {
             "api": {
@@ -49,7 +49,7 @@ class ConfigManager(BaseConfigManager):
             },
         }
 
-    def get_credentials(self) -> Dict[str, Any]:
+    def get_credentials(self) -> dict[str, Any]:
         """
         Get and validate credentials from environment variables.
 
@@ -79,7 +79,7 @@ class ConfigManager(BaseConfigManager):
                 "Set CONFLUENCE_API_TOKEN environment variable."
             )
 
-        from assistant_skills_lib.validators import validate_url, validate_email
+        from assistant_skills_lib.validators import validate_email, validate_url
 
         return {
             "url": validate_url(url, require_https=True),

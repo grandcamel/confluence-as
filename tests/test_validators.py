@@ -1,23 +1,24 @@
 """Tests for validators module."""
 
 import pytest
-from confluence_assistant_skills import (
-    validate_page_id,
-    validate_space_key,
-    validate_cql,
-    validate_content_type,
-    validate_url,
-    validate_email,
-    validate_title,
-    validate_label,
-    validate_limit,
-    validate_issue_key,
-    validate_jql_query,
-)
 
 # Import from base library to catch errors from both base validators and local validators
 # Our local ValidationError is a subclass, so catching base catches both
 from assistant_skills_lib.error_handler import ValidationError
+
+from confluence_assistant_skills import (
+    validate_content_type,
+    validate_cql,
+    validate_email,
+    validate_issue_key,
+    validate_jql_query,
+    validate_label,
+    validate_limit,
+    validate_page_id,
+    validate_space_key,
+    validate_title,
+    validate_url,
+)
 
 
 class TestValidatePageId:

@@ -6,21 +6,21 @@ Inherits generic formatters from the base library.
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # Import generic formatters and color utilities from the base library
 # Re-exported for convenience - these are used by __init__.py
 from assistant_skills_lib.formatters import (  # noqa: F401
     Colors,
     _colorize,
-    format_json,
-    format_timestamp,
-    format_table,
     export_csv,
+    format_json,
+    format_table,
+    format_timestamp,
+    print_error,
+    print_info,
     print_success,
     print_warning,
-    print_info,
-    print_error,
 )
 
 
@@ -64,7 +64,7 @@ def strip_html_tags(text: str, collapse_whitespace: bool = False) -> str:
     return result.strip()
 
 
-def format_page(page: Dict[str, Any], detailed: bool = False) -> str:
+def format_page(page: dict[str, Any], detailed: bool = False) -> str:
     """
     Format a Confluence page for display.
     """
@@ -105,7 +105,7 @@ def format_page(page: Dict[str, Any], detailed: bool = False) -> str:
     return "\n".join(lines)
 
 
-def format_blogpost(blogpost: Dict[str, Any], detailed: bool = False) -> str:
+def format_blogpost(blogpost: dict[str, Any], detailed: bool = False) -> str:
     """
     Format a Confluence blog post for display.
     """
@@ -127,7 +127,7 @@ def format_blogpost(blogpost: Dict[str, Any], detailed: bool = False) -> str:
     return "\n".join(lines)
 
 
-def format_space(space: Dict[str, Any], detailed: bool = False) -> str:
+def format_space(space: dict[str, Any], detailed: bool = False) -> str:
     """
     Format a Confluence space for display.
     """
@@ -161,7 +161,7 @@ def format_space(space: Dict[str, Any], detailed: bool = False) -> str:
     return "\n".join(lines)
 
 
-def format_comment(comment: Dict[str, Any], show_body: bool = True) -> str:
+def format_comment(comment: dict[str, Any], show_body: bool = True) -> str:
     """
     Format a Confluence comment for display.
     """
@@ -183,7 +183,7 @@ def format_comment(comment: Dict[str, Any], show_body: bool = True) -> str:
 
 
 def format_comments(
-    comments: List[Dict[str, Any]],
+    comments: list[dict[str, Any]],
     limit: Optional[int] = None,
     show_body: bool = True,
 ) -> str:
@@ -202,7 +202,7 @@ def format_comments(
 
 
 def format_search_results(
-    results: List[Dict[str, Any]],
+    results: list[dict[str, Any]],
     show_labels: bool = False,
     show_ancestors: bool = False,
     show_excerpt: bool = True,
@@ -249,7 +249,7 @@ def format_search_results(
     return "\n".join(lines)
 
 
-def format_attachment(attachment: Dict[str, Any]) -> str:
+def format_attachment(attachment: dict[str, Any]) -> str:
     """
     Format an attachment for display.
     """
@@ -272,7 +272,7 @@ def format_attachment(attachment: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def format_label(label: Dict[str, Any]) -> str:
+def format_label(label: dict[str, Any]) -> str:
     """
     Format a label for display.
     """
@@ -282,7 +282,7 @@ def format_label(label: Dict[str, Any]) -> str:
     return f"{prefix}:{name} (ID: {label_id})" if prefix else f"{name} (ID: {label_id})"
 
 
-def format_version(version: Dict[str, Any]) -> str:
+def format_version(version: dict[str, Any]) -> str:
     """
     Format a version for display.
     """

@@ -262,11 +262,20 @@ page = get_page("12345")
 # Install development dependencies
 pip install -e ".[dev]"
 
+# Install pre-commit hooks (recommended)
+pre-commit install
+
 # Run tests
 pytest
 
 # Run with coverage
 pytest --cov=src/confluence_assistant_skills
+
+# Code quality checks (run automatically on commit with pre-commit)
+ruff check src/ tests/      # Linting
+ruff format src/ tests/     # Formatting
+mypy src/                   # Type checking
+bandit -r src/ -q           # Security scanning
 ```
 
 ## License

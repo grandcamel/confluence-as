@@ -4,17 +4,24 @@ Input Validators for Confluence Assistant Skills
 
 import re
 from pathlib import Path
-from typing import Optional, Union, List
+from typing import Optional, Union
+
+from assistant_skills_lib.validators import (
+    validate_email as base_validate_email,
+)
+from assistant_skills_lib.validators import (
+    validate_int,
+    validate_required,
+)
+from assistant_skills_lib.validators import (
+    validate_path as base_validate_path,
+)
+from assistant_skills_lib.validators import (
+    validate_url as base_validate_url,
+)
 
 # Import ValidationError from local error_handler for Confluence-specific errors
 from .error_handler import ValidationError
-from assistant_skills_lib.validators import (
-    validate_required,
-    validate_path as base_validate_path,
-    validate_url as base_validate_url,
-    validate_email as base_validate_email,
-    validate_int,
-)
 
 
 def validate_page_id(page_id: Union[str, int], field_name: str = "page_id") -> str:
@@ -227,7 +234,7 @@ validate_email = base_validate_email
 def validate_file_path(
     path: Union[str, Path],
     field_name: str = "file_path",
-    allowed_extensions: Optional[List[str]] = None,
+    allowed_extensions: Optional[list[str]] = None,
     must_exist: bool = True,
 ) -> Path:
     """
