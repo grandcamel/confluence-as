@@ -56,7 +56,7 @@ from .error_handler import (
     ConfluenceError,
     AuthenticationError,
     PermissionError,
-    ValidationError as ErrorHandlerValidationError,
+    ValidationError,
     NotFoundError,
     RateLimitError,
     ConflictError,
@@ -71,7 +71,6 @@ from .error_handler import (
 
 # Validators
 from .validators import (
-    ValidationError,
     validate_page_id,
     validate_space_key,
     validate_cql,
@@ -126,6 +125,7 @@ from .adf_helper import (
     adf_to_text,
     adf_to_markdown,
     validate_adf,
+    is_markdown_block_start,
 )
 
 # XHTML Helper
@@ -220,6 +220,7 @@ __all__ = [
     "adf_to_text",
     "adf_to_markdown",
     "validate_adf",
+    "is_markdown_block_start",
     # XHTML Helper
     "xhtml_to_markdown",
     "markdown_to_xhtml",

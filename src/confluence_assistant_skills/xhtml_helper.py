@@ -27,6 +27,8 @@ import re
 import html
 from typing import Dict, Any, Optional, Tuple
 
+from .adf_helper import is_markdown_block_start
+
 
 def xhtml_to_markdown(xhtml: str) -> str:
     """
@@ -385,16 +387,8 @@ def markdown_to_xhtml(markdown: str) -> str:
     return ''.join(result)
 
 
-def _is_block_start(line: str) -> bool:
-    """Check if a line starts a block element."""
-    return (
-        line.startswith('#') or
-        line.startswith('```') or
-        line.startswith('>') or
-        re.match(r'^[-*]\s+', line) or
-        re.match(r'^\d+\.\s+', line) or
-        re.match(r'^[-*_]{3,}$', line)
-    )
+# Alias for internal use - uses shared function from adf_helper
+_is_block_start = is_markdown_block_start
 
 
 def _markdown_inline_to_xhtml(text: str) -> str:

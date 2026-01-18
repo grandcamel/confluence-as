@@ -31,6 +31,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from . import __version__
 from .error_handler import handle_confluence_error, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -103,7 +104,7 @@ class ConfluenceClient:
         session.headers.update({
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "User-Agent": "Confluence-Assistant-Skills-Lib/0.1.0",
+            "User-Agent": f"Confluence-Assistant-Skills-Lib/{__version__}",
         })
 
         return session
@@ -200,6 +201,46 @@ class ConfluenceClient:
 
         return self._handle_response(response, operation)
 
+    def _request_with_body(
+        self,
+        method: str,
+        endpoint: str,
+        data: Optional[Dict[str, Any]] = None,
+        json_data: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
+        operation: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Perform a request with a JSON body (POST, PUT, PATCH).
+
+        Args:
+            method: HTTP method (POST, PUT, PATCH)
+            endpoint: API endpoint path
+            data: Form data (mutually exclusive with json_data)
+            json_data: JSON data to send
+            params: Query parameters
+            operation: Description for error messages
+
+        Returns:
+            Parsed JSON response
+        """
+        url = self._build_url(endpoint)
+        operation = operation or f"{method} request"
+        logger.debug(f"{method} {url}")
+
+        payload = json_data if json_data is not None else data
+
+        response = self.session.request(
+            method,
+            url,
+            json=payload,
+            params=params,
+            timeout=self.timeout,
+            verify=self.verify_ssl,
+        )
+
+        return self._handle_response(response, operation)
+
     def post(
         self,
         endpoint: str,
@@ -221,21 +262,7 @@ class ConfluenceClient:
         Returns:
             Parsed JSON response
         """
-        url = self._build_url(endpoint)
-        logger.debug(f"POST {url}")
-
-        # Use json_data if provided, otherwise data
-        payload = json_data if json_data is not None else data
-
-        response = self.session.post(
-            url,
-            json=payload,
-            params=params,
-            timeout=self.timeout,
-            verify=self.verify_ssl,
-        )
-
-        return self._handle_response(response, operation)
+        return self._request_with_body("POST", endpoint, data, json_data, params, operation)
 
     def put(
         self,
@@ -258,20 +285,7 @@ class ConfluenceClient:
         Returns:
             Parsed JSON response
         """
-        url = self._build_url(endpoint)
-        logger.debug(f"PUT {url}")
-
-        payload = json_data if json_data is not None else data
-
-        response = self.session.put(
-            url,
-            json=payload,
-            params=params,
-            timeout=self.timeout,
-            verify=self.verify_ssl,
-        )
-
-        return self._handle_response(response, operation)
+        return self._request_with_body("PUT", endpoint, data, json_data, params, operation)
 
     def delete(
         self,

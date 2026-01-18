@@ -391,9 +391,21 @@ def markdown_to_adf(markdown: str) -> Dict[str, Any]:
     return create_adf_doc(content if content else [create_paragraph(text="")])
 
 
-def _is_block_element(line: str) -> bool:
-    """Check if a line starts a block element."""
-    return (
+def is_markdown_block_start(line: str) -> bool:
+    """
+    Check if a line starts a Markdown block element.
+
+    This function is shared between adf_helper and xhtml_helper modules
+    to ensure consistent Markdown parsing behavior.
+
+    Args:
+        line: A line of Markdown text
+
+    Returns:
+        True if the line starts a block element (heading, code fence,
+        blockquote, list item, or horizontal rule)
+    """
+    return bool(
         line.startswith('#') or
         line.startswith('```') or
         line.startswith('>') or
@@ -401,6 +413,10 @@ def _is_block_element(line: str) -> bool:
         re.match(r'^\d+\.\s+', line) or
         re.match(r'^[-*_]{3,}$', line)
     )
+
+
+# Alias for internal use
+_is_block_element = is_markdown_block_start
 
 
 def _parse_inline_markdown(text: str) -> List[Dict[str, Any]]:

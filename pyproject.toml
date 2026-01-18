@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "confluence-assistant-skills"
+name = "confluence-assistant-skills-lib"
 dynamic = ["version"]
 description = "Python library for Confluence Cloud REST API - shared utilities for Confluence automation"
 readme = "README.md"
@@ -39,11 +39,7 @@ classifiers = [
 dependencies = [
     "requests>=2.28.0",
     "assistant-skills-lib>=0.2.1",
-    "click>=8.0.0",
 ]
-
-[project.scripts]
-confluence-as = "confluence_assistant_skills.cli:main"
 
 [project.optional-dependencies]
 dev = [

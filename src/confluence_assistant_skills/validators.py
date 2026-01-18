@@ -6,8 +6,8 @@ import re
 from pathlib import Path
 from typing import Optional, Union, List
 
-# Import from base library
-from assistant_skills_lib.error_handler import ValidationError
+# Import ValidationError from local error_handler for Confluence-specific errors
+from .error_handler import ValidationError
 from assistant_skills_lib.validators import (
     validate_required,
     validate_path as base_validate_path,
@@ -53,14 +53,31 @@ def validate_space_key(
     return space_key.upper() if allow_lowercase else space_key
 
 
+def _validate_balanced_syntax(query: str, field_name: str) -> None:
+    """
+    Validate balanced quotes and parentheses in query strings.
+
+    Args:
+        query: The query string to validate
+        field_name: Name of the field for error messages
+
+    Raises:
+        ValidationError: If quotes or parentheses are unbalanced
+    """
+    if query.count('"') % 2 != 0 or query.count("'") % 2 != 0 or query.count('(') != query.count(')'):
+        raise ValidationError(
+            f"{field_name} has unbalanced quotes or parentheses",
+            operation="validation",
+            details={"field": field_name, "value": query}
+        )
+
+
 def validate_cql(cql: str, field_name: str = "cql") -> str:
     """
     Basic validation for a CQL query.
     """
     cql = validate_required(cql, field_name)
-    # Simple checks for balanced quotes and parentheses
-    if cql.count('"') % 2 != 0 or cql.count("'") % 2 != 0 or cql.count('(') != cql.count(')'):
-        raise ValidationError(f"{field_name} has unbalanced quotes or parentheses", operation="validation", details={"field": field_name, "value": cql})
+    _validate_balanced_syntax(cql, field_name)
     return cql
 
 
@@ -184,8 +201,7 @@ def validate_jql_query(
     Basic validation for a JQL query.
     """
     jql = validate_required(jql, field_name)
-    if jql.count('"') % 2 != 0 or jql.count("'") % 2 != 0 or jql.count('(') != jql.count(')'):
-        raise ValidationError(f"{field_name} has unbalanced quotes or parentheses", operation="validation", details={"field": field_name, "value": jql})
+    _validate_balanced_syntax(jql, field_name)
     return jql
 
 
