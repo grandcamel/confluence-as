@@ -44,6 +44,18 @@ bandit -r src/ -q               # Quiet mode, only show issues
 - Mypy config in pyproject.toml ignores missing stubs for `assistant_skills_lib`
 - Run all three before committing significant changes
 
+## Pre-commit Hooks
+
+Pre-commit hooks run ruff and mypy automatically before each commit:
+
+```bash
+# Install hooks (one-time setup after cloning)
+pre-commit install
+
+# Run manually on all files
+pre-commit run --all-files
+```
+
 ## Architecture
 
 The library is organized into focused modules under `src/confluence_assistant_skills/`:

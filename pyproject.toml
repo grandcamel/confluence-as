@@ -53,6 +53,7 @@ dev = [
     "types-requests>=2.28.0",  # Type stubs for requests
     "bandit>=1.7.0",
     "click>=8.0.0",  # Required for CLI tests
+    "pre-commit>=3.0.0",
 ]
 
 [project.urls]
