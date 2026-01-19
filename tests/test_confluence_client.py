@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 import responses
-
 from confluence_assistant_skills import ConfluenceClient, create_client
-from confluence_assistant_skills.error_handler import (
+
+from confluence_assistant_skills_lib.error_handler import (
     AuthenticationError,
     NotFoundError,
     RateLimitError,

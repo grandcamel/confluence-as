@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from click.testing import CliRunner
 
-from confluence_assistant_skills.cli.main import cli
+from confluence_assistant_skills_lib.cli.main import cli
 
 
 @pytest.fixture

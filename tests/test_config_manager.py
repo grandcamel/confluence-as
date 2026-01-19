@@ -4,9 +4,9 @@ import os
 
 import pytest
 from assistant_skills_lib.error_handler import ValidationError as BaseValidationError
-
 from confluence_assistant_skills import ConfigManager, get_confluence_client
-from confluence_assistant_skills.error_handler import ValidationError
+
+from confluence_assistant_skills_lib.error_handler import ValidationError
 
 
 class TestConfigManager:

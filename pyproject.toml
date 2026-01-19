@@ -65,10 +65,10 @@ Issues = "https://github.com/grandcamel/confluence-assistant-skills-lib/issues"
 Changelog = "https://github.com/grandcamel/confluence-assistant-skills-lib/blob/main/CHANGELOG.md"
 
 [project.scripts]
-confluence-as = "confluence_assistant_skills.cli.main:cli"
+confluence-as = "confluence_assistant_skills_lib.cli.main:cli"
 
 [tool.hatch.version]
-path = "src/confluence_assistant_skills/__init__.py"
+path = "src/confluence_assistant_skills_lib/__init__.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -76,7 +76,7 @@ include = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/confluence_assistant_skills"]
+packages = ["src/confluence_assistant_skills_lib"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -176,7 +176,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["src/confluence_assistant_skills"]
+source = ["src/confluence_assistant_skills_lib"]
 branch = true
 
 [tool.coverage.report]
@@ -222,4 +222,4 @@ ignore = [
 "tests/*" = ["B011"]      # assert False is fine in tests
 
 [tool.ruff.lint.isort]
-known-first-party = ["confluence_assistant_skills"]
+known-first-party = ["confluence_assistant_skills_lib"]

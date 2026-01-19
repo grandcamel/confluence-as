@@ -4,7 +4,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-
 from confluence_assistant_skills import (
     export_csv,
     format_json,
@@ -15,7 +14,8 @@ from confluence_assistant_skills import (
     strip_html_tags,
     truncate,
 )
-from confluence_assistant_skills.formatters import (
+
+from confluence_assistant_skills_lib.formatters import (
     format_attachment,
     format_blogpost,
     format_comment,
