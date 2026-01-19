@@ -13,12 +13,14 @@ metadata, templates, and defaults. Context is loaded from:
 from __future__ import annotations
 
 import json
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-# Module-level cache for session persistence
+# Module-level cache for session persistence with thread-safe access
 _context_cache: dict[str, SpaceContext] = {}
+_context_cache_lock = threading.Lock()
 
 
 @dataclass
@@ -231,15 +233,15 @@ def get_space_context(space_key: str, force_refresh: bool = False) -> SpaceConte
     Returns:
         SpaceContext with merged data from all sources
     """
-    global _context_cache
-
     cache_key = space_key
 
-    # Check cache unless force refresh
-    if not force_refresh and cache_key in _context_cache:
-        return _context_cache[cache_key]
+    # Check cache unless force refresh (thread-safe read)
+    if not force_refresh:
+        with _context_cache_lock:
+            if cache_key in _context_cache:
+                return _context_cache[cache_key]
 
-    # Load from sources
+    # Load from sources (outside lock - I/O operations)
     skill_ctx = load_skill_context(space_key)
     settings_ctx = load_settings_context(space_key)
 
@@ -266,8 +268,9 @@ def get_space_context(space_key: str, force_refresh: bool = False) -> SpaceConte
         discovered_at=discovered_at,
     )
 
-    # Cache and return
-    _context_cache[cache_key] = context
+    # Cache and return (thread-safe write)
+    with _context_cache_lock:
+        _context_cache[cache_key] = context
     return context
 
 
@@ -275,16 +278,17 @@ def clear_context_cache(space_key: str | None = None) -> None:
     """
     Clear the context cache.
 
+    Thread-safe cache clearing.
+
     Args:
         space_key: If specified, only clear cache for this space.
                    If None, clear all cached contexts.
     """
-    global _context_cache
-
-    if space_key is None:
-        _context_cache.clear()
-    elif space_key in _context_cache:
-        del _context_cache[space_key]
+    with _context_cache_lock:
+        if space_key is None:
+            _context_cache.clear()
+        elif space_key in _context_cache:
+            del _context_cache[space_key]
 
 
 def get_page_defaults(
