@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, cast
 
 import click
+from assistant_skills_lib import validate_file_path_secure
 
 from confluence_assistant_skills_lib import (
     ValidationError,
@@ -535,7 +536,9 @@ def export_results(
     if limit:
         limit = validate_limit(limit, max_value=10000)
 
-    output_path = Path(output_file)
+    output_path = validate_file_path_secure(
+        output_file, "output_file", allow_absolute=True
+    )
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Default columns
@@ -621,7 +624,9 @@ def streaming_export(
     if not cql or not cql.strip():
         raise ValidationError("CQL query is required")
 
-    output_path = Path(output_file)
+    output_path = validate_file_path_secure(
+        output_file, "output_file", allow_absolute=True
+    )
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Infer format from extension if not specified
@@ -845,7 +850,9 @@ def history_export(output_file: str, export_format: str) -> None:
     """Export history to file."""
     history = _load_history()
 
-    output_path = Path(output_file)
+    output_path = validate_file_path_secure(
+        output_file, "output_file", allow_absolute=True
+    )
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if export_format == "csv":

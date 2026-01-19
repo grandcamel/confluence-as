@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import click
+from assistant_skills_lib import validate_file_path_secure
 
 from confluence_assistant_skills_lib import (
     ValidationError,
@@ -221,7 +222,7 @@ def download_attachment(
 ) -> None:
     """Download an attachment."""
     attachment_id = validate_page_id(attachment_id, field_name="attachment_id")
-    output_dir = Path(output_path)
+    output_dir = validate_file_path_secure(output_path, "output", allow_absolute=True)
 
     client = get_confluence_client()
 
