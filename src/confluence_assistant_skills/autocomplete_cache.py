@@ -14,6 +14,7 @@ Features:
 
 from __future__ import annotations
 
+import threading
 import time
 from datetime import timedelta
 from typing import Any
@@ -292,16 +293,21 @@ class AutocompleteCache:
 
 # Singleton instance for shared access
 _autocomplete_cache: AutocompleteCache | None = None
+_autocomplete_cache_lock = threading.Lock()
 
 
 def get_autocomplete_cache() -> AutocompleteCache:
     """
     Get or create the singleton autocomplete cache.
 
+    Thread-safe singleton access using double-checked locking pattern.
+
     Returns:
         AutocompleteCache instance
     """
     global _autocomplete_cache
     if _autocomplete_cache is None:
-        _autocomplete_cache = AutocompleteCache()
+        with _autocomplete_cache_lock:
+            if _autocomplete_cache is None:
+                _autocomplete_cache = AutocompleteCache()
     return _autocomplete_cache

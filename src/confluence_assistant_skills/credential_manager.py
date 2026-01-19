@@ -12,6 +12,7 @@ Priority order:
 
 from __future__ import annotations
 
+import threading
 from typing import Any
 
 from assistant_skills_lib import (
@@ -215,13 +216,19 @@ Or store credentials securely:
 
 # Singleton instance
 _credential_manager: ConfluenceCredentialManager | None = None
+_credential_manager_lock = threading.Lock()
 
 
 def get_credential_manager() -> ConfluenceCredentialManager:
-    """Get or create global ConfluenceCredentialManager instance."""
+    """Get or create global ConfluenceCredentialManager instance.
+
+    Thread-safe singleton access using double-checked locking pattern.
+    """
     global _credential_manager
     if _credential_manager is None:
-        _credential_manager = ConfluenceCredentialManager()
+        with _credential_manager_lock:
+            if _credential_manager is None:
+                _credential_manager = ConfluenceCredentialManager()
     return _credential_manager
 
 
