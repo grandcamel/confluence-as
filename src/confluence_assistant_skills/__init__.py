@@ -43,12 +43,30 @@ Usage:
 __version__ = "0.4.0"
 
 # Client
+# Batch processing (from base library)
+from assistant_skills_lib.batch_processor import (
+    BatchConfig,
+    BatchProcessor,
+    BatchProgress,
+    CheckpointManager,
+    generate_operation_id,
+    get_recommended_batch_size,
+    list_pending_checkpoints,
+)
+
 # Cache (from base library)
 from assistant_skills_lib.cache import (
     Cache,
     cached,
     get_cache,
     invalidate,
+)
+
+# Request Batcher (from base library)
+from assistant_skills_lib.request_batcher import (
+    BatchError,
+    BatchResult,
+    RequestBatcher,
 )
 
 # ADF Helper
@@ -72,6 +90,12 @@ from .adf_helper import (
     validate_adf,
 )
 
+# Autocomplete Cache
+from .autocomplete_cache import (
+    AutocompleteCache,
+    get_autocomplete_cache,
+)
+
 # Config
 from .config_manager import (
     ConfigManager,
@@ -82,8 +106,13 @@ from .confluence_client import ConfluenceClient, create_client
 # Credential Manager
 from .credential_manager import (
     ConfluenceCredentialManager,
+    CredentialBackend,
     CredentialNotFoundError,
     get_credential_manager,
+    get_credentials,
+    is_keychain_available,
+    store_credentials,
+    validate_credentials,
 )
 
 # Errors
@@ -176,6 +205,18 @@ from .xhtml_helper import (
 __all__ = [
     # Version
     "__version__",
+    # Batch Processing
+    "BatchConfig",
+    "BatchProcessor",
+    "BatchProgress",
+    "CheckpointManager",
+    "generate_operation_id",
+    "get_recommended_batch_size",
+    "list_pending_checkpoints",
+    # Request Batcher
+    "BatchError",
+    "BatchResult",
+    "RequestBatcher",
     # Client
     "ConfluenceClient",
     "create_client",
@@ -184,8 +225,13 @@ __all__ = [
     "get_confluence_client",
     # Credential Manager
     "ConfluenceCredentialManager",
+    "CredentialBackend",
     "CredentialNotFoundError",
     "get_credential_manager",
+    "get_credentials",
+    "is_keychain_available",
+    "store_credentials",
+    "validate_credentials",
     # Errors
     "ConfluenceError",
     "AuthenticationError",
@@ -268,6 +314,9 @@ __all__ = [
     "get_cache",
     "cached",
     "invalidate",
+    # Autocomplete Cache
+    "AutocompleteCache",
+    "get_autocomplete_cache",
     # Space Context
     "SpaceContext",
     "get_space_context",

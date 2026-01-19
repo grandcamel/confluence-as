@@ -261,6 +261,85 @@ def format_json_output(data: Any) -> str:
 format_json = format_json_output
 
 
+def with_date_range(func: F) -> F:
+    """Decorator to add standard date range options to a Click command.
+
+    Adds --start-date and --end-date options to the decorated command.
+    These options accept ISO format dates (YYYY-MM-DD).
+
+    Example:
+        @content.command()
+        @click.argument("space_key")
+        @with_date_range
+        @click.pass_context
+        def search(ctx, space_key, start_date, end_date):
+            ...
+    """
+    func = click.option(
+        "--end-date",
+        default=None,
+        help="End date filter (YYYY-MM-DD format)",
+    )(func)
+    func = click.option(
+        "--start-date",
+        default=None,
+        help="Start date filter (YYYY-MM-DD format)",
+    )(func)
+    return func
+
+
+def validate_page_id_callback(
+    ctx: click.Context, param: click.Parameter, value: str
+) -> str:
+    """Click callback to validate page ID parameter.
+
+    Use this as a callback on Click arguments/options that accept a page ID.
+
+    Args:
+        ctx: Click context
+        param: Click parameter
+        value: Page ID value to validate
+
+    Returns:
+        Validated page ID
+
+    Raises:
+        click.BadParameter: If page ID is invalid
+    """
+    from confluence_assistant_skills import validate_page_id
+
+    try:
+        return validate_page_id(value)
+    except ValidationError as e:
+        raise click.BadParameter(str(e)) from e
+
+
+def validate_space_key_callback(
+    ctx: click.Context, param: click.Parameter, value: str
+) -> str:
+    """Click callback to validate space key parameter.
+
+    Use this as a callback on Click arguments/options that accept a space key.
+
+    Args:
+        ctx: Click context
+        param: Click parameter
+        value: Space key value to validate
+
+    Returns:
+        Validated space key
+
+    Raises:
+        click.BadParameter: If space key is invalid
+    """
+    from confluence_assistant_skills import validate_space_key
+
+    try:
+        return validate_space_key(value)
+    except ValidationError as e:
+        raise click.BadParameter(str(e)) from e
+
+
 __all__ = [
     "MAX_JSON_SIZE",
     "format_json",
@@ -272,5 +351,8 @@ __all__ = [
     "parse_comma_list",
     "parse_json_arg",
     "validate_non_negative_int",
+    "validate_page_id_callback",
     "validate_positive_int",
+    "validate_space_key_callback",
+    "with_date_range",
 ]

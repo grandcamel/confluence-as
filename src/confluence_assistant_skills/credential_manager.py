@@ -225,10 +225,97 @@ def get_credential_manager() -> ConfluenceCredentialManager:
     return _credential_manager
 
 
+# Convenience functions (match JIRA credential_manager.py pattern)
+
+
+def is_keychain_available() -> bool:
+    """Check if system keychain is available."""
+    return ConfluenceCredentialManager.is_keychain_available()
+
+
+def get_credentials() -> tuple[str, str, str]:
+    """
+    Get Confluence credentials.
+
+    Returns:
+        Tuple of (url, email, api_token)
+
+    Raises:
+        CredentialNotFoundError: If credentials not found
+    """
+    manager = get_credential_manager()
+    return manager.get_credentials_tuple()
+
+
+def store_credentials(
+    url: str,
+    email: str,
+    api_token: str,
+    backend: CredentialBackend | None = None,
+) -> CredentialBackend:
+    """
+    Store credentials using preferred backend.
+
+    Args:
+        url: Confluence site URL
+        email: User email
+        api_token: API token
+        backend: Specific backend to use (default: auto-select)
+
+    Returns:
+        The backend where credentials were stored
+    """
+    manager = get_credential_manager()
+
+    # Validate inputs
+    validated_url = validate_url(url, require_https=True)
+    validated_email = validate_email(email)
+
+    if not api_token or not api_token.strip():
+        raise ValidationError("API token cannot be empty")
+
+    credentials = {
+        "site_url": validated_url,
+        "email": validated_email,
+        "api_token": api_token,
+    }
+
+    return manager.store_credentials(credentials, backend)
+
+
+def validate_credentials(url: str, email: str, api_token: str) -> dict[str, Any]:
+    """
+    Validate credentials by making a test API call.
+
+    Args:
+        url: Confluence site URL
+        email: User email
+        api_token: API token
+
+    Returns:
+        User info dict on success
+
+    Raises:
+        AuthenticationError: If credentials are invalid
+        ConfluenceError: If connection fails
+    """
+    manager = get_credential_manager()
+    credentials = {
+        "site_url": url,
+        "email": email,
+        "api_token": api_token,
+    }
+    return manager.validate_credentials(credentials)
+
+
 # Re-export CredentialBackend for convenience
 __all__ = [
     "ConfluenceCredentialManager",
     "CredentialNotFoundError",
     "CredentialBackend",
     "get_credential_manager",
+    "is_keychain_available",
+    "get_credentials",
+    "store_credentials",
+    "validate_credentials",
 ]
