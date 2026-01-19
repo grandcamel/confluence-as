@@ -79,6 +79,13 @@ from .config_manager import (
 )
 from .confluence_client import ConfluenceClient, create_client
 
+# Credential Manager
+from .credential_manager import (
+    ConfluenceCredentialManager,
+    CredentialNotFoundError,
+    get_credential_manager,
+)
+
 # Errors
 from .error_handler import (
     AuthenticationError,
@@ -162,6 +169,10 @@ __all__ = [
     # Config
     "ConfigManager",
     "get_confluence_client",
+    # Credential Manager
+    "ConfluenceCredentialManager",
+    "CredentialNotFoundError",
+    "get_credential_manager",
     # Errors
     "ConfluenceError",
     "AuthenticationError",
