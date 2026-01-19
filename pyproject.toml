@@ -76,13 +76,17 @@ packages = ["src/confluence_assistant_skills"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
 markers = [
-    "e2e: marks tests as end-to-end tests requiring Claude Code CLI",
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
+    "unit: Unit tests (fast, no external calls)",
+    "integration: Integration tests (may require credentials)",
+    "slow: Slow running tests",
+    "live: Tests requiring live credentials",
+    "destructive: Tests that modify data",
+    "e2e: End-to-end tests requiring Claude Code CLI",
 ]
 
 [tool.coverage.run]
