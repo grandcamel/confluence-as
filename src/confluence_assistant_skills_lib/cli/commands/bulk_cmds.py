@@ -11,7 +11,6 @@ import click
 from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
-    get_confluence_client,
     handle_errors,
     print_success,
     print_warning,
@@ -19,6 +18,7 @@ from confluence_assistant_skills_lib import (
     validate_page_id,
     validate_space_key,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 from confluence_assistant_skills_lib.cli.helpers import get_space_by_key
 
 
@@ -76,8 +76,10 @@ def label() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def bulk_label_add(
+    ctx: click.Context,
     cql: str,
     labels: str,
     dry_run: bool,
@@ -93,7 +95,7 @@ def bulk_label_add(
     if not label_list:
         raise ValidationError("At least one label is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Find pages
     pages = _search_pages_by_cql(client, cql, max_pages)
@@ -208,8 +210,10 @@ def bulk_label_add(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def bulk_label_remove(
+    ctx: click.Context,
     cql: str,
     labels: str,
     dry_run: bool,
@@ -224,7 +228,7 @@ def bulk_label_remove(
     if not label_list:
         raise ValidationError("At least one label is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Find pages
     pages = _search_pages_by_cql(client, cql, max_pages)
@@ -338,8 +342,10 @@ def bulk_label_remove(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def bulk_move(
+    ctx: click.Context,
     cql: str,
     target_space: str | None,
     target_parent: str | None,
@@ -354,7 +360,7 @@ def bulk_move(
     if not target_space and not target_parent:
         raise ValidationError("Either --target-space or --target-parent is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Validate target space if provided
     target_space_id = None
@@ -509,8 +515,10 @@ def bulk_move(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def bulk_delete(
+    ctx: click.Context,
     cql: str,
     dry_run: bool,
     yes: bool,
@@ -520,7 +528,7 @@ def bulk_delete(
     """Delete multiple pages. USE WITH CAUTION!"""
     max_pages = validate_limit(max_pages, max_value=500)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Find pages
     pages = _search_pages_by_cql(client, cql, max_pages)
@@ -659,8 +667,10 @@ def bulk_delete(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def bulk_permission(
+    ctx: click.Context,
     cql: str,
     add_group: str | None,
     remove_group: str | None,
@@ -679,7 +689,7 @@ def bulk_permission(
             "At least one of --add-group, --remove-group, --add-user, or --remove-user is required"
         )
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Find pages
     pages = _search_pages_by_cql(client, cql, max_pages)
@@ -849,8 +859,10 @@ def bulk_permission(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def bulk_update(
+    ctx: click.Context,
     cql: str,
     title_prefix: str | None,
     title_suffix: str | None,
@@ -867,7 +879,7 @@ def bulk_update(
             "At least one of --title-prefix or --title-suffix is required"
         )
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Find pages
     pages = _search_pages_by_cql(client, cql, max_pages)

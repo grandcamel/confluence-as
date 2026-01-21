@@ -10,7 +10,6 @@ from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_info,
     print_success,
@@ -18,6 +17,7 @@ from confluence_assistant_skills_lib import (
     validate_limit,
     validate_space_key,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 from confluence_assistant_skills_lib.cli.helpers import get_space_by_key
 
 
@@ -51,8 +51,10 @@ def user() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def search_users(
+    ctx: click.Context,
     query: str,
     include_groups: bool,
     limit: int,
@@ -61,7 +63,7 @@ def search_users(
     """Search for users by name or email."""
     limit = validate_limit(limit, max_value=100)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Search users using v1 API
     params: dict[str, Any] = {
@@ -145,13 +147,15 @@ def search_users(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_user(
+    ctx: click.Context,
     account_id: str,
     output: str,
 ) -> None:
     """Get user details by account ID."""
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get user info
     user_data = client.get(
@@ -189,13 +193,15 @@ def get_user(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_user_groups(
+    ctx: click.Context,
     account_id: str,
     output: str,
 ) -> None:
     """List groups a user belongs to."""
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get user groups
     groups_resp = client.get(
@@ -265,15 +271,17 @@ def group() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def list_groups(
+    ctx: click.Context,
     limit: int,
     output: str,
 ) -> None:
     """List all groups."""
     limit = validate_limit(limit, max_value=200)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     groups = []
     for g in client.paginate(
@@ -330,13 +338,15 @@ def list_groups(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_group(
+    ctx: click.Context,
     group_name: str,
     output: str,
 ) -> None:
     """Get group details."""
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get group info
     group_data = client.get(
@@ -369,8 +379,10 @@ def get_group(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def list_group_members(
+    ctx: click.Context,
     group_name: str,
     limit: int,
     output: str,
@@ -378,7 +390,7 @@ def list_group_members(
     """List members of a group."""
     limit = validate_limit(limit, max_value=200)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     members = []
     for member in client.paginate(
@@ -412,9 +424,9 @@ def list_group_members(
                 data.append(
                     {
                         "name": m.get("displayName", "Unknown")[:30],
-                        "email": m.get("email", "N/A")[:30]
-                        if m.get("email")
-                        else "N/A",
+                        "email": (
+                            m.get("email", "N/A")[:30] if m.get("email") else "N/A"
+                        ),
                         "type": m.get("type", "user"),
                     }
                 )
@@ -439,13 +451,15 @@ def list_group_members(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def create_group(
+    ctx: click.Context,
     group_name: str,
     output: str,
 ) -> None:
     """Create a new group."""
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Create group
     result = client.post(
@@ -474,14 +488,16 @@ def create_group(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def delete_group(
+    ctx: click.Context,
     group_name: str,
     confirm: bool,
     output: str,
 ) -> None:
     """Delete a group."""
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Check group exists first
     client.get(f"/rest/api/group/{group_name}", operation="verify group exists")
@@ -525,14 +541,16 @@ def delete_group(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def add_user_to_group(
+    ctx: click.Context,
     group_name: str,
     user: str,
     output: str,
 ) -> None:
     """Add a user to a group."""
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Add user to group
     client.post(
@@ -570,15 +588,17 @@ def add_user_to_group(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def remove_user_from_group(
+    ctx: click.Context,
     group_name: str,
     user: str,
     confirm: bool,
     output: str,
 ) -> None:
     """Remove a user from a group."""
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     if not confirm:
         click.echo(f"\nYou are about to remove user '{user}' from group '{group_name}'")
@@ -632,15 +652,17 @@ def admin_space() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_space_settings(
+    ctx: click.Context,
     space_key: str,
     output: str,
 ) -> None:
     """View space settings."""
     space_key = validate_space_key(space_key)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space info via v2 API
     space = get_space_by_key(client, space_key)
@@ -702,8 +724,10 @@ def get_space_settings(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def update_space_settings(
+    ctx: click.Context,
     space_key: str,
     description: str | None,
     new_name: str | None,
@@ -715,7 +739,7 @@ def update_space_settings(
     if not description and not new_name:
         raise ValidationError("At least one of --description or --name is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get current space
     space = get_space_by_key(client, space_key)
@@ -761,15 +785,17 @@ def update_space_settings(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_space_permissions(
+    ctx: click.Context,
     space_key: str,
     output: str,
 ) -> None:
     """View space permissions."""
     space_key = validate_space_key(space_key)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space info
     space = get_space_by_key(client, space_key)
@@ -846,8 +872,10 @@ def admin_template() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def list_templates(
+    ctx: click.Context,
     space: str | None,
     limit: int,
     output: str,
@@ -855,7 +883,7 @@ def list_templates(
     """List content templates."""
     limit = validate_limit(limit, max_value=200)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     params: dict[str, Any] = {"limit": min(limit, 25)}
     if space:
@@ -920,13 +948,15 @@ def list_templates(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_template(
+    ctx: click.Context,
     template_id: str,
     output: str,
 ) -> None:
     """Get template details."""
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     template = client.get(
         f"/rest/api/template/{template_id}",
@@ -978,8 +1008,10 @@ def admin_permissions() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def check_permissions(
+    ctx: click.Context,
     space: str,
     only_missing: bool,
     output: str,
@@ -987,7 +1019,7 @@ def check_permissions(
     """Check your permissions on a space."""
     space = validate_space_key(space)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get current user
     current_user = client.get("/rest/api/user/current", operation="get current user")

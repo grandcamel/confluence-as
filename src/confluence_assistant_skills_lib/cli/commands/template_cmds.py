@@ -11,7 +11,6 @@ from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     markdown_to_xhtml,
     print_success,
@@ -19,6 +18,7 @@ from confluence_assistant_skills_lib import (
     validate_space_key,
     xhtml_to_markdown,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 from confluence_assistant_skills_lib.cli.helpers import (
     get_space_by_key,
     is_markdown_file,
@@ -52,8 +52,10 @@ def template() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def list_templates(
+    ctx: click.Context,
     space: str | None,
     template_type: str | None,
     blueprints: bool,
@@ -66,7 +68,7 @@ def list_templates(
 
     limit = validate_limit(limit, max_value=250)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     if blueprints:
         # List blueprints using v1 API
@@ -187,8 +189,10 @@ def list_templates(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_template(
+    ctx: click.Context,
     template_id: str,
     body: bool,
     body_format: str,
@@ -199,7 +203,7 @@ def get_template(
     if not template_id:
         raise ValidationError("Template ID is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     if blueprint:
         # Get blueprint
@@ -283,8 +287,10 @@ def get_template(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def create_template(
+    ctx: click.Context,
     name: str,
     space: str,
     description: str | None,
@@ -303,7 +309,7 @@ def create_template(
     if content and content_file:
         raise ValidationError("Cannot specify both --content and --file")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space info
     get_space_by_key(client, space)
@@ -379,8 +385,10 @@ def create_template(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def update_template(
+    ctx: click.Context,
     template_id: str,
     name: str | None,
     description: str | None,
@@ -397,7 +405,7 @@ def update_template(
     if content and content_file:
         raise ValidationError("Cannot specify both --content and --file")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get current template
     current = client.get(
@@ -500,8 +508,10 @@ def update_template(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def create_from_template(
+    ctx: click.Context,
     template_id: str | None,
     blueprint_id: str | None,
     space: str,
@@ -522,7 +532,7 @@ def create_from_template(
     if content and content_file:
         raise ValidationError("Cannot specify both --content and --file")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space info
     space_info = get_space_by_key(client, space)

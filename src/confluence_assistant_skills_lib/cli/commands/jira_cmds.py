@@ -12,7 +12,6 @@ from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_info,
     print_success,
@@ -20,6 +19,7 @@ from confluence_assistant_skills_lib import (
     validate_page_id,
     xhtml_to_markdown,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 
 
 def _get_jira_client_config(
@@ -104,8 +104,10 @@ def jira() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def link_to_jira(
+    ctx: click.Context,
     page_id: str,
     issue_key: str,
     jira_url: str,
@@ -128,7 +130,7 @@ def link_to_jira(
 
     issue_key = issue_key.upper()
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -242,8 +244,10 @@ def link_to_jira(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_linked_issues(
+    ctx: click.Context,
     page_id: str,
     output: str,
 ) -> None:
@@ -253,7 +257,7 @@ def get_linked_issues(
     """
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info with content
     page = client.get(
@@ -393,8 +397,10 @@ def get_linked_issues(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def embed_jira_issues(
+    ctx: click.Context,
     page_id: str,
     jql: str | None,
     issues: str | None,
@@ -413,7 +419,7 @@ def embed_jira_issues(
     if not jql and not issues:
         raise ValidationError("Either --jql or --issues must be provided")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(
@@ -516,8 +522,10 @@ def embed_jira_issues(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def create_jira_from_page(
+    ctx: click.Context,
     page_id: str,
     project: str,
     issue_type: str,
@@ -540,7 +548,7 @@ def create_jira_from_page(
     # Get JIRA config
     jira_config = _get_jira_client_config(jira_url, jira_email, jira_token)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(
@@ -673,8 +681,10 @@ def create_jira_from_page(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def sync_jira_macro(
+    ctx: click.Context,
     page_id: str,
     update_jql: str | None,
     macro_index: int | None,
@@ -686,7 +696,7 @@ def sync_jira_macro(
     """
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(

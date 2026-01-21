@@ -15,13 +15,13 @@ from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_info,
     print_success,
     print_warning,
     validate_space_key,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 
 
 def _get_cache_dir() -> Path:
@@ -363,8 +363,10 @@ def cache_clear(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def cache_warm(
+    ctx: click.Context,
     spaces: bool,
     space: str | None,
     warm_all: bool,
@@ -375,7 +377,7 @@ def cache_warm(
     if not spaces and not space and not warm_all:
         raise ValidationError("At least one of --spaces, --space, or --all is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     warmed = []
     errors = []
@@ -515,14 +517,16 @@ def cache_warm(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def health_check(
+    ctx: click.Context,
     endpoint: str | None,
     verbose: bool,
     output: str,
 ) -> None:
     """Test API connectivity and health."""
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     results: dict[str, Any] = {
         "siteUrl": os.environ.get("CONFLUENCE_SITE_URL", "Not configured"),
@@ -650,12 +654,14 @@ def health_check(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def rate_limit_status(
+    ctx: click.Context,
     output: str,
 ) -> None:
     """Check current rate limit status."""
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Make a request and check response headers for rate limit info
     # Atlassian APIs include rate limit headers in responses
@@ -730,13 +736,15 @@ def rate_limit_status(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def api_diagnostics(
+    ctx: click.Context,
     verbose: bool,
     output: str,
 ) -> None:
     """Run API diagnostics."""
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     diagnostics: dict[str, Any] = {
         "timestamp": datetime.now().isoformat(),

@@ -40,7 +40,7 @@ Usage:
     page = client.get("/api/v2/pages/12345")
 """
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 # Client
 # Batch processing (from base library)

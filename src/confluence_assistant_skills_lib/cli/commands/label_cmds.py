@@ -10,13 +10,13 @@ from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_success,
     validate_limit,
     validate_page_id,
     validate_space_key,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 
 
 @click.group()
@@ -34,15 +34,17 @@ def label() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_labels(
+    ctx: click.Context,
     page_id: str,
     output: str,
 ) -> None:
     """List labels on a page."""
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -89,8 +91,10 @@ def get_labels(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def add_label(
+    ctx: click.Context,
     page_id: str,
     labels: tuple[str, ...],
     output: str,
@@ -113,7 +117,7 @@ def add_label(
         if " " in label_name:
             raise ValidationError(f"Label name cannot contain spaces: '{label_name}'")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Add labels
     label_data = [{"name": name.strip()} for name in labels]
@@ -144,8 +148,10 @@ def add_label(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def remove_label(
+    ctx: click.Context,
     page_id: str,
     label_name: str,
     output: str,
@@ -160,7 +166,7 @@ def remove_label(
     if not label_name or not label_name.strip():
         raise ValidationError("Label name is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Remove label
     client.delete(
@@ -192,8 +198,10 @@ def remove_label(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def search_by_label(
+    ctx: click.Context,
     label_name: str,
     space: str | None,
     content_type: str | None,
@@ -222,7 +230,7 @@ def search_by_label(
 
     cql = " AND ".join(cql_parts)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     params: dict[str, Any] = {
         "cql": cql,
@@ -290,8 +298,10 @@ def search_by_label(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def list_popular_labels(
+    ctx: click.Context,
     space: str | None,
     limit: int,
     output: str,
@@ -302,7 +312,7 @@ def list_popular_labels(
 
     limit = validate_limit(limit, max_value=100)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Use v1 API for label statistics
 

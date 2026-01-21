@@ -10,12 +10,12 @@ from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_success,
     validate_limit,
     validate_page_id,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 
 
 def _get_page_info(client: Any, page_id: str) -> dict[str, Any]:
@@ -46,8 +46,10 @@ def hierarchy() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_children(
+    ctx: click.Context,
     page_id: str,
     limit: int,
     sort: str | None,
@@ -57,7 +59,7 @@ def get_children(
     page_id = validate_page_id(page_id)
     limit = validate_limit(limit, max_value=250)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = _get_page_info(client, page_id)
@@ -134,8 +136,10 @@ def get_children(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_ancestors(
+    ctx: click.Context,
     page_id: str,
     breadcrumb: bool,
     output: str,
@@ -143,7 +147,7 @@ def get_ancestors(
     """Get ancestor pages (parents, grandparents, etc.)."""
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info with ancestors
     page = _get_page_info(client, page_id)
@@ -213,8 +217,10 @@ def get_ancestors(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_descendants(
+    ctx: click.Context,
     page_id: str,
     max_depth: int | None,
     limit: int,
@@ -224,7 +230,7 @@ def get_descendants(
     page_id = validate_page_id(page_id)
     limit = validate_limit(limit, max_value=500)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = _get_page_info(client, page_id)
@@ -306,8 +312,10 @@ def get_descendants(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_page_tree(
+    ctx: click.Context,
     page_id: str,
     max_depth: int | None,
     stats: bool,
@@ -316,7 +324,7 @@ def get_page_tree(
     """Display page tree structure."""
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = _get_page_info(client, page_id)
@@ -412,8 +420,10 @@ def get_page_tree(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def reorder_children(
+    ctx: click.Context,
     parent_id: str,
     order: str | None,
     reverse: bool,
@@ -430,7 +440,7 @@ def reorder_children(
     """
     parent_id = validate_page_id(parent_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = _get_page_info(client, parent_id)

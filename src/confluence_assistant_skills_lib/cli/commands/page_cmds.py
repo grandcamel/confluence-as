@@ -14,7 +14,6 @@ from confluence_assistant_skills_lib import (
     format_page,
     format_table,
     format_version,
-    get_confluence_client,
     handle_errors,
     markdown_to_xhtml,
     print_info,
@@ -26,6 +25,7 @@ from confluence_assistant_skills_lib import (
     validate_title,
     xhtml_to_markdown,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 from confluence_assistant_skills_lib.cli.helpers import (
     get_space_id,
     is_markdown_file,
@@ -94,8 +94,10 @@ def page() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_page(
+    ctx: click.Context,
     page_id: str,
     body: bool,
     body_format: str,
@@ -103,7 +105,7 @@ def get_page(
 ) -> None:
     """Get a Confluence page by ID."""
     page_id = validate_page_id(page_id)
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     params = {}
     if body:
@@ -161,8 +163,10 @@ def get_page(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def create_page(
+    ctx: click.Context,
     space: str,
     title: str,
     body_content: str | None,
@@ -187,7 +191,7 @@ def create_page(
     else:
         raise ValidationError("Either --body or --file is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
     space_id = get_space_id(client, space_key)
 
     if is_markdown:
@@ -238,8 +242,10 @@ def create_page(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def update_page(
+    ctx: click.Context,
     page_id: str,
     title: str | None,
     body_content: str | None,
@@ -268,7 +274,7 @@ def update_page(
     elif body_content:
         content = body_content
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
     current_page = client.get(f"/api/v2/pages/{page_id}", operation="get current page")
     current_version = current_page.get("version", {}).get("number", 1)
 
@@ -305,15 +311,17 @@ def update_page(
 @click.option(
     "--permanent", is_flag=True, help="Permanently delete (cannot be recovered)"
 )
+@click.pass_context
 @handle_errors
 def delete_page(
+    ctx: click.Context,
     page_id: str,
     force: bool,
     permanent: bool,
 ) -> None:
     """Delete a Confluence page."""
     page_id = validate_page_id(page_id)
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
     page_title = page.get("title", "Unknown")
@@ -354,8 +362,10 @@ def delete_page(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def copy_page(
+    ctx: click.Context,
     page_id: str,
     title: str | None,
     space: str | None,
@@ -369,7 +379,7 @@ def copy_page(
     if parent_id:
         parent_id = validate_page_id(parent_id, field_name="parent")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     source_page = client.get(
         f"/api/v2/pages/{source_page_id}",
@@ -430,8 +440,10 @@ def copy_page(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def move_page(
+    ctx: click.Context,
     page_id: str,
     space: str | None,
     parent_id: str | None,
@@ -452,7 +464,7 @@ def move_page(
     if parent_id and root:
         raise ValidationError("Cannot specify both --parent and --root")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
     current_page = client.get(f"/api/v2/pages/{page_id}", operation="get current page")
     current_version = current_page.get("version", {}).get("number", 1)
 
@@ -517,8 +529,10 @@ def move_page(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_page_versions(
+    ctx: click.Context,
     page_id: str,
     limit: int,
     detailed: bool,
@@ -528,7 +542,7 @@ def get_page_versions(
     page_id = validate_page_id(page_id)
     limit = validate_limit(limit, max_value=100)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
 
@@ -606,8 +620,10 @@ def get_page_versions(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def restore_version(
+    ctx: click.Context,
     page_id: str,
     version: int,
     message: str | None,
@@ -619,7 +635,7 @@ def restore_version(
     if version < 1:
         raise ValidationError("Version number must be at least 1")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
     current_page = client.get(f"/api/v2/pages/{page_id}", operation="get current page")
     current_version = current_page.get("version", {}).get("number", 1)
 
@@ -694,8 +710,10 @@ def blog() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_blogpost(
+    ctx: click.Context,
     blogpost_id: str,
     body: bool,
     body_format: str,
@@ -704,7 +722,7 @@ def get_blogpost(
     """Get a blog post by ID."""
     blogpost_id = validate_page_id(blogpost_id, field_name="blogpost_id")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     params = {}
     if body:
@@ -761,8 +779,10 @@ def get_blogpost(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def create_blogpost(
+    ctx: click.Context,
     space: str,
     title: str,
     body_content: str | None,
@@ -783,7 +803,7 @@ def create_blogpost(
     else:
         raise ValidationError("Either --body or --file is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
     space_id = get_space_id(client, space_key)
 
     if is_markdown:

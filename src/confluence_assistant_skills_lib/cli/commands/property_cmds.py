@@ -13,12 +13,12 @@ from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_success,
     print_warning,
     validate_page_id,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 
 
 @click.group(name="property")
@@ -46,8 +46,10 @@ def property_cmd() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def list_properties(
+    ctx: click.Context,
     page_id: str,
     prefix: str | None,
     pattern: str | None,
@@ -59,7 +61,7 @@ def list_properties(
     """List all properties on a page."""
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -170,8 +172,10 @@ def list_properties(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_properties(
+    ctx: click.Context,
     page_id: str,
     key: str | None,
     expand: str | None,
@@ -180,7 +184,7 @@ def get_properties(
     """Get properties from a page. Optionally filter by key."""
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -263,8 +267,10 @@ def get_properties(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def set_property(
+    ctx: click.Context,
     page_id: str,
     key: str,
     value: str | None,
@@ -284,7 +290,7 @@ def set_property(
     if not key:
         raise ValidationError("Property key is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -374,8 +380,10 @@ def set_property(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def delete_property(
+    ctx: click.Context,
     page_id: str,
     key: str,
     force: bool,
@@ -387,7 +395,7 @@ def delete_property(
     if not key:
         raise ValidationError("Property key is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")

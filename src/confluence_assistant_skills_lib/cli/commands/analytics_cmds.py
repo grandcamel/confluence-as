@@ -10,7 +10,6 @@ import click
 from confluence_assistant_skills_lib import (
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_info,
     print_success,
@@ -18,6 +17,7 @@ from confluence_assistant_skills_lib import (
     validate_page_id,
     validate_space_key,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 from confluence_assistant_skills_lib.cli.helpers import get_space_by_key
 
 
@@ -36,15 +36,17 @@ def analytics() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_page_views(
+    ctx: click.Context,
     page_id: str,
     output: str,
 ) -> None:
     """Get view statistics for a page."""
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -124,15 +126,17 @@ def get_page_views(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_content_watchers(
+    ctx: click.Context,
     page_id: str,
     output: str,
 ) -> None:
     """Get users watching a page."""
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -170,9 +174,11 @@ def get_content_watchers(
                     {
                         "name": user.get("displayName", "Unknown"),
                         "type": user.get("type", "user"),
-                        "email": user.get("email", "N/A")[:30]
-                        if user.get("email")
-                        else "N/A",
+                        "email": (
+                            user.get("email", "N/A")[:30]
+                            if user.get("email")
+                            else "N/A"
+                        ),
                     }
                 )
 
@@ -213,8 +219,10 @@ def get_content_watchers(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_popular_content(
+    ctx: click.Context,
     space: str | None,
     label: str | None,
     content_type: str,
@@ -232,7 +240,7 @@ def get_popular_content(
 
     limit = validate_limit(limit, max_value=100)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Build CQL query for popular content
     cql_parts = []
@@ -305,9 +313,11 @@ def get_popular_content(
                         "title": content.get("title", "")[:35],
                         "type": content.get("type", ""),
                         "space": content.get("space", {}).get("key", ""),
-                        "modified": content.get("lastModified", {}).get("when", "")[:10]
-                        if isinstance(content.get("lastModified"), dict)
-                        else str(content.get("lastModified", ""))[:10],
+                        "modified": (
+                            content.get("lastModified", {}).get("when", "")[:10]
+                            if isinstance(content.get("lastModified"), dict)
+                            else str(content.get("lastModified", ""))[:10]
+                        ),
                     }
                 )
 
@@ -332,8 +342,10 @@ def get_popular_content(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_space_analytics(
+    ctx: click.Context,
     space_key: str,
     days: int | None,
     output: str,
@@ -345,7 +357,7 @@ def get_space_analytics(
     """
     space_key = validate_space_key(space_key)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space info
     space = get_space_by_key(client, space_key)

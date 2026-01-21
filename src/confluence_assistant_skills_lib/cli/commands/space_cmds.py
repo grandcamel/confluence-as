@@ -11,7 +11,6 @@ from confluence_assistant_skills_lib import (
     format_json,
     format_space,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_info,
     print_success,
@@ -19,6 +18,7 @@ from confluence_assistant_skills_lib import (
     validate_limit,
     validate_space_key,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 from confluence_assistant_skills_lib.cli.helpers import get_space_by_key
 
 
@@ -40,8 +40,10 @@ def space() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def list_spaces(
+    ctx: click.Context,
     space_type: str | None,
     query: str | None,
     status: str | None,
@@ -51,7 +53,7 @@ def list_spaces(
     """List all accessible Confluence spaces."""
     limit = validate_limit(limit, max_value=250)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     params: dict[str, Any] = {"limit": min(limit, 25)}  # API max per request
 
@@ -113,14 +115,16 @@ def list_spaces(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_space(
+    ctx: click.Context,
     space_key: str,
     output: str,
 ) -> None:
     """Get details for a specific space."""
     space_key = validate_space_key(space_key)
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     result = get_space_by_key(client, space_key)
 
@@ -148,8 +152,10 @@ def get_space(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def create_space(
+    ctx: click.Context,
     key: str,
     name: str,
     description: str | None,
@@ -166,7 +172,7 @@ def create_space(
     if space_type.lower() not in ("global", "personal"):
         raise ValidationError("Space type must be 'global' or 'personal'")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     space_data: dict[str, Any] = {
         "key": key,
@@ -204,8 +210,10 @@ def create_space(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def update_space(
+    ctx: click.Context,
     space_key: str,
     name: str | None,
     description: str | None,
@@ -220,7 +228,7 @@ def update_space(
             "At least one of --name, --description, or --homepage is required"
         )
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get current space
     current_space = get_space_by_key(client, space_key)
@@ -255,8 +263,10 @@ def update_space(
 @space.command(name="delete")
 @click.argument("space_key")
 @click.option("--force", "-f", is_flag=True, help="Skip confirmation prompt")
+@click.pass_context
 @handle_errors
 def delete_space(
+    ctx: click.Context,
     space_key: str,
     force: bool,
 ) -> None:
@@ -266,7 +276,7 @@ def delete_space(
     attachments, and other content will be permanently deleted.
     """
     space_key = validate_space_key(space_key)
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space details first
     current_space = get_space_by_key(client, space_key)
@@ -318,8 +328,10 @@ def delete_space(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_space_content(
+    ctx: click.Context,
     space_key: str,
     depth: str | None,
     status: str | None,
@@ -331,7 +343,7 @@ def get_space_content(
     space_key = validate_space_key(space_key)
     limit = validate_limit(limit, max_value=250)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space to verify it exists and get ID
     current_space = get_space_by_key(client, space_key)
@@ -408,14 +420,16 @@ def get_space_content(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_space_settings(
+    ctx: click.Context,
     space_key: str,
     output: str,
 ) -> None:
     """Get settings for a space."""
     space_key = validate_space_key(space_key)
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space details with expanded info
     current_space = get_space_by_key(client, space_key)

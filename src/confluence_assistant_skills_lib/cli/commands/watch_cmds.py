@@ -9,12 +9,12 @@ import click
 from confluence_assistant_skills_lib import (
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_success,
     validate_page_id,
     validate_space_key,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 from confluence_assistant_skills_lib.cli.helpers import get_space_by_key
 
 
@@ -41,8 +41,10 @@ def watch() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def watch_page(
+    ctx: click.Context,
     page_id: str,
     output: str,
 ) -> None:
@@ -52,7 +54,7 @@ def watch_page(
     """
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -95,8 +97,10 @@ def watch_page(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def unwatch_page(
+    ctx: click.Context,
     page_id: str,
     output: str,
 ) -> None:
@@ -106,7 +110,7 @@ def unwatch_page(
     """
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -147,8 +151,10 @@ def unwatch_page(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def watch_space(
+    ctx: click.Context,
     space_key: str,
     unwatch: bool,
     output: str,
@@ -159,7 +165,7 @@ def watch_space(
     """
     space_key = validate_space_key(space_key)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space info
     space = get_space_by_key(client, space_key)
@@ -216,15 +222,17 @@ def watch_space(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def am_i_watching(
+    ctx: click.Context,
     page_id: str,
     output: str,
 ) -> None:
     """Check if you're watching a page."""
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -272,15 +280,17 @@ def am_i_watching(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_watchers(
+    ctx: click.Context,
     page_id: str,
     output: str,
 ) -> None:
     """List watchers of a page."""
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")

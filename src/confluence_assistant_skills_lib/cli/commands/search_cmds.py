@@ -16,7 +16,6 @@ from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_info,
     print_success,
@@ -24,6 +23,7 @@ from confluence_assistant_skills_lib import (
     validate_limit,
     validate_space_key,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 
 # CQL field and operator reference data
 CQL_FIELDS = [
@@ -197,8 +197,10 @@ def search() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def cql_search(
+    ctx: click.Context,
     cql: str,
     limit: int,
     show_excerpts: bool,
@@ -212,7 +214,7 @@ def cql_search(
 
     limit = validate_limit(limit, max_value=250)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     params: dict[str, Any] = {
         "cql": cql.strip(),
@@ -309,8 +311,10 @@ def cql_search(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def search_content(
+    ctx: click.Context,
     query: str,
     space: str | None,
     content_type: str | None,
@@ -332,7 +336,7 @@ def search_content(
     # Build CQL query
     cql = _build_cql_from_text(query.strip(), space, content_type)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     params: dict[str, Any] = {
         "cql": cql,
@@ -392,13 +396,14 @@ def search_content(
 
 @search.command(name="validate")
 @click.argument("cql")
+@click.pass_context
 @handle_errors
-def cql_validate(cql: str) -> None:
+def cql_validate(ctx: click.Context, cql: str) -> None:
     """Validate a CQL query syntax."""
     if not cql or not cql.strip():
         raise ValidationError("CQL query is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Try to execute the query with limit 0 to validate syntax
     try:
@@ -432,8 +437,10 @@ def cql_validate(cql: str) -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def cql_suggest(
+    ctx: click.Context,
     fields: bool,
     field: str | None,
     operators: bool,
@@ -455,7 +462,7 @@ def cql_suggest(
         # Get values for specific field
         field_lower = field.lower()
         if field_lower == "space":
-            client = get_confluence_client()
+            client = get_client_from_context(ctx)
             spaces = list(
                 client.paginate(
                     "/api/v2/spaces", params={"limit": 25}, operation="get spaces"
@@ -521,8 +528,10 @@ def cql_suggest(
 @click.option("--output", "-o", "output_file", required=True, help="Output file path")
 @click.option("--columns", help="Columns to include (comma-separated)")
 @click.option("--limit", "-l", type=int, help="Maximum results to export")
+@click.pass_context
 @handle_errors
 def export_results(
+    ctx: click.Context,
     cql: str,
     export_format: str,
     output_file: str,
@@ -545,7 +554,7 @@ def export_results(
     default_columns = ["id", "title", "type", "space", "created", "lastModified"]
     selected_columns = columns.split(",") if columns else default_columns
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     params: dict[str, Any] = {
         "cql": cql.strip(),
@@ -565,12 +574,16 @@ def export_results(
             "title": content.get("title", ""),
             "type": content.get("type", ""),
             "space": content.get("space", {}).get("key", ""),
-            "created": content.get("version", {}).get("when", "")[:10]
-            if content.get("version")
-            else "",
-            "lastModified": result.get("lastModified", "")[:10]
-            if result.get("lastModified")
-            else "",
+            "created": (
+                content.get("version", {}).get("when", "")[:10]
+                if content.get("version")
+                else ""
+            ),
+            "lastModified": (
+                result.get("lastModified", "")[:10]
+                if result.get("lastModified")
+                else ""
+            ),
             "url": result.get("url", ""),
         }
         results.append(row)
@@ -611,8 +624,10 @@ def export_results(
     "--batch-size", type=int, default=100, help="Records per batch (default: 100)"
 )
 @click.option("--resume", is_flag=True, help="Resume from last checkpoint")
+@click.pass_context
 @handle_errors
 def streaming_export(
+    ctx: click.Context,
     cql: str,
     export_format: str | None,
     output_file: str,
@@ -648,7 +663,7 @@ def streaming_export(
     default_columns = ["id", "title", "type", "space", "created", "lastModified"]
     selected_columns = columns.split(",") if columns else default_columns
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     params: dict[str, Any] = {
         "cql": cql.strip(),
@@ -671,12 +686,16 @@ def streaming_export(
             "title": content.get("title", ""),
             "type": content.get("type", ""),
             "space": content.get("space", {}).get("key", ""),
-            "created": content.get("version", {}).get("when", "")[:10]
-            if content.get("version")
-            else "",
-            "lastModified": result.get("lastModified", "")[:10]
-            if result.get("lastModified")
-            else "",
+            "created": (
+                content.get("version", {}).get("when", "")[:10]
+                if content.get("version")
+                else ""
+            ),
+            "lastModified": (
+                result.get("lastModified", "")[:10]
+                if result.get("lastModified")
+                else ""
+            ),
             "url": result.get("url", ""),
         }
         results.append(row)
@@ -905,8 +924,10 @@ def history_cleanup(days: int) -> None:
     "--limit", "-l", type=int, default=25, help="Maximum results (default: 25)"
 )
 @click.option("--execute", is_flag=True, help="Execute query after building")
+@click.pass_context
 @handle_errors
 def cql_interactive(
+    ctx: click.Context,
     space: str | None,
     content_type: str | None,
     limit: int,
@@ -962,7 +983,7 @@ def cql_interactive(
 
     if execute or click.confirm("Execute this query?", default=True):
         # Call the cql_search function with the built query
-        client = get_confluence_client()
+        client = get_client_from_context(ctx)
 
         params = {"cql": cql, "limit": limit}
         results = list(

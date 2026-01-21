@@ -11,7 +11,6 @@ from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     markdown_to_xhtml,
     print_success,
@@ -19,6 +18,7 @@ from confluence_assistant_skills_lib import (
     validate_limit,
     validate_page_id,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 from confluence_assistant_skills_lib.cli.helpers import (
     is_markdown_file,
     read_file_content,
@@ -31,9 +31,9 @@ def _format_comment(comment: dict[str, Any], detailed: bool = False) -> dict[str
         "id": comment.get("id", ""),
         "type": comment.get("type", "comment"),
         "status": comment.get("status", ""),
-        "created": comment.get("createdAt", "")[:10]
-        if comment.get("createdAt")
-        else "",
+        "created": (
+            comment.get("createdAt", "")[:10] if comment.get("createdAt") else ""
+        ),
         "author": comment.get("author", {}).get("displayName", "Unknown"),
     }
 
@@ -68,8 +68,10 @@ def comment() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_comments(
+    ctx: click.Context,
     page_id: str,
     limit: int | None,
     sort: str,
@@ -80,7 +82,7 @@ def get_comments(
     if limit:
         limit = validate_limit(limit, max_value=250)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info first
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -170,8 +172,10 @@ def get_comments(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def add_comment(
+    ctx: click.Context,
     page_id: str,
     body: str | None,
     body_file: Path | None,
@@ -192,7 +196,7 @@ def add_comment(
     else:
         content = body or ""
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     comment_data: dict[str, Any] = {
         "pageId": page_id,
@@ -230,8 +234,10 @@ def add_comment(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def add_inline_comment(
+    ctx: click.Context,
     page_id: str,
     selection: str,
     body: str,
@@ -249,7 +255,7 @@ def add_inline_comment(
     if not body:
         raise ValidationError("Comment body is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page to find the selection
     page = client.get(
@@ -315,8 +321,10 @@ def add_inline_comment(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def update_comment(
+    ctx: click.Context,
     comment_id: str,
     body: str | None,
     body_file: Path | None,
@@ -337,7 +345,7 @@ def update_comment(
     else:
         content = body or ""
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get current comment to get its version
     current = client.get(
@@ -376,15 +384,17 @@ def update_comment(
 @comment.command(name="delete")
 @click.argument("comment_id")
 @click.option("--force", "-f", is_flag=True, help="Skip confirmation prompt")
+@click.pass_context
 @handle_errors
 def delete_comment(
+    ctx: click.Context,
     comment_id: str,
     force: bool,
 ) -> None:
     """Delete a comment."""
     comment_id = validate_page_id(comment_id, field_name="comment_id")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get comment details first
     try:
@@ -429,8 +439,10 @@ def delete_comment(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def resolve_comment(
+    ctx: click.Context,
     comment_id: str,
     action: str | None,
     output: str,
@@ -441,7 +453,7 @@ def resolve_comment(
     if action is None:
         raise ValidationError("One of --resolve or --unresolve is required")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get current comment
     current = client.get(

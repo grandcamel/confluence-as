@@ -9,7 +9,7 @@ Python library for Confluence Cloud REST API - shared utilities for the [Conflue
 ## Features
 
 - **ConfluenceClient** - HTTP client with retry logic, pagination, and file uploads
-- **ConfigManager** - Multi-source configuration (env vars, JSON files, profiles)
+- **ConfigManager** - Multi-source configuration (env vars, JSON files)
 - **Error Handling** - Exception hierarchy and decorators for clean error handling
 - **Validators** - Input validation for page IDs, space keys, CQL queries, etc.
 - **Formatters** - Output formatting for pages, spaces, tables, JSON, CSV

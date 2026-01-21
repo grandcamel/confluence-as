@@ -10,13 +10,13 @@ from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_success,
     print_warning,
     validate_page_id,
     validate_space_key,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 from confluence_assistant_skills_lib.cli.helpers import get_space_by_key
 
 
@@ -42,15 +42,17 @@ def page_permission() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_page_restrictions(
+    ctx: click.Context,
     page_id: str,
     output: str,
 ) -> None:
     """Get restrictions on a page."""
     page_id = validate_page_id(page_id)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -137,8 +139,10 @@ def get_page_restrictions(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def add_page_restriction(
+    ctx: click.Context,
     page_id: str,
     user: str | None,
     group_name: str | None,
@@ -155,7 +159,7 @@ def add_page_restriction(
     if not user and not group_name:
         raise ValidationError("Either --user or --group must be specified")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -225,8 +229,10 @@ def add_page_restriction(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def remove_page_restriction(
+    ctx: click.Context,
     page_id: str,
     user: str | None,
     group_name: str | None,
@@ -240,7 +246,7 @@ def remove_page_restriction(
     if not user and not group_name and not remove_all:
         raise ValidationError("Either --user, --group, or --all must be specified")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -313,15 +319,17 @@ def space_permission() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def get_space_permissions(
+    ctx: click.Context,
     space_key: str,
     output: str,
 ) -> None:
     """Get permissions for a space."""
     space_key = validate_space_key(space_key)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space info
     space = get_space_by_key(client, space_key)
@@ -421,8 +429,10 @@ def get_space_permissions(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def add_space_permission(
+    ctx: click.Context,
     space_key: str,
     user: str | None,
     group_name: str | None,
@@ -440,7 +450,7 @@ def add_space_permission(
     if not user and not group_name:
         raise ValidationError("Either --user or --group must be specified")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space info
     space = get_space_by_key(client, space_key)
@@ -511,8 +521,10 @@ def add_space_permission(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def remove_space_permission(
+    ctx: click.Context,
     space_key: str,
     permission_id: str | None,
     user: str | None,
@@ -535,7 +547,7 @@ def remove_space_permission(
     if (user or group_name) and not operation:
         raise ValidationError("--operation is required when using --user or --group")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get space info
     space = get_space_by_key(client, space_key)

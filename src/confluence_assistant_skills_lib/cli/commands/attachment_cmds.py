@@ -13,7 +13,6 @@ from confluence_assistant_skills_lib import (
     ValidationError,
     format_json,
     format_table,
-    get_confluence_client,
     handle_errors,
     print_info,
     print_success,
@@ -21,6 +20,7 @@ from confluence_assistant_skills_lib import (
     validate_limit,
     validate_page_id,
 )
+from confluence_assistant_skills_lib.cli.cli_utils import get_client_from_context
 
 
 def _format_attachment(attachment: dict[str, Any]) -> dict[str, Any]:
@@ -65,8 +65,10 @@ def attachment() -> None:
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def list_attachments(
+    ctx: click.Context,
     page_id: str,
     limit: int,
     media_type: str | None,
@@ -76,7 +78,7 @@ def list_attachments(
     page_id = validate_page_id(page_id)
     limit = validate_limit(limit, max_value=250)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get page info
     page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
@@ -151,8 +153,10 @@ def list_attachments(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def upload_attachment(
+    ctx: click.Context,
     page_id: str,
     file_path: Path,
     comment: str | None,
@@ -172,7 +176,7 @@ def upload_attachment(
     if not content_type:
         content_type = "application/octet-stream"
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Read file content
     file_content = file_path.read_bytes()
@@ -214,8 +218,10 @@ def upload_attachment(
     is_flag=True,
     help="Download all attachments from page (attachment_id is page_id)",
 )
+@click.pass_context
 @handle_errors
 def download_attachment(
+    ctx: click.Context,
     attachment_id: str,
     output_path: str,
     download_all: bool,
@@ -224,7 +230,7 @@ def download_attachment(
     attachment_id = validate_page_id(attachment_id, field_name="attachment_id")
     output_dir = validate_file_path_secure(output_path, "output", allow_absolute=True)
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     if download_all:
         # attachment_id is actually page_id
@@ -296,8 +302,10 @@ def download_attachment(
     default="text",
     help="Output format",
 )
+@click.pass_context
 @handle_errors
 def update_attachment(
+    ctx: click.Context,
     attachment_id: str,
     file_path: Path,
     comment: str | None,
@@ -309,7 +317,7 @@ def update_attachment(
     if not file_path.exists():
         raise ValidationError(f"File not found: {file_path}")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get current attachment info
     att_info = client.get(
@@ -347,15 +355,17 @@ def update_attachment(
 @attachment.command(name="delete")
 @click.argument("attachment_id")
 @click.option("--force", "-f", is_flag=True, help="Skip confirmation prompt")
+@click.pass_context
 @handle_errors
 def delete_attachment(
+    ctx: click.Context,
     attachment_id: str,
     force: bool,
 ) -> None:
     """Delete an attachment."""
     attachment_id = validate_page_id(attachment_id, field_name="attachment_id")
 
-    client = get_confluence_client()
+    client = get_client_from_context(ctx)
 
     # Get attachment info
     try:
