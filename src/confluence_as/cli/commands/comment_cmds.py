@@ -206,8 +206,9 @@ def add_comment(
         },
     }
 
+    # v2 API uses /footer-comments endpoint with pageId in body
     result = client.post(
-        f"/api/v2/pages/{page_id}/footer-comments",
+        "/api/v2/footer-comments",
         json_data=comment_data,
         operation="add comment",
     )
@@ -280,15 +281,17 @@ def add_inline_comment(
             "representation": "storage",
             "value": body,
         },
-        "inlineProperties": {
+        # v2 API uses inlineCommentProperties (not inlineProperties)
+        "inlineCommentProperties": {
             "textSelection": selection,
             "textSelectionMatchCount": 1,
             "textSelectionMatchIndex": 0,
         },
     }
 
+    # v2 API uses /inline-comments endpoint with pageId in body
     result = client.post(
-        f"/api/v2/pages/{page_id}/inline-comments",
+        "/api/v2/inline-comments",
         json_data=comment_data,
         operation="add inline comment",
     )
