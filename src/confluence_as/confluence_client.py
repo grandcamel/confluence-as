@@ -126,9 +126,11 @@ class ConfluenceClient:
         session = requests.Session()
 
         # Configure retry strategy for 429 and 5xx errors
+        # Uses exponential backoff with jitter to prevent thundering herd
         retry_strategy = Retry(
             total=self.max_retries,
             backoff_factor=self.retry_backoff,
+            backoff_jitter=0.3,  # Add jitter to prevent thundering herd
             status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=[
                 "HEAD",
@@ -140,6 +142,7 @@ class ConfluenceClient:
                 "POST",
             ],
             raise_on_status=False,
+            respect_retry_after_header=True,  # Explicitly respect Retry-After header
         )
 
         adapter = HTTPAdapter(max_retries=retry_strategy)
