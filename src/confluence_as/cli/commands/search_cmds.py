@@ -90,14 +90,29 @@ CQL_FUNCTIONS = [
 CONTENT_TYPES = ["page", "blogpost", "comment", "attachment"]
 
 
+def _escape_cql_string(value: str) -> str:
+    """Escape a string value for safe use in CQL queries.
+
+    Prevents CQL injection by escaping special characters.
+    """
+    # Escape backslashes first, then double quotes
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
 def _build_cql_from_text(
     query: str, space: str | None, content_type: str | None
 ) -> str:
-    """Build CQL query from text search parameters."""
-    parts = [f'text ~ "{query}"']
+    """Build CQL query from text search parameters.
+
+    Properly escapes user input to prevent CQL injection.
+    """
+    # Escape user-provided values to prevent CQL injection
+    escaped_query = _escape_cql_string(query)
+    parts = [f'text ~ "{escaped_query}"']
 
     if space:
-        parts.append(f'space = "{space}"')
+        escaped_space = _escape_cql_string(space)
+        parts.append(f'space = "{escaped_space}"')
 
     if content_type:
         parts.append(f"type = {content_type}")
