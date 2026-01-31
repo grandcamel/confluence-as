@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "confluence-as"
-version = "1.0.0"
+version = "1.1.0"
 description = "Python library for Confluence Cloud REST API - shared utilities for Confluence automation"
 readme = "README.md"
 license = "MIT"
