@@ -666,12 +666,18 @@ def streaming_export(
 
     checkpoint_file = output_path.with_suffix(".checkpoint")
 
-    start_index = 0
+    # Note: The 'start' parameter was removed from Confluence Cloud on July 15, 2020.
+    # Confluence now uses cursor-based pagination. The resume functionality tracks
+    # processed count but cannot skip already-processed items via API.
+    # The checkpoint is used to avoid re-writing duplicate entries to the output file.
+    processed_count = 0
     if resume and checkpoint_file.exists():
         try:
             checkpoint = json.loads(checkpoint_file.read_text())
-            start_index = checkpoint.get("index", 0)
-            print_info(f"Resuming from index {start_index}")
+            processed_count = checkpoint.get("index", 0)
+            print_info(
+                f"Resuming: will skip first {processed_count} already-processed items"
+            )
         except (json.JSONDecodeError, OSError):
             pass
 
@@ -680,21 +686,30 @@ def streaming_export(
 
     client = get_client_from_context(ctx)
 
+    # Note: 'start' parameter is deprecated (removed July 2020).
+    # The paginate() method handles cursor-based pagination automatically.
     params: dict[str, Any] = {
         "cql": cql.strip(),
         "limit": min(batch_size, 25),
-        "start": start_index,
         "expand": "content.space,content.version",
     }
 
     results = []
-    total_processed = start_index
+    total_processed = 0
+    items_skipped = 0
 
     print_info(f"Starting streaming export: {cql}")
 
     for result in client.paginate(
         "/rest/api/search", params=params, operation="stream export"
     ):
+        total_processed += 1
+
+        # Skip already-processed items when resuming
+        if items_skipped < processed_count:
+            items_skipped += 1
+            continue
+
         content = result.get("content", result)
         row = {
             "id": content.get("id", ""),
@@ -714,9 +729,8 @@ def streaming_export(
             "url": result.get("url", ""),
         }
         results.append(row)
-        total_processed += 1
 
-        # Save checkpoint periodically
+        # Save checkpoint periodically (total processed including skipped)
         if total_processed % batch_size == 0:
             checkpoint_file.write_text(json.dumps({"index": total_processed}))
             print_info(f"  Checkpoint at {total_processed} results...")
