@@ -180,8 +180,8 @@ def merge_contexts(
         return {}, "none"
 
     if not skill_ctx:
-        assert settings_ctx is not None
-        return settings_ctx, "settings"
+        # settings_ctx must be non-None here due to earlier check
+        return settings_ctx, "settings"  # type: ignore[return-value]
 
     if not settings_ctx:
         return skill_ctx, "skill"

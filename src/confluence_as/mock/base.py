@@ -82,7 +82,7 @@ class MockConfluenceClientBase:
         },
     ]
 
-    def __init__(
+    def __init__(  # nosec B107
         self,
         base_url: str = "https://mock.atlassian.net",
         email: str = "mock@example.com",

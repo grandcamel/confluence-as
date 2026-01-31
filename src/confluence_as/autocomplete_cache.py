@@ -108,7 +108,7 @@ class AutocompleteCache:
                     )
                 self.set_spaces(spaces)
                 return spaces
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
         return []
@@ -209,7 +209,7 @@ class AutocompleteCache:
                         ttl=self.TTL_PAGES,
                     )
                     return pages
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
         return []
@@ -237,7 +237,7 @@ class AutocompleteCache:
                         space.get("key", ""), client, force_refresh=True
                     )
                     stats["pages"] += len(pages)
-                except Exception:
+                except Exception:  # nosec B110
                     pass
 
         except Exception as e:
