@@ -177,6 +177,7 @@ from .space_context import (
 
 # Validators
 from .validators import (
+    validate_attachment_id,
     validate_content_type,
     validate_cql,
     validate_email,
@@ -248,6 +249,7 @@ __all__ = [
     "extract_error_message",
     "ErrorContext",
     # Validators
+    "validate_attachment_id",
     "validate_page_id",
     "validate_space_key",
     "validate_cql",

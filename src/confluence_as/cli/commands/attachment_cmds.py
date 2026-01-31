@@ -17,6 +17,7 @@ from confluence_as import (
     print_info,
     print_success,
     print_warning,
+    validate_attachment_id,
     validate_limit,
     validate_page_id,
 )
@@ -227,7 +228,7 @@ def download_attachment(
     download_all: bool,
 ) -> None:
     """Download an attachment."""
-    attachment_id = validate_page_id(attachment_id, field_name="attachment_id")
+    attachment_id = validate_attachment_id(attachment_id)
     output_dir = validate_file_path_secure(output_path, "output", allow_absolute=True)
 
     client = get_client_from_context(ctx)
@@ -312,7 +313,7 @@ def update_attachment(
     output: str,
 ) -> None:
     """Update an existing attachment."""
-    attachment_id = validate_page_id(attachment_id, field_name="attachment_id")
+    attachment_id = validate_attachment_id(attachment_id)
 
     if not file_path.exists():
         raise ValidationError(f"File not found: {file_path}")
@@ -355,15 +356,25 @@ def update_attachment(
 @attachment.command(name="delete")
 @click.argument("attachment_id")
 @click.option("--force", "-f", is_flag=True, help="Skip confirmation prompt")
+@click.option(
+    "--purge",
+    is_flag=True,
+    help="Permanently delete (otherwise moves to trash)",
+)
 @click.pass_context
 @handle_errors
 def delete_attachment(
     ctx: click.Context,
     attachment_id: str,
     force: bool,
+    purge: bool,
 ) -> None:
-    """Delete an attachment."""
-    attachment_id = validate_page_id(attachment_id, field_name="attachment_id")
+    """Delete an attachment.
+
+    By default, the attachment is moved to trash. Use --purge to permanently
+    delete a trashed attachment.
+    """
+    attachment_id = validate_attachment_id(attachment_id)
 
     client = get_client_from_context(ctx)
 
@@ -377,15 +388,25 @@ def delete_attachment(
     except Exception:
         title = "Unknown"
 
+    action = "permanently delete" if purge else "delete"
     if not force:
-        click.echo(f"\nYou are about to delete attachment: {title}")
+        click.echo(f"\nYou are about to {action} attachment: {title}")
         click.echo(f"ID: {attachment_id}")
-        print_warning("This action cannot be undone!")
+        if purge:
+            print_warning("This will PERMANENTLY delete the attachment!")
+        else:
+            print_warning("This will move the attachment to trash.")
 
         if not click.confirm("\nAre you sure?", default=False):
             click.echo("Delete cancelled.")
             return
 
-    client.delete(f"/api/v2/attachments/{attachment_id}", operation="delete attachment")
+    params = {"purge": "true"} if purge else None
+    client.delete(
+        f"/api/v2/attachments/{attachment_id}",
+        params=params,
+        operation="delete attachment",
+    )
 
-    print_success(f"Deleted attachment {title} ({attachment_id})")
+    result_msg = "Permanently deleted" if purge else "Deleted"
+    print_success(f"{result_msg} attachment {title} ({attachment_id})")

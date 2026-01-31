@@ -92,6 +92,37 @@ def validate_page_id(page_id: Union[str, int], field_name: str = "page_id") -> s
     return page_id_str
 
 
+def validate_attachment_id(
+    attachment_id: Union[str, int], field_name: str = "attachment_id"
+) -> str:
+    """
+    Validate a Confluence attachment ID.
+
+    Attachment IDs in Confluence can be numeric strings or prefixed with "att".
+    The API accepts pattern: (att)?[0-9]+
+
+    Args:
+        attachment_id: The attachment ID to validate (string or integer).
+        field_name: Name of the field for error messages.
+
+    Returns:
+        Validated attachment ID as a string.
+
+    Raises:
+        ValidationError: If attachment_id is empty or doesn't match the pattern.
+    """
+    import re
+
+    attachment_id_str = validate_required(str(attachment_id), field_name)
+    if not re.match(r"^(att)?[0-9]+$", attachment_id_str):
+        raise ValidationError(
+            f"{field_name} must be numeric or 'att' followed by numbers (got: {attachment_id_str})",
+            operation="validation",
+            details={"field": field_name, "value": attachment_id_str},
+        )
+    return attachment_id_str
+
+
 def validate_space_key(
     space_key: str,
     field_name: str = "space_key",
