@@ -43,11 +43,11 @@ bandit -r src/ -q               # Security scanning
 
 The package is organized under `src/confluence_as/`:
 
-- **confluence_client.py**: HTTP client with retry logic (3 attempts, exponential backoff on 429/5xx), session management, file upload/download, and context manager support for Confluence REST API v2
+- **confluence_client.py**: HTTP client with retry logic (3 attempts, exponential backoff with jitter on 429/5xx, respects Retry-After header), session management, file upload/download, and context manager support for Confluence REST API v2. Supports GET, POST, PUT, PATCH, DELETE methods.
 - **config_manager.py**: Configuration from environment variables. Priority: env vars > keychain > settings.local.json > settings.json > defaults
 - **credential_manager.py**: Secure credential storage via system keychain (macOS Keychain, Windows Credential Manager) with JSON fallback
 - **error_handler.py**: Exception hierarchy mapping HTTP status codes to domain exceptions (400→ValidationError, 401→AuthenticationError, 403→PermissionError, 404→NotFoundError, 409→ConflictError, 429→RateLimitError, 5xx→ServerError)
-- **validators.py**: Input validation for Confluence-specific formats (page IDs, space keys, CQL, URLs, emails)
+- **validators.py**: Input validation for Confluence-specific formats (page IDs, attachment IDs, space keys, CQL, URLs, emails)
 - **formatters.py**: Output formatting for pages, spaces, tables (via tabulate), JSON, and CSV export
 - **adf_helper.py**: Atlassian Document Format conversion (markdown/text ↔ ADF) - shared with JIRA
 - **xhtml_helper.py**: Legacy XHTML storage format conversion for older Confluence content
@@ -137,6 +137,13 @@ finally:
 
 Both `ConfluenceClient` and `MockConfluenceClient` implement `__enter__` and `__exit__` methods.
 
+**Available HTTP methods:**
+- `client.get(endpoint, params, operation)` - GET requests
+- `client.post(endpoint, json_data, operation)` - Create resources
+- `client.put(endpoint, json_data, operation)` - Full resource replacement
+- `client.patch(endpoint, json_data, operation)` - Partial updates (v2 API)
+- `client.delete(endpoint, params, operation)` - Delete resources
+
 ## Adding New Functionality
 
 When adding new modules:
@@ -189,8 +196,9 @@ Mock client provides deterministic test data:
 ### Input Validation (validators.py)
 
 - **Path Traversal Prevention**: Use `validate_file_path(path, "param_name")` for any user-provided file paths. Rejects `..` sequences and paths escaping current directory.
-- **CQL Injection Prevention**: Validate CQL queries before execution
+- **CQL Injection Prevention**: User input in CQL queries is escaped via `_escape_cql_string()` (escapes backslashes and double quotes). Use `validate_cql()` for syntax validation.
 - **URL Validation**: Use `validate_url(url, require_https=True)` for site URLs
+- **Attachment ID Validation**: Use `validate_attachment_id()` for attachment IDs (accepts numeric or `att`-prefixed format)
 
 ### CLI Security Patterns
 
@@ -266,6 +274,7 @@ Available markers (see pyproject.toml for full list):
 - **Ruff may remove re-exports**: Mark intentional re-exports with `# noqa: F401` to prevent removal
 - **API URL prefix**: Confluence Cloud uses `/wiki` prefix (e.g., `/wiki/api/v2/pages`). The client handles this automatically.
 - **v1 vs v2 API**: Prefer v2 API (`/api/v2`) for new code. Legacy v1 (`/rest/api`) still supported for backward compatibility.
+- **v2 API uses PATCH for updates**: Space updates and other partial modifications use `client.patch()` not `client.put()`. PUT is for full replacements.
 
 ## Pre-commit Hooks
 
