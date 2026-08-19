@@ -642,3 +642,311 @@ class TestErrorHandling:
         result = runner.invoke(cli, ["page", "get"])
         assert result.exit_code != 0
         assert "Missing argument" in result.output or "Error" in result.output
+
+
+class TestGlobalOutputOption:
+    """Regression tests: global -o/--output propagates to subcommands."""
+
+    PAGE = {
+        "id": "12345",
+        "title": "Test Page",
+        "status": "current",
+        "spaceId": "123",
+        "_links": {"webui": "/wiki/test"},
+    }
+
+    def _invoke(self, runner: CliRunner, args: list[str]):
+        with patch("confluence_as.cli.cli_utils.get_confluence_client") as mock:
+            client = MagicMock()
+            mock.return_value = client
+            client.get.return_value = dict(self.PAGE)
+            return runner.invoke(cli, args)
+
+    def test_global_output_json(self, runner: CliRunner) -> None:
+        """Global -o json makes subcommands emit JSON."""
+        result = self._invoke(runner, ["-o", "json", "page", "get", "12345"])
+        assert result.exit_code == 0
+        assert '"id": "12345"' in result.output
+
+    def test_global_and_local_placements_equivalent(self, runner: CliRunner) -> None:
+        """-o json before or after the subcommand produces the same output."""
+        global_result = self._invoke(runner, ["-o", "json", "page", "get", "12345"])
+        local_result = self._invoke(runner, ["page", "get", "12345", "-o", "json"])
+        assert global_result.exit_code == local_result.exit_code == 0
+        assert global_result.output == local_result.output
+
+    def test_local_output_overrides_global(self, runner: CliRunner) -> None:
+        """An explicit subcommand -o text wins over a global -o json."""
+        result = self._invoke(
+            runner, ["-o", "json", "page", "get", "12345", "-o", "text"]
+        )
+        assert result.exit_code == 0
+        assert '"id": "12345"' not in result.output
+        assert "Test Page" in result.output
+
+    def test_default_remains_text(self, runner: CliRunner) -> None:
+        """With no --output anywhere, text output is used."""
+        result = self._invoke(runner, ["page", "get", "12345"])
+        assert result.exit_code == 0
+        assert '"id": "12345"' not in result.output
+
+
+class TestPageCreate404Disambiguation:
+    """Regression tests: page create 404 permission-denied vs genuine 404."""
+
+    SPACE = {"id": "100", "key": "DOCS", "name": "Documentation"}
+
+    CREATE_ARGS = [
+        "page",
+        "create",
+        "--space",
+        "DOCS",
+        "--title",
+        "Test Page",
+        "--body",
+        "content",
+    ]
+
+    def _client_probe_get(self, account_id: str = "user-1"):
+        def _get(endpoint, **kwargs):
+            if endpoint == "/rest/api/user/current":
+                return {"accountId": account_id, "displayName": "User One"}
+            if endpoint == "/rest/api/user/memberof":
+                return {"results": [{"id": "group-1", "name": "team"}]}
+            raise AssertionError(f"unexpected GET {endpoint}")
+
+        return _get
+
+    def test_missing_create_grant_reports_permission_error(
+        self, runner: CliRunner
+    ) -> None:
+        """A 404 with no create-page grant surfaces as a permission problem."""
+        from confluence_as import NotFoundError
+
+        with patch("confluence_as.cli.cli_utils.get_confluence_client") as mock:
+            client = MagicMock()
+            mock.return_value = client
+            client.paginate.side_effect = [iter([self.SPACE]), iter([])]
+            client.post.side_effect = NotFoundError("Not found")
+            client.get.side_effect = self._client_probe_get()
+            result = runner.invoke(cli, self.CREATE_ARGS)
+        assert result.exit_code != 0
+        assert "no create-page permission" in result.stderr
+
+    def test_genuine_404_is_preserved_when_create_granted(
+        self, runner: CliRunner
+    ) -> None:
+        """A 404 with a create grant present stays a not-found error."""
+        from confluence_as import NotFoundError
+
+        create_grant = {
+            "principal": {"type": "user", "id": "user-1"},
+            "operation": {"key": "create", "targetType": "page"},
+        }
+        with patch("confluence_as.cli.cli_utils.get_confluence_client") as mock:
+            client = MagicMock()
+            mock.return_value = client
+            client.paginate.side_effect = [iter([self.SPACE]), iter([create_grant])]
+            client.post.side_effect = NotFoundError("Parent page not found")
+            client.get.side_effect = self._client_probe_get()
+            result = runner.invoke(cli, self.CREATE_ARGS)
+        assert result.exit_code != 0
+        assert "no create-page permission" not in result.stderr
+        assert "not found" in result.stderr.lower()
+
+    def test_unknown_grants_preserve_not_found(self, runner: CliRunner) -> None:
+        """If grants cannot be read, the original 404 is re-raised."""
+        from confluence_as import ConfluenceError, NotFoundError
+
+        with patch("confluence_as.cli.cli_utils.get_confluence_client") as mock:
+            client = MagicMock()
+            mock.return_value = client
+            client.paginate.side_effect = [
+                iter([self.SPACE]),
+                ConfluenceError("permissions unreadable"),
+            ]
+            client.post.side_effect = NotFoundError("Not found")
+            client.get.side_effect = self._client_probe_get()
+            result = runner.invoke(cli, self.CREATE_ARGS)
+        assert result.exit_code != 0
+        assert "no create-page permission" not in result.stderr
+        assert "not found" in result.stderr.lower()
+
+
+class TestAdminPermissionsCheck:
+    """Regression tests: admin permissions check derives real grant results."""
+
+    SPACE = {"id": "100", "key": "DOCS", "name": "Documentation"}
+
+    GRANTS = [
+        {
+            "principal": {"type": "user", "id": "user-1"},
+            "operation": {"key": "read", "targetType": "space"},
+        },
+        {
+            "principal": {"type": "group", "id": "group-1"},
+            "operation": {"key": "create", "targetType": "page"},
+        },
+        {
+            "principal": {"type": "role", "id": "some-role"},
+            "operation": {"key": "export", "targetType": "space"},
+        },
+    ]
+
+    def _client(self):
+        client = MagicMock()
+
+        def _get(endpoint, **kwargs):
+            if endpoint == "/rest/api/user/current":
+                return {"accountId": "user-1", "displayName": "User One"}
+            if endpoint == "/rest/api/user/memberof":
+                return {"results": [{"id": "group-1", "name": "team"}]}
+            raise AssertionError(f"unexpected GET {endpoint}")
+
+        client.get.side_effect = _get
+        client.paginate.side_effect = [iter([self.SPACE]), iter(self.GRANTS)]
+        return client
+
+    def test_yes_no_unknown_reported_from_grants(self, runner: CliRunner) -> None:
+        """User grant -> Yes, group grant -> Yes, none -> No, role -> Unknown."""
+        with patch("confluence_as.cli.cli_utils.get_confluence_client") as mock:
+            mock.return_value = self._client()
+            result = runner.invoke(
+                cli, ["admin", "permissions", "check", "--space", "DOCS"]
+            )
+        assert result.exit_code == 0
+        assert "[+] read: Yes" in result.output
+        assert "[+] create: Yes" in result.output
+        assert "[-] delete: No" in result.output
+        assert "[?] export: Unknown" in result.output
+
+    def test_json_output_uses_null_for_unknown(self, runner: CliRunner) -> None:
+        """JSON output reports true/false/null per operation."""
+        with patch("confluence_as.cli.cli_utils.get_confluence_client") as mock:
+            mock.return_value = self._client()
+            result = runner.invoke(
+                cli,
+                ["admin", "permissions", "check", "--space", "DOCS", "-o", "json"],
+            )
+        assert result.exit_code == 0
+        assert '"operation": "read"' in result.output
+        assert '"has_permission": true' in result.output
+        assert '"has_permission": false' in result.output
+        assert '"has_permission": null' in result.output
+
+    def test_unreadable_grants_report_unknown(self, runner: CliRunner) -> None:
+        """If the grants endpoint fails, operations report Unknown."""
+        from confluence_as import PermissionError
+
+        client = MagicMock()
+
+        def _get(endpoint, **kwargs):
+            if endpoint == "/rest/api/user/current":
+                return {"accountId": "user-1", "displayName": "User One"}
+            if endpoint == "/rest/api/user/memberof":
+                return {"results": []}
+            raise AssertionError(f"unexpected GET {endpoint}")
+
+        client.get.side_effect = _get
+        client.paginate.side_effect = [
+            iter([self.SPACE]),
+            PermissionError("cannot read grants"),
+        ]
+        with patch("confluence_as.cli.cli_utils.get_confluence_client") as mock:
+            mock.return_value = client
+            result = runner.invoke(
+                cli, ["admin", "permissions", "check", "--space", "DOCS"]
+            )
+        assert result.exit_code == 0
+        assert "[?] read: Unknown" in result.output
+        assert "Yes" not in result.output.replace("Your Groups", "")
+
+
+class TestGetCurrentUserSpaceOperations:
+    """Unit tests for the grant-derivation helper."""
+
+    def _client(self, grants, memberof_error=None):
+        from confluence_as import ConfluenceError
+
+        client = MagicMock()
+
+        def _get(endpoint, **kwargs):
+            if endpoint == "/rest/api/user/current":
+                return {"accountId": "user-1"}
+            if endpoint == "/rest/api/user/memberof":
+                if memberof_error:
+                    raise memberof_error
+                return {"results": [{"id": "group-1", "name": "team"}]}
+            raise ConfluenceError(f"unexpected GET {endpoint}")
+
+        client.get.side_effect = _get
+        client.paginate.return_value = iter(grants)
+        return client
+
+    def test_user_grant_is_yes(self):
+        from confluence_as.cli.helpers import get_current_user_space_operations
+
+        grants = [
+            {
+                "principal": {"type": "user", "id": "user-1"},
+                "operation": {"key": "read", "targetType": "space"},
+            }
+        ]
+        info = get_current_user_space_operations(self._client(grants), "100")
+        assert info["operations"]["read"] is True
+
+    def test_group_grant_is_yes(self):
+        from confluence_as.cli.helpers import get_current_user_space_operations
+
+        grants = [
+            {
+                "principal": {"type": "group", "id": "group-1"},
+                "operation": {"key": "create", "targetType": "page"},
+            }
+        ]
+        info = get_current_user_space_operations(self._client(grants), "100")
+        assert info["operations"]["create"] is True
+
+    def test_no_grant_is_no(self):
+        from confluence_as.cli.helpers import get_current_user_space_operations
+
+        info = get_current_user_space_operations(self._client([]), "100")
+        assert info["operations"]["read"] is False
+        assert info["operations"]["create"] is False
+
+    def test_role_principal_is_unknown(self):
+        from confluence_as.cli.helpers import get_current_user_space_operations
+
+        grants = [
+            {
+                "principal": {"type": "role", "id": "anyone"},
+                "operation": {"key": "read", "targetType": "space"},
+            }
+        ]
+        info = get_current_user_space_operations(self._client(grants), "100")
+        assert info["operations"]["read"] is None
+
+    def test_group_grant_with_unknown_membership_is_unknown(self):
+        from confluence_as import PermissionError
+        from confluence_as.cli.helpers import get_current_user_space_operations
+
+        grants = [
+            {
+                "principal": {"type": "group", "id": "group-1"},
+                "operation": {"key": "read", "targetType": "space"},
+            }
+        ]
+        client = self._client(grants, memberof_error=PermissionError("denied"))
+        info = get_current_user_space_operations(client, "100")
+        assert info["operations"]["read"] is None
+        # Operations without any grant are still definitively No.
+        assert info["operations"]["create"] is False
+
+    def test_unreadable_grants_are_all_unknown(self):
+        from confluence_as import ConfluenceError
+        from confluence_as.cli.helpers import get_current_user_space_operations
+
+        client = self._client([])
+        client.paginate.side_effect = ConfluenceError("nope")
+        info = get_current_user_space_operations(client, "100")
+        assert all(v is None for v in info["operations"].values())

@@ -8,6 +8,8 @@ from typing import Any
 import click
 
 from confluence_as import (
+    NotFoundError,
+    PermissionError,
     ValidationError,
     format_blogpost,
     format_json,
@@ -25,8 +27,12 @@ from confluence_as import (
     validate_title,
     xhtml_to_markdown,
 )
-from confluence_as.cli.cli_utils import get_client_from_context
+from confluence_as.cli.cli_utils import (
+    get_client_from_context,
+    resolve_output_default,
+)
 from confluence_as.cli.helpers import (
+    get_current_user_space_operations,
     get_space_id,
     is_markdown_file,
     read_file_content,
@@ -91,7 +97,8 @@ def page() -> None:
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -160,7 +167,8 @@ def get_page(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -210,7 +218,22 @@ def create_page(
     if parent_id:
         page_data["parentId"] = parent_id
 
-    result = client.post("/api/v2/pages", json_data=page_data, operation="create page")
+    try:
+        result = client.post(
+            "/api/v2/pages", json_data=page_data, operation="create page"
+        )
+    except NotFoundError as exc:
+        # Confluence reports a missing create-page grant as HTTP 404. Probe
+        # the space's grants to distinguish permission-denied from a genuine
+        # bad ID/key, keeping real not-found behavior for the latter.
+        grant_info = get_current_user_space_operations(client, space_id)
+        if grant_info["operations"].get("create") is False:
+            raise PermissionError(
+                f"Cannot create pages in space '{space_key}': the current "
+                "user has no create-page permission (Confluence reports "
+                "this as a 404)."
+            ) from exc
+        raise
 
     if output == "json":
         click.echo(format_json(result))
@@ -239,7 +262,8 @@ def create_page(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -359,7 +383,8 @@ def delete_page(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -437,7 +462,8 @@ def copy_page(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -526,7 +552,8 @@ def move_page(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -620,7 +647,8 @@ def get_page_versions(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -711,7 +739,8 @@ def blog() -> None:
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -780,7 +809,8 @@ def get_blogpost(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context

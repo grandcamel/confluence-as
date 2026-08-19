@@ -17,7 +17,10 @@ from confluence_as import (
     validate_page_id,
     validate_space_key,
 )
-from confluence_as.cli.cli_utils import get_client_from_context
+from confluence_as.cli.cli_utils import (
+    get_client_from_context,
+    resolve_output_default,
+)
 from confluence_as.cli.helpers import get_space_by_key
 
 
@@ -33,7 +36,8 @@ def analytics() -> None:
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -123,7 +127,8 @@ def get_page_views(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -216,7 +221,8 @@ def get_content_watchers(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -339,7 +345,8 @@ def get_popular_content(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context

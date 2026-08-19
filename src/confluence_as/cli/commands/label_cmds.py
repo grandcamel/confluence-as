@@ -16,7 +16,10 @@ from confluence_as import (
     validate_page_id,
     validate_space_key,
 )
-from confluence_as.cli.cli_utils import get_client_from_context
+from confluence_as.cli.cli_utils import (
+    get_client_from_context,
+    resolve_output_default,
+)
 
 
 @click.group()
@@ -31,7 +34,8 @@ def label() -> None:
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -88,7 +92,8 @@ def get_labels(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -145,7 +150,8 @@ def add_label(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -195,7 +201,8 @@ def remove_label(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -295,7 +302,8 @@ def search_by_label(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context

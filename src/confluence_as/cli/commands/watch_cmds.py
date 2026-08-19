@@ -14,7 +14,10 @@ from confluence_as import (
     validate_page_id,
     validate_space_key,
 )
-from confluence_as.cli.cli_utils import get_client_from_context
+from confluence_as.cli.cli_utils import (
+    get_client_from_context,
+    resolve_output_default,
+)
 from confluence_as.cli.helpers import get_space_by_key
 
 
@@ -38,7 +41,8 @@ def watch() -> None:
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -94,7 +98,8 @@ def watch_page(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -148,7 +153,8 @@ def unwatch_page(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -219,7 +225,8 @@ def watch_space(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -277,7 +284,8 @@ def am_i_watching(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context

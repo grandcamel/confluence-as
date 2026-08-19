@@ -21,7 +21,10 @@ from confluence_as import (
     validate_limit,
     validate_page_id,
 )
-from confluence_as.cli.cli_utils import get_client_from_context
+from confluence_as.cli.cli_utils import (
+    get_client_from_context,
+    resolve_output_default,
+)
 
 
 def _format_attachment(attachment: dict[str, Any]) -> dict[str, Any]:
@@ -63,7 +66,8 @@ def attachment() -> None:
     "--output",
     "-o",
     type=click.Choice(["text", "json", "table"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -151,7 +155,8 @@ def list_attachments(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -300,7 +305,8 @@ def download_attachment(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
