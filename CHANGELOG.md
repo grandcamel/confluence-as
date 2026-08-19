@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-08-19
+
+### Fixed
+- XHTML conversion handles real Confluence storage-format input: ac:/ri:
+  namespace normalization preserves opening vs closing tags, so macro
+  handlers (code, panels, status, toc, expand) work on namespaced input,
+  including `ac:name` parameter elements and CDATA plain-text bodies
+- Unhandled `<structured-macro>` blocks are dropped wholesale (innermost
+  first) so their parameters and bodies never leak into Markdown output;
+  macro names sharing a known prefix (e.g. `expand-foo`) are not treated
+  as known
+- Multiline table cell structure is preserved: paragraph- and `<br>`-
+  separated cell content renders as `<br>` inside Markdown table rows
+- Global `-o/--output` now propagates to all subcommands as their
+  default; an explicit subcommand `--output` still wins
+- `page create` distinguishes a missing create-page grant (reported by
+  Confluence as HTTP 404) from a genuine not-found by probing space
+  permission grants
+- `admin permissions check` derives Yes/No/Unknown per operation from
+  the space's actual permission grants, current user identity, and group
+  memberships instead of hardcoded optimistic results
+- `get_confluence_client()` honors `CONFLUENCE_MOCK_MODE=true` and
+  returns the mock client without requiring credentials
+
+### Changed
+- CI coverage threshold set just below the current measured baseline
+  (38%, measured 39.8%)
+
 ## [1.0.0] - 2025-01-20
 
 ### Changed
