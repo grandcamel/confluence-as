@@ -7,7 +7,8 @@ error handler from assistant_skills_lib.
 
 import functools
 import sys
-from typing import Any, Callable, Literal, Optional
+from collections.abc import Callable
+from typing import Any, Literal
 
 import requests
 from assistant_skills_lib.error_handler import (
@@ -92,7 +93,7 @@ class ValidationError(BaseValidationError, ConfluenceError):
     def __init__(
         self,
         message: str = "Validation failed",
-        field: Optional[str] = None,
+        field: str | None = None,
         **kwargs: Any,
     ):
         # Remove 'message' from kwargs if present to avoid duplicate argument
@@ -109,8 +110,8 @@ class NotFoundError(BaseNotFoundError, ConfluenceError):
     def __init__(
         self,
         message: str = "Resource not found",
-        resource_type: Optional[str] = None,
-        resource_id: Optional[str] = None,
+        resource_type: str | None = None,
+        resource_id: str | None = None,
         **kwargs: Any,
     ):
         # Remove 'message' from kwargs if present to avoid duplicate argument
@@ -128,7 +129,7 @@ class RateLimitError(BaseRateLimitError, ConfluenceError):
     def __init__(
         self,
         message: str = "Rate limit exceeded",
-        retry_after: Optional[int] = None,
+        retry_after: int | None = None,
         **kwargs: Any,
     ):
         # Remove 'message' from kwargs if present to avoid duplicate argument
@@ -267,8 +268,8 @@ def handle_confluence_error(
 
 def print_error(
     message: str,
-    error: Optional[Exception] = None,
-    suggestion: Optional[str] = None,
+    error: Exception | None = None,
+    suggestion: str | None = None,
     show_traceback: bool = False,
 ) -> None:
     """
@@ -311,7 +312,7 @@ class ErrorContext:
         return self
 
     def __exit__(
-        self, exc_type: Optional[type], exc_val: Optional[BaseAPIError], exc_tb: Any
+        self, exc_type: type | None, exc_val: BaseAPIError | None, exc_tb: Any
     ) -> Literal[False]:
         if (
             exc_type is not None

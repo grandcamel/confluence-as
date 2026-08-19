@@ -6,7 +6,7 @@ Provides fixtures for all domain tests (comment, label, search, analytics, etc.)
 """
 
 import json
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -27,9 +27,9 @@ def mock_response():
 
     def _create_response(
         status_code: int = 200,
-        json_data: Optional[dict[str, Any]] = None,
+        json_data: dict[str, Any] | None = None,
         text: str = "",
-        headers: Optional[dict[str, str]] = None,
+        headers: dict[str, str] | None = None,
     ):
         response = Mock()
         response.status_code = status_code

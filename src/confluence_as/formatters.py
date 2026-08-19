@@ -6,7 +6,7 @@ Inherits generic formatters from the base library.
 """
 
 import re
-from typing import Any, Optional
+from typing import Any
 
 # Import generic formatters and color utilities from the base library
 # Re-exported for convenience - these are used by __init__.py
@@ -184,7 +184,7 @@ def format_comment(comment: dict[str, Any], show_body: bool = True) -> str:
 
 def format_comments(
     comments: list[dict[str, Any]],
-    limit: Optional[int] = None,
+    limit: int | None = None,
     show_body: bool = True,
 ) -> str:
     """

@@ -25,7 +25,7 @@ Usage:
 
 import html
 import re
-from typing import Any, Optional
+from typing import Any
 
 from .formatters import strip_html_tags
 from .markdown_parser import is_block_start, parse_markdown
@@ -138,9 +138,11 @@ def xhtml_to_markdown(xhtml: str) -> str:
     # Blockquotes
     text = re.sub(
         r"<blockquote[^>]*>(.*?)</blockquote>",
-        lambda m: "\n"
-        + "\n".join(f"> {line}" for line in _clean_text(m.group(1)).split("\n"))
-        + "\n",
+        lambda m: (
+            "\n"
+            + "\n".join(f"> {line}" for line in _clean_text(m.group(1)).split("\n"))
+            + "\n"
+        ),
         text,
         flags=re.DOTALL,
     )
@@ -581,7 +583,7 @@ def wrap_in_storage_format(content: str) -> str:
     return content
 
 
-def validate_xhtml(xhtml: str) -> tuple[bool, Optional[str]]:
+def validate_xhtml(xhtml: str) -> tuple[bool, str | None]:
     """
     Validate XHTML storage format.
 

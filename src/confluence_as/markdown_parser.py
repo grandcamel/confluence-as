@@ -14,7 +14,7 @@ Usage:
 """
 
 import re
-from typing import Optional, TypedDict
+from typing import TypedDict
 
 
 class MarkdownBlock(TypedDict, total=False):
@@ -33,7 +33,7 @@ class MarkdownBlock(TypedDict, total=False):
     type: str
     content: str
     level: int
-    language: Optional[str]
+    language: str | None
     items: list[str]
 
 
