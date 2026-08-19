@@ -17,8 +17,14 @@ from confluence_as import (
     validate_limit,
     validate_space_key,
 )
-from confluence_as.cli.cli_utils import get_client_from_context
-from confluence_as.cli.helpers import get_space_by_key
+from confluence_as.cli.cli_utils import (
+    get_client_from_context,
+    resolve_output_default,
+)
+from confluence_as.cli.helpers import (
+    get_current_user_space_operations,
+    get_space_by_key,
+)
 
 
 @click.group()
@@ -48,7 +54,8 @@ def user() -> None:
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -144,7 +151,8 @@ def search_users(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -190,7 +198,8 @@ def get_user(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -268,7 +277,8 @@ def group() -> None:
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -335,7 +345,8 @@ def list_groups(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -376,7 +387,8 @@ def get_group(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -448,7 +460,8 @@ def list_group_members(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -485,7 +498,8 @@ def create_group(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -538,7 +552,8 @@ def delete_group(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -585,7 +600,8 @@ def add_user_to_group(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -649,7 +665,8 @@ def admin_space() -> None:
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -721,7 +738,8 @@ def get_space_settings(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -782,7 +800,8 @@ def update_space_settings(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -869,7 +888,8 @@ def admin_template() -> None:
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -945,7 +965,8 @@ def list_templates(
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -1005,7 +1026,8 @@ def admin_permissions() -> None:
     "--output",
     "-o",
     type=click.Choice(["text", "json"]),
-    default="text",
+    default=None,
+    callback=resolve_output_default,
     help="Output format",
 )
 @click.pass_context
@@ -1016,7 +1038,13 @@ def check_permissions(
     only_missing: bool,
     output: str,
 ) -> None:
-    """Check your permissions on a space."""
+    """Check your permissions on a space.
+
+    Results are derived from the space's permission grants combined with
+    your identity and group memberships. Each operation reports Yes, No,
+    or Unknown (when grants cannot be read or a grant's principal type
+    cannot be resolved).
+    """
     space = validate_space_key(space)
 
     client = get_client_from_context(ctx)
@@ -1027,54 +1055,18 @@ def check_permissions(
 
     # Get space
     space_info = get_space_by_key(client, space)
-    space_info.get("id")
+    space_id = space_info.get("id", "")
     space_name = space_info.get("name", space)
 
-    # Define permission operations to check
-    operations = [
-        "read",
-        "create",
-        "delete",
-        "export",
-        "administer",
-        "archive",
-        "restrict_content",
-        "edit",
-        "comment",
+    # Derive per-operation results from the space's actual permission grants
+    grant_info = get_current_user_space_operations(client, space_id)
+    user_groups = [g["name"] for g in grant_info["groups"] if g.get("name")]
+
+    # has_permission is True, False, or None (unknown)
+    results = [
+        {"operation": op, "has_permission": granted}
+        for op, granted in grant_info["operations"].items()
     ]
-
-    # Check each permission
-    results = []
-    for op in operations:
-        try:
-            # Try to check by making specific API calls
-            # This is a simplified check - actual permission check would need
-            # more sophisticated API calls
-            has_permission = True  # Default to true for read operations
-            results.append(
-                {
-                    "operation": op,
-                    "has_permission": has_permission,
-                }
-            )
-        except Exception:
-            results.append(
-                {
-                    "operation": op,
-                    "has_permission": False,
-                }
-            )
-
-    # Get user's groups to show context
-    try:
-        groups_resp = client.get(
-            "/rest/api/user/memberof",
-            params={"accountId": current_user.get("accountId", "")},
-            operation="get user groups",
-        )
-        user_groups = [g.get("name", "") for g in groups_resp.get("results", [])]
-    except Exception:
-        user_groups = []
 
     if output == "json":
         click.echo(
@@ -1100,15 +1092,19 @@ def check_permissions(
 
         click.echo("Permissions:")
         for r in results:
-            if only_missing and r["has_permission"]:
+            if only_missing and r["has_permission"] is True:
                 continue
-            status = "Yes" if r["has_permission"] else "No"
-            icon = "+" if r["has_permission"] else "-"
+            if r["has_permission"] is True:
+                icon, status = "+", "Yes"
+            elif r["has_permission"] is False:
+                icon, status = "-", "No"
+            else:
+                icon, status = "?", "Unknown"
             click.echo(f"  [{icon}] {r['operation']}: {status}")
 
         print_info(
-            "\nNote: This is a simplified permission check. "
-            "Actual permissions may vary based on page-level restrictions."
+            "\nNote: Results reflect space permission grants for you and "
+            "your groups. Page-level restrictions may further limit access."
         )
 
     print_success("Permission check complete")

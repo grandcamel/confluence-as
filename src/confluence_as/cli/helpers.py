@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
-from confluence_as import ValidationError
+from confluence_as import ConfluenceError, ValidationError
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -76,3 +76,113 @@ def is_markdown_file(file_path: Path) -> bool:
         True if file has .md or .markdown extension
     """
     return file_path.suffix.lower() in (".md", ".markdown")
+
+
+# Operations reported by permission diagnostics, mapped to the space
+# permission grant (operation key, target type) that authorizes each one.
+SPACE_OPERATION_GRANTS: dict[str, tuple[str, str]] = {
+    "read": ("read", "space"),
+    "create": ("create", "page"),
+    "edit": ("update", "page"),
+    "delete": ("delete", "page"),
+    "comment": ("create", "comment"),
+    "export": ("export", "space"),
+    "administer": ("administer", "space"),
+    "archive": ("archive", "page"),
+    "restrict_content": ("restrict_content", "space"),
+}
+
+
+def get_current_user_space_operations(client: Any, space_id: str) -> dict[str, Any]:
+    """Compute which space operations the current user is actually granted.
+
+    Results are derived from the space's permission grants combined with the
+    current user's identity and group memberships — nothing is assumed. Each
+    operation resolves to True (an explicit user grant, or a grant to one of
+    the user's groups), False (grants were readable and none apply), or None
+    (unknown: a probe call failed, or the only applicable grants use
+    principals whose membership cannot be resolved here, such as roles).
+
+    Args:
+        client: Confluence API client
+        space_id: Space ID whose permission grants are checked
+
+    Returns:
+        Dict with keys:
+        - "account_id": current user's account ID, or None if unavailable
+        - "groups": list of {"id", "name"} dicts for the user's groups
+        - "operations": mapping of operation name -> True | False | None
+    """
+    account_id: str | None = None
+    groups: list[dict[str, Any]] = []
+    groups_known = False
+
+    try:
+        current_user = client.get(
+            "/rest/api/user/current", operation="get current user"
+        )
+        account_id = current_user.get("accountId")
+    except ConfluenceError:
+        account_id = None
+
+    if account_id:
+        try:
+            member_of = client.get(
+                "/rest/api/user/memberof",
+                params={"accountId": account_id},
+                operation="get user groups",
+            )
+            groups = [
+                {"id": group.get("id"), "name": group.get("name", "")}
+                for group in member_of.get("results", [])
+            ]
+            groups_known = True
+        except ConfluenceError:
+            groups = []
+
+    grants: list[dict[str, Any]] | None
+    try:
+        grants = list(
+            client.paginate(
+                f"/api/v2/spaces/{space_id}/permissions",
+                operation="get space permissions",
+            )
+        )
+    except ConfluenceError:
+        grants = None
+
+    if grants is None or account_id is None:
+        return {
+            "account_id": account_id,
+            "groups": groups,
+            "operations": dict.fromkeys(SPACE_OPERATION_GRANTS),
+        }
+
+    group_ids = {group["id"] for group in groups if group.get("id")}
+    operations: dict[str, bool | None] = {}
+    for op, (key, target_type) in SPACE_OPERATION_GRANTS.items():
+        granted: bool | None = False
+        for grant in grants:
+            operation = grant.get("operation", {})
+            if operation.get("key") != key or operation.get("targetType") != (
+                target_type
+            ):
+                continue
+            principal = grant.get("principal", {})
+            principal_type = principal.get("type")
+            principal_id = principal.get("id")
+            if principal_type == "user" and principal_id == account_id:
+                granted = True
+                break
+            if principal_type == "group":
+                if principal_id in group_ids:
+                    granted = True
+                    break
+                if not groups_known:
+                    granted = None
+            elif granted is False:
+                # Role or other principal types: membership can't be resolved
+                granted = None
+        operations[op] = granted
+
+    return {"account_id": account_id, "groups": groups, "operations": operations}

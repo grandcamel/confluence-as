@@ -216,6 +216,18 @@ def get_output_format(ctx: click.Context, explicit_output: str | None = None) ->
     return ctx.obj.get("output", "text") if ctx.obj else "text"
 
 
+def resolve_output_default(
+    ctx: click.Context, param: click.Parameter, value: str | None
+) -> str:
+    """Click callback for subcommand --output options.
+
+    An --output passed to the subcommand wins; otherwise the group-level
+    --output stored in ctx.obj applies, defaulting to "text". Use with
+    default=None so an unset option falls through to the global value.
+    """
+    return get_output_format(ctx, value)
+
+
 def output_results(
     data: Any,
     output_format: str = "text",
@@ -350,6 +362,7 @@ __all__ = [
     "output_results",
     "parse_comma_list",
     "parse_json_arg",
+    "resolve_output_default",
     "validate_non_negative_int",
     "validate_page_id_callback",
     "validate_positive_int",
