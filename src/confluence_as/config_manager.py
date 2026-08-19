@@ -19,7 +19,7 @@ Usage:
     client = get_confluence_client()
 """
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from assistant_skills_lib.config_manager import BaseConfigManager
 from assistant_skills_lib.error_handler import ValidationError
@@ -95,6 +95,9 @@ def get_confluence_client(**kwargs) -> "ConfluenceClient":
     """
     Get a configured Confluence client.
 
+    When CONFLUENCE_MOCK_MODE=true, returns a MockConfluenceClient without
+    reading credentials, so commands can run against seed data offline.
+
     Args:
         **kwargs: Additional arguments passed to ConfluenceClient.
 
@@ -102,6 +105,10 @@ def get_confluence_client(**kwargs) -> "ConfluenceClient":
         Configured ConfluenceClient instance.
     """
     from .confluence_client import ConfluenceClient
+    from .mock import MockConfluenceClient, is_mock_mode
+
+    if is_mock_mode():
+        return cast("ConfluenceClient", MockConfluenceClient(**kwargs))
 
     manager = ConfigManager.get_instance()
 

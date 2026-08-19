@@ -177,3 +177,55 @@ class TestGetConfluenceClient:
 
         with pytest.raises((ValidationError, BaseValidationError)):
             get_confluence_client()
+
+
+class TestMockModeFactory:
+    """Regression tests: get_confluence_client honors CONFLUENCE_MOCK_MODE."""
+
+    def test_mock_mode_returns_mock_client(self, monkeypatch):
+        """CONFLUENCE_MOCK_MODE=true short-circuits to the mock client."""
+        from confluence_as.mock import MockConfluenceClient
+
+        monkeypatch.setenv("CONFLUENCE_MOCK_MODE", "true")
+        # No credentials required in mock mode.
+        monkeypatch.delenv("CONFLUENCE_SITE_URL", raising=False)
+        monkeypatch.delenv("CONFLUENCE_EMAIL", raising=False)
+        monkeypatch.delenv("CONFLUENCE_API_TOKEN", raising=False)
+
+        client = get_confluence_client()
+        assert isinstance(client, MockConfluenceClient)
+
+    def test_mock_mode_is_case_insensitive(self, monkeypatch):
+        """CONFLUENCE_MOCK_MODE=TRUE also enables mock mode."""
+        from confluence_as.mock import MockConfluenceClient
+
+        monkeypatch.setenv("CONFLUENCE_MOCK_MODE", "TRUE")
+        client = get_confluence_client()
+        assert isinstance(client, MockConfluenceClient)
+
+    def test_mock_mode_client_serves_seed_data(self, monkeypatch):
+        """The mock client returned by the factory answers API calls."""
+        monkeypatch.setenv("CONFLUENCE_MOCK_MODE", "true")
+        client = get_confluence_client()
+        page = client.get("/api/v2/pages/100001")
+        assert page["id"] == "100001"
+
+    def test_mock_mode_disabled_uses_real_client(self, monkeypatch):
+        """Without mock mode, the real client is constructed."""
+        from unittest.mock import MagicMock, patch
+
+        from confluence_as import ConfluenceClient
+        from confluence_as.mock import MockConfluenceClient
+
+        monkeypatch.setenv("CONFLUENCE_MOCK_MODE", "false")
+        manager = MagicMock()
+        manager.get_credentials.return_value = {
+            "url": "https://example.atlassian.net",
+            "email": "user@example.com",
+            "api_token": "token",
+        }
+        manager.get_api_config.return_value = {}
+        with patch.object(ConfigManager, "get_instance", return_value=manager):
+            client = get_confluence_client()
+        assert isinstance(client, ConfluenceClient)
+        assert not isinstance(client, MockConfluenceClient)
