@@ -77,6 +77,10 @@ class PageMixin:
         **kwargs: Any,
     ) -> Any:
         """Handle POST requests for pages."""
+        # The real client accepts the payload as json_data=; honor both.
+        json_payload = kwargs.pop("json_data", None)
+        if json_payload is not None:
+            data = json_payload
         self._record_request("POST", endpoint, data=data)  # type: ignore[attr-defined]
 
         # POST /api/v2/pages (create page)
@@ -94,6 +98,9 @@ class PageMixin:
         **kwargs: Any,
     ) -> Any:
         """Handle PUT requests for pages."""
+        json_payload = kwargs.pop("json_data", None)
+        if json_payload is not None:
+            data = json_payload
         self._record_request("PUT", endpoint, data=data)  # type: ignore[attr-defined]
 
         # PUT /api/v2/pages/{id}

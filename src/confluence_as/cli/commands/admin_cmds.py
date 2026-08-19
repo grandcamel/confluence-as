@@ -1049,17 +1049,16 @@ def check_permissions(
 
     client = get_client_from_context(ctx)
 
-    # Get current user
-    current_user = client.get("/rest/api/user/current", operation="get current user")
-    user_name = current_user.get("displayName", "Unknown")
-
     # Get space
     space_info = get_space_by_key(client, space)
     space_id = space_info.get("id", "")
     space_name = space_info.get("name", space)
 
-    # Derive per-operation results from the space's actual permission grants
+    # Derive per-operation results from the space's actual permission grants.
+    # The helper also identifies the current user; a failed identity probe
+    # degrades to Unknown results instead of aborting the command.
     grant_info = get_current_user_space_operations(client, space_id)
+    user_name = grant_info.get("display_name") or "Unknown"
     user_groups = [g["name"] for g in grant_info["groups"] if g.get("name")]
 
     # has_permission is True, False, or None (unknown)

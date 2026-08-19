@@ -172,6 +172,36 @@ class MockConfluenceClientBase:
         """Return all recorded requests."""
         return self._requests.copy()
 
+    # Interface parity with ConfluenceClient
+    def paginate(
+        self,
+        endpoint: str,
+        params: dict[str, Any] | None = None,
+        operation: str = "paginated request",
+        limit: int | None = None,
+        results_key: str = "results",
+    ) -> Any:
+        """Yield individual items from a mock GET response.
+
+        Mirrors ConfluenceClient.paginate so helpers that iterate
+        client.paginate(...) work in mock mode. Mock responses are a single
+        page, so no cursor following is needed.
+        """
+        response = self.get(endpoint, params=params, operation=operation)
+        items = response.get(results_key, []) if isinstance(response, dict) else []
+        if limit is not None:
+            items = items[:limit]
+        yield from items
+
+    def close(self) -> None:
+        """No-op; present for interface parity with ConfluenceClient."""
+
+    def __enter__(self) -> MockConfluenceClientBase:
+        return self
+
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        self.close()
+
     def clear_recorded_requests(self) -> None:
         """Clear recorded requests."""
         self._requests.clear()

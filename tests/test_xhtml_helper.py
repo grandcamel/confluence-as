@@ -511,7 +511,7 @@ class TestUnhandledMacroDrop:
         assert "LEAKED" not in result
 
     def test_nested_unhandled_inside_unhandled_with_tail(self):
-        """Nested unhandled macros with tail content are fully removed."""
+        """Nested unhandled macros: parameters vanish, body content stays."""
         xhtml = (
             '<ac:structured-macro ac:name="outer-unknown">'
             "<ac:rich-text-body>"
@@ -523,7 +523,7 @@ class TestUnhandledMacroDrop:
         )
         result = xhtml_to_markdown(xhtml)
         assert "INNER" not in result
-        assert "TAIL" not in result
+        assert "TAIL" in result  # rich-text content is page-visible material
         assert "After" in result
 
     def test_known_prefix_name_is_not_treated_as_known(self):
@@ -535,8 +535,11 @@ class TestUnhandledMacroDrop:
             "</ac:structured-macro><p>Kept</p>"
         )
         result = xhtml_to_markdown(xhtml)
+        # Not rendered as an expand macro; the title parameter is dropped
+        # while the rich-text content is preserved.
+        assert "<details>" not in result
         assert "Should vanish" not in result
-        assert "Hidden body" not in result
+        assert "Hidden body" in result
         assert "Kept" in result
 
     def test_self_closing_unhandled_macro_dropped(self):
@@ -592,3 +595,168 @@ class TestTableCellLineBreaks:
         table_lines = [ln for ln in result.splitlines() if ln.startswith("|")]
         assert len(table_lines) == 3  # header, separator, one data row
         assert "| x<br>y | z |" in result
+
+
+class TestContentPreservation:
+    """Regression tests from review: conversion must never delete content."""
+
+    def test_section_column_layout_content_preserved(self):
+        """Layout macros (section/column) keep their page content."""
+        xhtml = (
+            '<ac:structured-macro ac:name="section">'
+            "<ac:rich-text-body>"
+            '<ac:structured-macro ac:name="column">'
+            "<ac:rich-text-body><p>Important page content</p></ac:rich-text-body>"
+            "</ac:structured-macro>"
+            "</ac:rich-text-body></ac:structured-macro>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "Important page content" in result
+
+    def test_excerpt_macro_body_preserved(self):
+        """Excerpt macro bodies are page-visible and must survive."""
+        xhtml = (
+            '<ac:structured-macro ac:name="excerpt">'
+            "<ac:rich-text-body><p>Reusable intro text</p></ac:rich-text-body>"
+            "</ac:structured-macro>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "Reusable intro text" in result
+
+    def test_cdata_containing_macro_markup_is_inert(self):
+        """Macro-looking text inside CDATA never consumes real content."""
+        xhtml = (
+            "<p>Intro</p>"
+            '<ac:structured-macro ac:name="code">'
+            "<ac:plain-text-body><![CDATA["
+            '<ac:structured-macro ac:name="mymacro">'
+            "]]></ac:plain-text-body></ac:structured-macro>"
+            "<p>After</p>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "Intro" in result
+        assert "After" in result
+        assert '<ac:structured-macro ac:name="mymacro">' in result  # verbatim code
+
+    def test_escaped_macro_example_in_prose_stays_literal(self):
+        """HTML-escaped markup examples render as text, not live macros."""
+        xhtml = (
+            "<p>To embed an issue write "
+            "&lt;ac:structured-macro ac:name=&quot;jira&quot;&gt;PROJ-1"
+            "&lt;/ac:structured-macro&gt; in the storage body.</p>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "PROJ-1" in result
+        assert 'ac:name="jira"' in result
+
+    def test_code_with_angle_brackets_survives(self):
+        """Angle brackets in code (C++ templates, comparisons) are kept."""
+        xhtml = (
+            '<ac:structured-macro ac:name="code">'
+            '<ac:parameter ac:name="language">cpp</ac:parameter>'
+            "<ac:plain-text-body><![CDATA[std::vector<int> v;]]>"
+            "</ac:plain-text-body></ac:structured-macro>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "std::vector<int> v;" in result
+
+    def test_code_comparison_does_not_eat_following_content(self):
+        """An unmatched '<' in code must not delete later document text."""
+        xhtml = (
+            '<ac:structured-macro ac:name="code">'
+            "<ac:plain-text-body><![CDATA[if a < b: pass]]>"
+            "</ac:plain-text-body></ac:structured-macro>"
+            "<p>Everything here should survive</p><p>x &gt; y sentence</p>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "if a < b: pass" in result
+        assert "Everything here should survive" in result
+        assert "x > y sentence" in result
+
+    def test_expand_details_markup_survives_to_output(self):
+        """Expand renders a <details>/<summary> block in the final output."""
+        xhtml = (
+            '<ac:structured-macro ac:name="expand">'
+            '<ac:parameter ac:name="title">More</ac:parameter>'
+            "<ac:rich-text-body><p>Hidden text</p></ac:rich-text-body>"
+            "</ac:structured-macro>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "<details>" in result
+        assert "<summary>More</summary>" in result
+        assert "Hidden text" in result
+        assert "</details>" in result
+
+    def test_empty_panel_does_not_swallow_following_content(self):
+        """A panel without a body must not consume text up to the next macro."""
+        xhtml = (
+            '<ac:structured-macro ac:name="info"><ac:rich-text-body />'
+            "</ac:structured-macro>"
+            "<p>REAL CONTENT BETWEEN</p>"
+            '<ac:structured-macro ac:name="warning">'
+            "<ac:rich-text-body>warn body</ac:rich-text-body>"
+            "</ac:structured-macro>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "REAL CONTENT BETWEEN" in result
+        assert "**Warning:** warn body" in result
+
+    def test_status_without_title_does_not_span_macros(self):
+        """A title-less status macro must not consume the next macro's title."""
+        xhtml = (
+            '<ac:structured-macro ac:name="status"></ac:structured-macro>'
+            "<p>MIDDLE TEXT</p>"
+            '<ac:structured-macro ac:name="status">'
+            '<ac:parameter ac:name="title">Done</ac:parameter>'
+            "</ac:structured-macro>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "MIDDLE TEXT" in result
+        assert "`Done`" in result
+
+    def test_self_closing_toc_renders_marker(self):
+        """A parameterless self-closing toc still renders its marker."""
+        xhtml = (
+            "<p>Before</p>"
+            '<ac:structured-macro ac:name="toc" ac:schema-version="1" '
+            'ac:macro-id="t1"/><p>After</p>'
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "[Table of Contents]" in result
+        assert "Before" in result
+        assert "After" in result
+
+    def test_macro_lookalike_tag_not_matched(self):
+        """Tags like <structured-macro-ext> are not treated as macros."""
+        xhtml = (
+            "<p>Start</p><ac:structured-macro-ext>kept text"
+            "</ac:structured-macro-ext><p>End</p>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "Start" in result
+        assert "kept text" in result
+        assert "End" in result
+
+    def test_unhandled_outer_with_handled_inner_drops_outer_params(self):
+        """Unhandled macro wrapping a handled one: params gone, inner kept."""
+        xhtml = (
+            '<ac:structured-macro ac:name="unknown-outer">'
+            '<ac:parameter ac:name="server">SECRETSERVER</ac:parameter>'
+            "<ac:rich-text-body>"
+            '<ac:structured-macro ac:name="status">'
+            '<ac:parameter ac:name="title">OK</ac:parameter>'
+            "</ac:structured-macro>"
+            "</ac:rich-text-body></ac:structured-macro><p>After</p>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "SECRETSERVER" not in result
+        assert "`OK`" in result
+        assert "After" in result
+
+    def test_table_cell_pipe_is_escaped(self):
+        """A literal pipe in a cell must not create extra columns."""
+        xhtml = (
+            "<table><tr><th>K</th></tr><tr><td><p>a | b</p><p>c</p></td></tr></table>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "| a \\| b<br>c |" in result

@@ -950,3 +950,157 @@ class TestGetCurrentUserSpaceOperations:
         client.paginate.side_effect = ConfluenceError("nope")
         info = get_current_user_space_operations(client, "100")
         assert all(v is None for v in info["operations"].values())
+
+
+class TestMockModeCLI:
+    """End-to-end mock mode: commands must work, not crash on paginate."""
+
+    def test_space_list_works_in_mock_mode(
+        self, runner: CliRunner, monkeypatch
+    ) -> None:
+        monkeypatch.setenv("CONFLUENCE_MOCK_MODE", "true")
+        result = runner.invoke(cli, ["space", "list"])
+        assert result.exit_code == 0
+        assert "TEST" in result.output
+
+    def test_page_create_works_in_mock_mode(
+        self, runner: CliRunner, monkeypatch
+    ) -> None:
+        monkeypatch.setenv("CONFLUENCE_MOCK_MODE", "true")
+        result = runner.invoke(
+            cli,
+            [
+                "page",
+                "create",
+                "--space",
+                "TEST",
+                "--title",
+                "Mock Page",
+                "--body",
+                "x",
+            ],
+        )
+        assert result.exit_code == 0
+        assert "Mock Page" in result.output
+
+
+class TestGrantDerivationHardening:
+    """Regression tests from review: grant semantics must be precise."""
+
+    def _client(self, grants, memberof=None, get_error=None):
+        client = MagicMock()
+
+        def _get(endpoint, **kwargs):
+            if get_error is not None:
+                raise get_error
+            if endpoint == "/rest/api/user/current":
+                return {"accountId": "user-1", "displayName": "User One"}
+            if endpoint == "/rest/api/user/memberof":
+                return memberof or {"results": [{"id": "group-1", "name": "team"}]}
+            raise AssertionError(f"unexpected GET {endpoint}")
+
+        client.get.side_effect = _get
+        client.paginate.return_value = iter(grants)
+        return client
+
+    def test_other_users_grant_is_definitively_no(self):
+        """A grant held by a different user must report No, not Unknown."""
+        from confluence_as.cli.helpers import get_current_user_space_operations
+
+        grants = [
+            {
+                "principal": {"type": "user", "id": "someone-else"},
+                "operation": {"key": "delete", "targetType": "page"},
+            }
+        ]
+        info = get_current_user_space_operations(self._client(grants), "100")
+        assert info["operations"]["delete"] is False
+
+    def test_incomplete_group_listing_reports_unknown_for_group_grants(self):
+        """If group membership may be truncated, group grants are Unknown."""
+        from confluence_as.cli.helpers import get_current_user_space_operations
+
+        grants = [
+            {
+                "principal": {"type": "group", "id": "group-on-page-2"},
+                "operation": {"key": "read", "targetType": "space"},
+            }
+        ]
+        memberof = {
+            "results": [{"id": "group-1", "name": "team"}],
+            "size": 1,
+            "_links": {"next": "/rest/api/user/memberof?start=1"},
+        }
+        info = get_current_user_space_operations(
+            self._client(grants, memberof=memberof), "100"
+        )
+        assert info["operations"]["read"] is None
+        # Operations with no grants at all remain definitively No.
+        assert info["operations"]["create"] is False
+
+    def test_helper_reports_display_name(self):
+        """The helper exposes the current user's display name."""
+        from confluence_as.cli.helpers import get_current_user_space_operations
+
+        info = get_current_user_space_operations(self._client([]), "100")
+        assert info["display_name"] == "User One"
+
+
+class TestPageCreateProbeShield:
+    """The 404 grant probe must never replace the original error."""
+
+    SPACE = {"id": "100", "key": "DOCS", "name": "Documentation"}
+
+    def test_transport_error_during_probe_preserves_not_found(
+        self, runner: CliRunner
+    ) -> None:
+        from confluence_as import NotFoundError
+
+        with patch("confluence_as.cli.cli_utils.get_confluence_client") as mock:
+            client = MagicMock()
+            mock.return_value = client
+            client.paginate.side_effect = [iter([self.SPACE])]
+            client.post.side_effect = NotFoundError("Not found")
+            # Probe's first call blows up with a non-Confluence error.
+            client.get.side_effect = RuntimeError("connection reset")
+            result = runner.invoke(
+                cli,
+                [
+                    "page",
+                    "create",
+                    "--space",
+                    "DOCS",
+                    "--title",
+                    "T",
+                    "--body",
+                    "x",
+                ],
+            )
+        assert result.exit_code != 0
+        assert "not found" in result.stderr.lower()
+        assert "connection reset" not in result.stderr
+
+
+class TestAdminCheckIdentityDegrade:
+    """admin permissions check degrades to Unknown when identity fails."""
+
+    SPACE = {"id": "100", "key": "DOCS", "name": "Documentation"}
+
+    def test_identity_failure_reports_unknown(self, runner: CliRunner) -> None:
+        from confluence_as import PermissionError
+
+        client = MagicMock()
+
+        def _get(endpoint, **kwargs):
+            raise PermissionError("restricted token")
+
+        client.get.side_effect = _get
+        client.paginate.side_effect = [iter([self.SPACE]), iter([])]
+        with patch("confluence_as.cli.cli_utils.get_confluence_client") as mock:
+            mock.return_value = client
+            result = runner.invoke(
+                cli, ["admin", "permissions", "check", "--space", "DOCS"]
+            )
+        assert result.exit_code == 0
+        assert "[?] read: Unknown" in result.output
+        assert "User: Unknown" in result.output

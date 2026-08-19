@@ -84,6 +84,10 @@ class ContentMixin:
         **kwargs: Any,
     ) -> Any:
         """Handle POST requests for content operations."""
+        # The real client accepts the payload as json_data=; honor both.
+        json_payload = kwargs.pop("json_data", None)
+        if json_payload is not None:
+            data = json_payload
         self._record_request("POST", endpoint, data=data)  # type: ignore[attr-defined]
 
         # POST /api/v2/pages/{id}/labels
@@ -115,6 +119,9 @@ class ContentMixin:
         **kwargs: Any,
     ) -> Any:
         """Handle PUT requests for content operations."""
+        json_payload = kwargs.pop("json_data", None)
+        if json_payload is not None:
+            data = json_payload
         self._record_request("PUT", endpoint, data=data)  # type: ignore[attr-defined]
 
         # PUT /api/v2/pages/{id}/properties/{property_id}
