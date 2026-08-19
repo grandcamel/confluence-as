@@ -4,7 +4,7 @@ Input Validators for Confluence Assistant Skills
 
 import re
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 from assistant_skills_lib.error_handler import (
     ValidationError as BaseValidationError,
@@ -29,7 +29,7 @@ from assistant_skills_lib.validators import (
 from .error_handler import ValidationError
 
 
-def validate_required(value: Optional[Any], field_name: str = "value") -> str:
+def validate_required(value: Any | None, field_name: str = "value") -> str:
     """
     Validate that a value is provided and not empty.
     Wraps base validator to raise Confluence-specific ValidationError.
@@ -47,8 +47,8 @@ def validate_required(value: Optional[Any], field_name: str = "value") -> str:
 def validate_int(
     value: Any,
     field_name: str = "value",
-    min_value: Optional[int] = None,
-    max_value: Optional[int] = None,
+    min_value: int | None = None,
+    max_value: int | None = None,
     allow_none: bool = False,
 ) -> int:
     """
@@ -65,7 +65,7 @@ def validate_int(
         ) from e
 
 
-def validate_page_id(page_id: Union[str, int], field_name: str = "page_id") -> str:
+def validate_page_id(page_id: str | int, field_name: str = "page_id") -> str:
     """
     Validate a Confluence page ID.
 
@@ -93,7 +93,7 @@ def validate_page_id(page_id: Union[str, int], field_name: str = "page_id") -> s
 
 
 def validate_attachment_id(
-    attachment_id: Union[str, int], field_name: str = "attachment_id"
+    attachment_id: str | int, field_name: str = "attachment_id"
 ) -> str:
     """
     Validate a Confluence attachment ID.
@@ -213,7 +213,7 @@ def validate_cql(cql: str, field_name: str = "cql") -> str:
 def validate_content_type(
     content_type: str,
     field_name: str = "content_type",
-    allowed: Optional[list] = None,
+    allowed: list | None = None,
 ) -> str:
     """
     Validate a Confluence content type.
@@ -331,7 +331,7 @@ def validate_label(
 
 
 def validate_limit(
-    limit: Union[str, int, None],
+    limit: str | int | None,
     field_name: str = "limit",
     min_value: int = 1,
     max_value: int = 250,
@@ -418,9 +418,9 @@ validate_email = base_validate_email
 
 
 def validate_file_path(
-    path: Union[str, Path],
+    path: str | Path,
     field_name: str = "file_path",
-    allowed_extensions: Optional[list[str]] = None,
+    allowed_extensions: list[str] | None = None,
     must_exist: bool = True,
 ) -> Path:
     """

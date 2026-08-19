@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 
@@ -102,7 +102,7 @@ class ClaudeCodeRunner:
             return True
         return False
 
-    def send_prompt(self, prompt: str, timeout: Optional[int] = None) -> dict[str, Any]:
+    def send_prompt(self, prompt: str, timeout: int | None = None) -> dict[str, Any]:
         """Send a prompt to Claude Code and capture the response."""
         timeout = timeout or self.timeout
         start_time = time.time()
@@ -297,7 +297,7 @@ class E2ETestRunner:
 
         return result
 
-    def run_all(self, suites: Optional[list[str]] = None) -> list[SuiteResult]:
+    def run_all(self, suites: list[str] | None = None) -> list[SuiteResult]:
         """Run all test suites."""
         test_cases = self.load_test_cases()
         results = []

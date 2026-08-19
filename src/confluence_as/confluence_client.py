@@ -25,7 +25,7 @@ Usage:
 
 import logging
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -111,8 +111,8 @@ class ConfluenceClient:
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
         exc_tb: object,
     ) -> None:
         """Context manager exit - close session.
@@ -228,7 +228,7 @@ class ConfluenceClient:
     def get(
         self,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
         operation: str = "GET request",
     ) -> dict[str, Any]:
         """
@@ -258,10 +258,10 @@ class ConfluenceClient:
         self,
         method: str,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
-        json_data: Optional[Union[dict[str, Any], list[Any]]] = None,
-        params: Optional[dict[str, Any]] = None,
-        operation: Optional[str] = None,
+        data: dict[str, Any] | None = None,
+        json_data: dict[str, Any] | list[Any] | None = None,
+        params: dict[str, Any] | None = None,
+        operation: str | None = None,
     ) -> dict[str, Any]:
         """
         Perform a request with a JSON body (POST, PUT, PATCH).
@@ -297,9 +297,9 @@ class ConfluenceClient:
     def post(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
-        json_data: Optional[Union[dict[str, Any], list[Any]]] = None,
-        params: Optional[dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
+        json_data: dict[str, Any] | list[Any] | None = None,
+        params: dict[str, Any] | None = None,
         operation: str = "POST request",
     ) -> dict[str, Any]:
         """
@@ -322,9 +322,9 @@ class ConfluenceClient:
     def put(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
-        json_data: Optional[Union[dict[str, Any], list[Any]]] = None,
-        params: Optional[dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
+        json_data: dict[str, Any] | list[Any] | None = None,
+        params: dict[str, Any] | None = None,
         operation: str = "PUT request",
     ) -> dict[str, Any]:
         """
@@ -347,9 +347,9 @@ class ConfluenceClient:
     def patch(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
-        json_data: Optional[Union[dict[str, Any], list[Any]]] = None,
-        params: Optional[dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
+        json_data: dict[str, Any] | list[Any] | None = None,
+        params: dict[str, Any] | None = None,
         operation: str = "PATCH request",
     ) -> dict[str, Any]:
         """
@@ -375,7 +375,7 @@ class ConfluenceClient:
     def delete(
         self,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
         operation: str = "DELETE request",
     ) -> dict[str, Any]:
         """
@@ -404,9 +404,9 @@ class ConfluenceClient:
     def upload_file(
         self,
         endpoint: str,
-        file_path: Union[str, Path],
-        params: Optional[dict[str, Any]] = None,
-        additional_data: Optional[dict[str, str]] = None,
+        file_path: str | Path,
+        params: dict[str, Any] | None = None,
+        additional_data: dict[str, str] | None = None,
         operation: str = "upload file",
     ) -> dict[str, Any]:
         """
@@ -460,7 +460,7 @@ class ConfluenceClient:
     def download_file(
         self,
         download_url: str,
-        output_path: Union[str, Path],
+        output_path: str | Path,
         operation: str = "download file",
     ) -> Path:
         """
@@ -507,8 +507,8 @@ class ConfluenceClient:
     def upload_attachment(
         self,
         page_id: str,
-        file_path: Union[str, Path],
-        comment: Optional[str] = None,
+        file_path: str | Path,
+        comment: str | None = None,
         operation: str = "upload attachment",
     ) -> dict[str, Any]:
         """
@@ -587,8 +587,8 @@ class ConfluenceClient:
         self,
         attachment_id: str,
         page_id: str,
-        file_path: Union[str, Path],
-        comment: Optional[str] = None,
+        file_path: str | Path,
+        comment: str | None = None,
         operation: str = "update attachment",
     ) -> dict[str, Any]:
         """
@@ -621,9 +621,9 @@ class ConfluenceClient:
     def paginate(
         self,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
         operation: str = "paginated request",
-        limit: Optional[int] = None,
+        limit: int | None = None,
         results_key: str = "results",
     ):
         """

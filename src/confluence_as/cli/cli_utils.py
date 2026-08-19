@@ -13,7 +13,8 @@ from __future__ import annotations
 import functools
 import json
 import sys
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 import click
 

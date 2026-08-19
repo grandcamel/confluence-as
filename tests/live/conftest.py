@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import contextlib
 import uuid
-from collections.abc import Generator
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable, Generator
+from typing import TYPE_CHECKING, Any
 
 import pytest
 

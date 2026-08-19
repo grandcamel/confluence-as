@@ -27,7 +27,7 @@ Usage:
 """
 
 import re
-from typing import Any, Optional
+from typing import Any
 
 from .markdown_parser import is_block_start, parse_markdown
 
@@ -46,7 +46,7 @@ def create_adf_doc(content: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def create_paragraph(
-    content: Optional[list[dict[str, Any]]] = None, text: Optional[str] = None
+    content: list[dict[str, Any]] | None = None, text: str | None = None
 ) -> dict[str, Any]:
     """
     Create an ADF paragraph node.
@@ -66,9 +66,7 @@ def create_paragraph(
     return {"type": "paragraph", "content": content}
 
 
-def create_text(
-    text: str, marks: Optional[list[dict[str, Any]]] = None
-) -> dict[str, Any]:
+def create_text(text: str, marks: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     """
     Create an ADF text node.
 
@@ -144,7 +142,7 @@ def create_ordered_list(items: list[str], start: int = 1) -> dict[str, Any]:
     }
 
 
-def create_code_block(code: str, language: Optional[str] = None) -> dict[str, Any]:
+def create_code_block(code: str, language: str | None = None) -> dict[str, Any]:
     """
     Create an ADF code block.
 
