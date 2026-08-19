@@ -225,9 +225,16 @@ def create_page(
     except NotFoundError as exc:
         # Confluence reports a missing create-page grant as HTTP 404. Probe
         # the space's grants to distinguish permission-denied from a genuine
-        # bad ID/key, keeping real not-found behavior for the latter.
-        grant_info = get_current_user_space_operations(client, space_id)
-        if grant_info["operations"].get("create") is False:
+        # bad ID/key, keeping real not-found behavior for the latter. The
+        # probe is best-effort: any probe failure (including transport
+        # errors) must surface the original 404, not the probe's exception.
+        try:
+            create_granted = get_current_user_space_operations(client, space_id)[
+                "operations"
+            ].get("create")
+        except Exception:  # noqa: BLE001 - diagnostic probe only
+            create_granted = None
+        if create_granted is False:
             raise PermissionError(
                 f"Cannot create pages in space '{space_key}': the current "
                 "user has no create-page permission (Confluence reports "

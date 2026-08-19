@@ -229,3 +229,42 @@ class TestMockModeFactory:
             client = get_confluence_client()
         assert isinstance(client, ConfluenceClient)
         assert not isinstance(client, MockConfluenceClient)
+
+    def test_mock_client_supports_paginate(self, monkeypatch):
+        """The mock client must support the paginate generator interface."""
+        monkeypatch.setenv("CONFLUENCE_MOCK_MODE", "true")
+        client = get_confluence_client()
+        spaces = list(client.paginate("/api/v2/spaces", params={"keys": "TEST"}))
+        assert len(spaces) == 1
+        assert spaces[0]["key"] == "TEST"
+
+    def test_mock_client_context_manager(self, monkeypatch):
+        """The mock client must support the context-manager pattern."""
+        monkeypatch.setenv("CONFLUENCE_MOCK_MODE", "true")
+        with get_confluence_client() as client:
+            page = client.get("/api/v2/pages/100001")
+        assert page["id"] == "100001"
+
+    def test_mock_write_honors_json_data(self, monkeypatch):
+        """Mock writes must apply json_data payloads (the real client's kwarg)."""
+        monkeypatch.setenv("CONFLUENCE_MOCK_MODE", "true")
+        client = get_confluence_client()
+        created = client.post(
+            "/api/v2/pages",
+            json_data={
+                "spaceId": "12345",
+                "title": "Created Via json_data",
+                "status": "current",
+                "body": {"representation": "storage", "value": "<p>x</p>"},
+            },
+        )
+        assert created["title"] == "Created Via json_data"
+        assert created["spaceId"] == "12345"
+        updated = client.put(
+            f"/api/v2/pages/{created['id']}",
+            json_data={"title": "Renamed Title", "version": {"number": 2}},
+        )
+        assert updated["title"] == "Renamed Title"
+        assert client.get(f"/api/v2/pages/{created['id']}")["title"] == (
+            "Renamed Title"
+        )

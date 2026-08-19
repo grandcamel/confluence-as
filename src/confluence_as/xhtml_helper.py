@@ -52,8 +52,19 @@ def xhtml_to_markdown(xhtml: str) -> str:
     if not xhtml:
         return ""
 
-    # Unescape HTML entities first
-    text = html.unescape(xhtml)
+    # Verbatim segments (CDATA contents, rendered code fences, emitted HTML
+    # like <details>) are stashed here and re-inserted only at the very end,
+    # so no later pass can strip or rewrite them.
+    literals: list[str] = []
+
+    # Protect CDATA sections before any other processing: their contents are
+    # verbatim and must never be parsed as markup or unescaped.
+    text = re.sub(
+        r"<!\[CDATA\[(.*?)\]\]>",
+        lambda m: _stash_literal(m.group(1), literals),
+        xhtml,
+        flags=re.DOTALL,
+    )
 
     # Remove XML declaration and namespace prefixes.
     # The opening/closing distinction must be preserved: "<ac:foo>" becomes
@@ -64,8 +75,10 @@ def xhtml_to_markdown(xhtml: str) -> str:
     text = re.sub(r"<(/?)ac:", r"<\1", text)
     text = re.sub(r"<(/?)ri:", r"<\1", text)
 
-    # Process macros before general HTML
-    text = _process_macros(text)
+    # Process macros before general HTML. Entities are still escaped at this
+    # point, so escaped markup in prose (e.g. "&lt;ac:structured-macro ...")
+    # is never mistaken for live macros.
+    text = _process_macros(text, literals)
 
     # Headings (h1-h6)
     def make_heading_replacer(lv: int):
@@ -150,12 +163,30 @@ def xhtml_to_markdown(xhtml: str) -> str:
     # Horizontal rules
     text = re.sub(r"<hr\s*/?\s*>", "\n---\n", text)
 
-    # Remove remaining HTML tags
+    # Remove remaining HTML tags (still-escaped entities are untouched)
     text = re.sub(r"<[^>]+>", "", text)
+
+    # Unescape HTML entities only now, after tag processing, so escaped
+    # markup in prose renders as literal text instead of being parsed.
+    text = html.unescape(text)
 
     # Render table-cell line-break sentinels as literal <br> now that the
     # generic tag strip can no longer remove them.
     text = text.replace(_CELL_LINE_BREAK, "<br>")
+
+    # Re-insert protected verbatim segments. A literal may embed tokens of
+    # earlier-stashed literals (an expand body containing a code fence), so
+    # substitute repeatedly. Nesting depth is finite; the iteration bound
+    # only guards against pathological token-like bytes in source content.
+    for _ in range(len(literals) + 1):
+        if not _TOKEN_RE.search(text):
+            break
+        text = _TOKEN_RE.sub(
+            lambda m: (
+                literals[int(m.group(1))] if int(m.group(1)) < len(literals) else ""
+            ),
+            text,
+        )
 
     # Clean up whitespace
     text = re.sub(r"\n{3,}", "\n\n", text)
@@ -169,144 +200,114 @@ def _clean_text(text: str) -> str:
     return strip_html_tags(text, collapse_whitespace=True)
 
 
-# Macros with dedicated handlers below. Anything else is dropped wholesale
-# (tags, parameters, and bodies) so unhandled macro internals never leak into
-# the Markdown output.
-_HANDLED_MACROS = frozenset(
-    {"code", "info", "warning", "note", "tip", "panel", "status", "toc", "expand"}
-)
+# Verbatim-segment protection tokens: \x01<index>\x02 markers survive every
+# text pass (they contain no tags and no regex-whitespace) and are replaced
+# with their stashed content at the very end of xhtml_to_markdown.
+_TOKEN_RE = re.compile(r"\x01(\d+)\x02")
 
-# Matches a structured-macro block (or self-closing tag) that contains no
-# nested structured-macro opening tag, so repeated substitution removes
-# blocks innermost-first and nesting is handled correctly.
+
+def _stash_literal(content: str, literals: list[str]) -> str:
+    """Stash verbatim content and return its protection token."""
+    literals.append(content)
+    return f"\x01{len(literals) - 1}\x02"
+
+
+# One structured-macro block (paired or self-closing) that contains no nested
+# structured-macro opening tag, so repeated resolution runs innermost-first.
+# The (?=[\s/>]) boundaries keep look-alike tags such as
+# <structured-macro-ext> from matching.
 _MACRO_BLOCK_RE = re.compile(
-    r"<structured-macro(?P<attrs>[^>]*?)"
-    r"(?:/>|>(?:(?!<structured-macro).)*?</structured-macro>)",
+    r"<structured-macro(?=[\s/>])(?P<attrs>[^>]*?)"
+    r"(?:/>|>(?P<body>(?:(?!<structured-macro[\s/>]).)*?)</structured-macro>)",
     re.DOTALL,
 )
 
+_PANEL_MACROS = frozenset({"info", "warning", "note", "tip", "panel"})
 
-def _drop_unhandled_macros(text: str) -> str:
-    """Remove structured-macro blocks whose names are not in the allowlist.
 
-    Names must match an allowlist entry exactly; a macro sharing a known
-    prefix (e.g. "expand-foo") is still unhandled. Removal iterates
-    innermost-first so an unhandled macro nested inside another macro is
-    dropped without disturbing the outer block.
+def _macro_parameter(block: str, name: str) -> str | None:
+    """Extract a <parameter name="...">value</parameter> from a macro block."""
+    param = re.search(rf'<parameter[^>]*name="{name}"[^>]*>([^<]*)</parameter>', block)
+    return param.group(1) if param else None
+
+
+def _rich_text_content(body: str) -> str:
+    """Concatenate the rich-text-body contents of one macro block."""
+    return "".join(
+        re.findall(r"<rich-text-body[^>]*>(.*?)</rich-text-body>", body, re.DOTALL)
+    )
+
+
+def _render_macro(match: re.Match[str], literals: list[str]) -> str:
+    """Render one innermost structured-macro block to Markdown.
+
+    Handled macros (code, the panel family, status, toc, expand) get real
+    renderings; any other macro is replaced by its rich-text-body content —
+    preserving page-visible material inside layout macros such as section,
+    column, and excerpt — while parameters and other internals are dropped
+    so they never leak into the output.
     """
+    attrs = match.group("attrs") or ""
+    body = match.group("body") or ""
+    block = match.group(0)
+    name_match = re.search(r'name="([^"]*)"', attrs)
+    name = name_match.group(1) if name_match else ""
 
-    def replace(match: re.Match[str]) -> str:
-        name_match = re.search(r'name="([^"]*)"', match.group("attrs"))
-        name = name_match.group(1) if name_match else ""
-        if name in _HANDLED_MACROS:
-            return match.group(0)
-        return ""
+    if name == "code":
+        language = _macro_parameter(block, "language")
+        if language is None:
+            attr_lang = re.search(r'language="([^"]*)"', attrs)
+            language = attr_lang.group(1) if attr_lang else ""
+        content_match = re.search(
+            r"<plain-text-body[^>]*>(.*?)</plain-text-body>", body, re.DOTALL
+        )
+        content = content_match.group(1) if content_match else ""
+        token = _TOKEN_RE.fullmatch(content.strip())
+        if token:
+            # CDATA contents were stashed verbatim before any processing.
+            code = literals[int(token.group(1))]
+        else:
+            code = html.unescape(content)
+        fence = f"\n```{language}\n{code.strip(chr(10))}\n```\n"
+        return _stash_literal(fence, literals)
 
+    if name in _PANEL_MACROS:
+        return f"\n> **{name.title()}:** {_clean_text(_rich_text_content(body))}\n"
+
+    if name == "status":
+        title = _macro_parameter(block, "title")
+        return f"`{title}`" if title else ""
+
+    if name == "toc":
+        return "\n[Table of Contents]\n"
+
+    if name == "expand":
+        title = html.unescape(_macro_parameter(block, "title") or "Details")
+        detail_body = html.unescape(_clean_text(_rich_text_content(body)))
+        return _stash_literal(
+            f"\n<details>\n<summary>{title}</summary>\n\n{detail_body}\n</details>\n",
+            literals,
+        )
+
+    return _rich_text_content(body)
+
+
+def _process_macros(text: str, literals: list[str]) -> str:
+    """Resolve Confluence structured-macros innermost-first.
+
+    Handled macros: code (fenced block), info/warning/note/tip/panel
+    (quoted callout), status (inline code), toc (marker), expand
+    (<details> block). Unhandled macros keep their rich-text content and
+    lose their parameters. A macro name must match exactly — names that
+    merely share a known prefix (e.g. "expand-foo") are unhandled.
+    """
     while True:
-        new_text = _MACRO_BLOCK_RE.sub(replace, text)
-        if new_text == text:
-            return new_text
-        text = new_text
-
-
-def _unwrap_cdata(text: str) -> str:
-    """Return the verbatim contents of a CDATA section, if present."""
-    cdata_match = re.match(r"\s*<!\[CDATA\[(.*)\]\]>\s*\Z", text, re.DOTALL)
-    return cdata_match.group(1) if cdata_match else text
-
-
-def _process_macros(text: str) -> str:
-    """
-    Process Confluence macros in XHTML.
-
-    Common macros:
-    - code: Code block
-    - panel/info/warning/note: Info panels
-    - toc: Table of contents
-    - anchor: Page anchors
-    - expand: Expandable sections
-    """
-    # Drop unhandled macros first so their parameters and bodies never leak
-    # into the output (directly or via a handled macro's rich-text-body).
-    text = _drop_unhandled_macros(text)
-
-    # Code macro
-    def code_macro(match):
-        block = match.group(0)
-        content = match.group(1)
-        language = ""
-
-        # The language may be a <parameter> element (real storage format) or
-        # an attribute on the opening tag.
-        param_match = re.search(
-            r'<parameter[^>]*name="language"[^>]*>([^<]*)</parameter>', block
+        match = _MACRO_BLOCK_RE.search(text)
+        if match is None:
+            return text
+        text = (
+            text[: match.start()] + _render_macro(match, literals) + text[match.end() :]
         )
-        attr_match = re.search(r'language="([^"]*)"', block[: block.index(">") + 1])
-        if param_match:
-            language = param_match.group(1)
-        elif attr_match:
-            language = attr_match.group(1)
-
-        body = _unwrap_cdata(content).strip("\n")
-        return f"\n```{language}\n{body}\n```\n"
-
-    text = re.sub(
-        r'<structured-macro[^>]*name="code"[^>]*>.*?<plain-text-body>(.*?)</plain-text-body>.*?</structured-macro>',
-        code_macro,
-        text,
-        flags=re.DOTALL,
-    )
-
-    # Info/Warning/Note panels
-    def make_panel_replacer(pt: str):
-        def replacer(m: re.Match[str]) -> str:
-            return f"\n> **{pt.title()}:** {_clean_text(m.group(1))}\n"
-
-        return replacer
-
-    panel_types = ["info", "warning", "note", "tip", "panel"]
-    for panel_type in panel_types:
-        pattern = rf'<structured-macro[^>]*name="{panel_type}"[^>]*>.*?<rich-text-body>(.*?)</rich-text-body>.*?</structured-macro>'
-        text = re.sub(pattern, make_panel_replacer(panel_type), text, flags=re.DOTALL)
-
-    # Status macro (colored labels)
-    text = re.sub(
-        r'<structured-macro[^>]*name="status"[^>]*>.*?<parameter[^>]*name="title"[^>]*>([^<]*)</parameter>.*?</structured-macro>',
-        r"`\1`",
-        text,
-        flags=re.DOTALL,
-    )
-
-    # TOC macro - just note it
-    text = re.sub(
-        r'<structured-macro[^>]*name="toc"[^>]*>.*?</structured-macro>',
-        "\n[Table of Contents]\n",
-        text,
-        flags=re.DOTALL,
-    )
-
-    # Expand macro
-    def expand_macro(match):
-        title = "Details"
-        title_match = re.search(
-            r'<parameter[^>]*name="title"[^>]*>([^<]*)</parameter>', match.group(0)
-        )
-        if title_match:
-            title = title_match.group(1)
-        body_match = re.search(
-            r"<rich-text-body>(.*?)</rich-text-body>", match.group(0), re.DOTALL
-        )
-        body = _clean_text(body_match.group(1)) if body_match else ""
-        return f"\n<details>\n<summary>{title}</summary>\n\n{body}\n</details>\n"
-
-    text = re.sub(
-        r'<structured-macro[^>]*name="expand"[^>]*>.*?</structured-macro>',
-        expand_macro,
-        text,
-        flags=re.DOTALL,
-    )
-
-    return text
 
 
 def _process_lists(text: str) -> str:
@@ -354,6 +355,8 @@ def _format_table_cell(cell_html: str) -> str:
     text = re.sub(r"<br\s*/?\s*>", _CELL_LINE_BREAK, text)
     text = re.sub(r"\s*\n\s*", _CELL_LINE_BREAK, text.strip())
     text = _clean_text(text)
+    # A literal pipe would split the cell into extra Markdown columns.
+    text = text.replace("|", "\\|")
     # Drop breaks that would render as leading/trailing <br> in the cell,
     # replacing exact sentinel occurrences only (no character-class strip
     # that could eat legitimate cell text).

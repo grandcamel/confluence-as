@@ -110,10 +110,12 @@ def get_current_user_space_operations(client: Any, space_id: str) -> dict[str, A
     Returns:
         Dict with keys:
         - "account_id": current user's account ID, or None if unavailable
+        - "display_name": current user's display name, or None
         - "groups": list of {"id", "name"} dicts for the user's groups
         - "operations": mapping of operation name -> True | False | None
     """
     account_id: str | None = None
+    display_name: str | None = None
     groups: list[dict[str, Any]] = []
     groups_known = False
 
@@ -122,6 +124,7 @@ def get_current_user_space_operations(client: Any, space_id: str) -> dict[str, A
             "/rest/api/user/current", operation="get current user"
         )
         account_id = current_user.get("accountId")
+        display_name = current_user.get("displayName")
     except ConfluenceError:
         account_id = None
 
@@ -129,14 +132,22 @@ def get_current_user_space_operations(client: Any, space_id: str) -> dict[str, A
         try:
             member_of = client.get(
                 "/rest/api/user/memberof",
-                params={"accountId": account_id},
+                params={"accountId": account_id, "limit": 200},
                 operation="get user groups",
             )
+            results = member_of.get("results", [])
             groups = [
                 {"id": group.get("id"), "name": group.get("name", "")}
-                for group in member_of.get("results", [])
+                for group in results
             ]
-            groups_known = True
+            # Only a provably complete listing lets a group grant count as a
+            # definitive "No": if the response signals more pages (a next
+            # link, or size/totalSize beyond what was returned), unmatched
+            # group grants must resolve to Unknown instead.
+            size = member_of.get("size", len(results))
+            total = member_of.get("totalSize", size)
+            has_next = bool(member_of.get("_links", {}).get("next"))
+            groups_known = not has_next and total <= len(results)
         except ConfluenceError:
             groups = []
 
@@ -154,6 +165,7 @@ def get_current_user_space_operations(client: Any, space_id: str) -> dict[str, A
     if grants is None or account_id is None:
         return {
             "account_id": account_id,
+            "display_name": display_name,
             "groups": groups,
             "operations": dict.fromkeys(SPACE_OPERATION_GRANTS),
         }
@@ -171,10 +183,12 @@ def get_current_user_space_operations(client: Any, space_id: str) -> dict[str, A
             principal = grant.get("principal", {})
             principal_type = principal.get("type")
             principal_id = principal.get("id")
-            if principal_type == "user" and principal_id == account_id:
-                granted = True
-                break
-            if principal_type == "group":
+            if principal_type == "user":
+                # A grant to a different user says nothing about this user.
+                if principal_id == account_id:
+                    granted = True
+                    break
+            elif principal_type == "group":
                 if principal_id in group_ids:
                     granted = True
                     break
@@ -185,4 +199,9 @@ def get_current_user_space_operations(client: Any, space_id: str) -> dict[str, A
                 granted = None
         operations[op] = granted
 
-    return {"account_id": account_id, "groups": groups, "operations": operations}
+    return {
+        "account_id": account_id,
+        "display_name": display_name,
+        "groups": groups,
+        "operations": operations,
+    }
