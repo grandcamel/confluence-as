@@ -55,10 +55,14 @@ def xhtml_to_markdown(xhtml: str) -> str:
     # Unescape HTML entities first
     text = html.unescape(xhtml)
 
-    # Remove XML declaration and namespace prefixes
+    # Remove XML declaration and namespace prefixes.
+    # The opening/closing distinction must be preserved: "<ac:foo>" becomes
+    # "<foo>" while "</ac:foo>" becomes "</foo>". Rewriting both to closing
+    # form would turn every opening namespaced tag into a closing tag and
+    # break macro handling on real storage-format input.
     text = re.sub(r"<\?xml[^>]*\?>", "", text)
-    text = re.sub(r"</?ac:", "</", text)
-    text = re.sub(r"</?ri:", "</", text)
+    text = re.sub(r"<(/?)ac:", r"<\1", text)
+    text = re.sub(r"<(/?)ri:", r"<\1", text)
 
     # Process macros before general HTML
     text = _process_macros(text)
@@ -147,6 +151,10 @@ def xhtml_to_markdown(xhtml: str) -> str:
     # Remove remaining HTML tags
     text = re.sub(r"<[^>]+>", "", text)
 
+    # Render table-cell line-break sentinels as literal <br> now that the
+    # generic tag strip can no longer remove them.
+    text = text.replace(_CELL_LINE_BREAK, "<br>")
+
     # Clean up whitespace
     text = re.sub(r"\n{3,}", "\n\n", text)
     text = text.strip()
@@ -157,6 +165,52 @@ def xhtml_to_markdown(xhtml: str) -> str:
 def _clean_text(text: str) -> str:
     """Clean text content, removing extra whitespace."""
     return strip_html_tags(text, collapse_whitespace=True)
+
+
+# Macros with dedicated handlers below. Anything else is dropped wholesale
+# (tags, parameters, and bodies) so unhandled macro internals never leak into
+# the Markdown output.
+_HANDLED_MACROS = frozenset(
+    {"code", "info", "warning", "note", "tip", "panel", "status", "toc", "expand"}
+)
+
+# Matches a structured-macro block (or self-closing tag) that contains no
+# nested structured-macro opening tag, so repeated substitution removes
+# blocks innermost-first and nesting is handled correctly.
+_MACRO_BLOCK_RE = re.compile(
+    r"<structured-macro(?P<attrs>[^>]*?)"
+    r"(?:/>|>(?:(?!<structured-macro).)*?</structured-macro>)",
+    re.DOTALL,
+)
+
+
+def _drop_unhandled_macros(text: str) -> str:
+    """Remove structured-macro blocks whose names are not in the allowlist.
+
+    Names must match an allowlist entry exactly; a macro sharing a known
+    prefix (e.g. "expand-foo") is still unhandled. Removal iterates
+    innermost-first so an unhandled macro nested inside another macro is
+    dropped without disturbing the outer block.
+    """
+
+    def replace(match: re.Match[str]) -> str:
+        name_match = re.search(r'name="([^"]*)"', match.group("attrs"))
+        name = name_match.group(1) if name_match else ""
+        if name in _HANDLED_MACROS:
+            return match.group(0)
+        return ""
+
+    while True:
+        new_text = _MACRO_BLOCK_RE.sub(replace, text)
+        if new_text == text:
+            return new_text
+        text = new_text
+
+
+def _unwrap_cdata(text: str) -> str:
+    """Return the verbatim contents of a CDATA section, if present."""
+    cdata_match = re.match(r"\s*<!\[CDATA\[(.*)\]\]>\s*\Z", text, re.DOTALL)
+    return cdata_match.group(1) if cdata_match else text
 
 
 def _process_macros(text: str) -> str:
@@ -170,21 +224,32 @@ def _process_macros(text: str) -> str:
     - anchor: Page anchors
     - expand: Expandable sections
     """
+    # Drop unhandled macros first so their parameters and bodies never leak
+    # into the output (directly or via a handled macro's rich-text-body).
+    text = _drop_unhandled_macros(text)
 
     # Code macro
     def code_macro(match):
-        params = match.group(1) or ""
-        content = match.group(2)
+        block = match.group(0)
+        content = match.group(1)
         language = ""
 
-        lang_match = re.search(r'language="([^"]*)"', params)
-        if lang_match:
-            language = lang_match.group(1)
+        # The language may be a <parameter> element (real storage format) or
+        # an attribute on the opening tag.
+        param_match = re.search(
+            r'<parameter[^>]*name="language"[^>]*>([^<]*)</parameter>', block
+        )
+        attr_match = re.search(r'language="([^"]*)"', block[: block.index(">") + 1])
+        if param_match:
+            language = param_match.group(1)
+        elif attr_match:
+            language = attr_match.group(1)
 
-        return f"\n```{language}\n{_clean_text(content)}\n```\n"
+        body = _unwrap_cdata(content).strip("\n")
+        return f"\n```{language}\n{body}\n```\n"
 
     text = re.sub(
-        r'<structured-macro[^>]*name="code"([^>]*)>.*?<plain-text-body>(.*?)</plain-text-body>.*?</structured-macro>',
+        r'<structured-macro[^>]*name="code"[^>]*>.*?<plain-text-body>(.*?)</plain-text-body>.*?</structured-macro>',
         code_macro,
         text,
         flags=re.DOTALL,
@@ -204,7 +269,7 @@ def _process_macros(text: str) -> str:
 
     # Status macro (colored labels)
     text = re.sub(
-        r'<structured-macro[^>]*name="status"[^>]*>.*?<parameter name="title">([^<]*)</parameter>.*?</structured-macro>',
+        r'<structured-macro[^>]*name="status"[^>]*>.*?<parameter[^>]*name="title"[^>]*>([^<]*)</parameter>.*?</structured-macro>',
         r"`\1`",
         text,
         flags=re.DOTALL,
@@ -222,7 +287,7 @@ def _process_macros(text: str) -> str:
     def expand_macro(match):
         title = "Details"
         title_match = re.search(
-            r'<parameter name="title">([^<]*)</parameter>', match.group(0)
+            r'<parameter[^>]*name="title"[^>]*>([^<]*)</parameter>', match.group(0)
         )
         if title_match:
             title = title_match.group(1)
@@ -266,6 +331,38 @@ def _process_lists(text: str) -> str:
     return text
 
 
+# Sentinel marking an intended line break inside a table cell. NUL cannot
+# appear in legitimate XHTML text content, so replacing exact occurrences
+# (never stripping character classes from the ends) cannot eat real content
+# even when a cell's text starts with sentinel-like characters.
+_CELL_LINE_BREAK = "\x00"
+
+
+def _format_table_cell(cell_html: str) -> str:
+    """Convert one table cell's content to Markdown-safe single-line text.
+
+    Paragraph boundaries and explicit <br> tags become literal "<br>" so the
+    cell's multiline structure survives inside a one-line Markdown table row.
+    By the time tables are processed the earlier paragraph and <br> passes
+    have usually rewritten cell internals into newline-separated text, so
+    interior newline runs are treated as intended breaks; raw <p>/<br> forms
+    are handled as well.
+    """
+    text = re.sub(r"</p>\s*<p[^>]*>", _CELL_LINE_BREAK, cell_html)
+    text = re.sub(r"<br\s*/?\s*>", _CELL_LINE_BREAK, text)
+    text = re.sub(r"\s*\n\s*", _CELL_LINE_BREAK, text.strip())
+    text = _clean_text(text)
+    # Drop breaks that would render as leading/trailing <br> in the cell,
+    # replacing exact sentinel occurrences only (no character-class strip
+    # that could eat legitimate cell text).
+    text = re.sub(rf"\A(?:\s*{_CELL_LINE_BREAK})+\s*", "", text)
+    text = re.sub(rf"(?:{_CELL_LINE_BREAK}\s*)+\Z", "", text)
+    # Collapse each break run to a single sentinel; xhtml_to_markdown renders
+    # sentinels as "<br>" after its generic tag strip (a literal "<br>"
+    # inserted here would be removed by that strip).
+    return re.sub(rf"\s*(?:{_CELL_LINE_BREAK}\s*)+", _CELL_LINE_BREAK, text)
+
+
 def _process_tables(text: str) -> str:
     """Process HTML tables to Markdown."""
 
@@ -279,7 +376,7 @@ def _process_tables(text: str) -> str:
         for i, row_html in enumerate(row_matches):
             # Find cells (th or td)
             cells = re.findall(r"<t[hd][^>]*>(.*?)</t[hd]>", row_html, re.DOTALL)
-            cells = [_clean_text(c) for c in cells]
+            cells = [_format_table_cell(c) for c in cells]
 
             if cells:
                 row = "| " + " | ".join(cells) + " |"

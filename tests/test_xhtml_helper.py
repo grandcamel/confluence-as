@@ -413,3 +413,182 @@ class TestValidateXhtml:
         is_valid, error = validate_xhtml("<p>Hello</p></p>")
         assert is_valid is False
         assert "Unexpected closing tag" in error
+
+
+class TestNamespaceNormalization:
+    """Regression tests for ac:/ri: namespace handling on real storage XHTML.
+
+    Opening namespaced tags must normalize to opening tags (not be mangled
+    into closing-tag form), so macro handlers work on real Confluence input.
+    """
+
+    REAL_CODE_MACRO = (
+        '<ac:structured-macro ac:name="code" ac:schema-version="1" '
+        'ac:macro-id="m1"><ac:parameter ac:name="language">python'
+        "</ac:parameter><ac:plain-text-body><![CDATA[def f():\n"
+        "    return 1]]></ac:plain-text-body></ac:structured-macro>"
+    )
+
+    def test_code_macro_on_namespaced_input(self):
+        """Real namespaced code macro produces a fenced code block."""
+        result = xhtml_to_markdown(self.REAL_CODE_MACRO)
+        assert "```python" in result
+        assert "def f():" in result
+        assert "    return 1" in result
+
+    def test_info_panel_on_namespaced_input(self):
+        """Real namespaced info panel is converted."""
+        xhtml = (
+            '<ac:structured-macro ac:name="info" ac:schema-version="1">'
+            "<ac:rich-text-body><p>Information text</p></ac:rich-text-body>"
+            "</ac:structured-macro>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "**Info:**" in result
+        assert "Information text" in result
+
+    def test_status_macro_on_namespaced_input(self):
+        """Real namespaced status macro with ac:name parameter converts."""
+        xhtml = (
+            '<ac:structured-macro ac:name="status" ac:schema-version="1">'
+            '<ac:parameter ac:name="title">In Progress</ac:parameter>'
+            '<ac:parameter ac:name="colour">Yellow</ac:parameter>'
+            "</ac:structured-macro>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "`In Progress`" in result
+
+    def test_expand_macro_on_namespaced_input(self):
+        """Real namespaced expand macro keeps its title."""
+        xhtml = (
+            '<ac:structured-macro ac:name="expand" ac:schema-version="1">'
+            '<ac:parameter ac:name="title">More details</ac:parameter>'
+            "<ac:rich-text-body><p>Hidden text</p></ac:rich-text-body>"
+            "</ac:structured-macro>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "More details" in result
+        assert "Hidden text" in result
+
+    def test_opening_tags_not_mangled(self):
+        """Opening namespaced tags do not become closing tags."""
+        xhtml = '<ac:link><ri:page ri:content-title="Target" /></ac:link>Text'
+        result = xhtml_to_markdown(xhtml)
+        assert "Text" in result
+        assert "ac:" not in result
+        assert "ri:" not in result
+
+
+class TestUnhandledMacroDrop:
+    """Regression tests: unhandled structured-macros are dropped wholesale."""
+
+    def test_unhandled_macro_params_do_not_leak(self):
+        """Parameter bodies of unhandled macros never reach the output."""
+        xhtml = (
+            '<ac:structured-macro ac:name="jira" ac:schema-version="1">'
+            '<ac:parameter ac:name="server">SECRETSERVER</ac:parameter>'
+            '<ac:parameter ac:name="key">PROJ-1</ac:parameter>'
+            "</ac:structured-macro><p>Visible</p>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "SECRETSERVER" not in result
+        assert "PROJ-1" not in result
+        assert "Visible" in result
+
+    def test_nested_unhandled_inside_handled(self):
+        """An unhandled macro inside a handled macro's body is dropped."""
+        xhtml = (
+            '<ac:structured-macro ac:name="info">'
+            "<ac:rich-text-body>Keep this "
+            '<ac:structured-macro ac:name="unknown-widget">'
+            '<ac:parameter ac:name="cfg">LEAKED</ac:parameter>'
+            "</ac:structured-macro>"
+            "</ac:rich-text-body></ac:structured-macro>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "**Info:**" in result
+        assert "Keep this" in result
+        assert "LEAKED" not in result
+
+    def test_nested_unhandled_inside_unhandled_with_tail(self):
+        """Nested unhandled macros with tail content are fully removed."""
+        xhtml = (
+            '<ac:structured-macro ac:name="outer-unknown">'
+            "<ac:rich-text-body>"
+            '<ac:structured-macro ac:name="inner-unknown">'
+            '<ac:parameter ac:name="a">INNER</ac:parameter>'
+            "</ac:structured-macro>"
+            " TAIL"
+            "</ac:rich-text-body></ac:structured-macro><p>After</p>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "INNER" not in result
+        assert "TAIL" not in result
+        assert "After" in result
+
+    def test_known_prefix_name_is_not_treated_as_known(self):
+        """A macro sharing a known prefix (expand-foo) is still unhandled."""
+        xhtml = (
+            '<ac:structured-macro ac:name="expand-foo">'
+            '<ac:parameter ac:name="title">Should vanish</ac:parameter>'
+            "<ac:rich-text-body>Hidden body</ac:rich-text-body>"
+            "</ac:structured-macro><p>Kept</p>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "Should vanish" not in result
+        assert "Hidden body" not in result
+        assert "Kept" in result
+
+    def test_self_closing_unhandled_macro_dropped(self):
+        """Self-closing unhandled macros are removed cleanly."""
+        xhtml = '<p>Before</p><ac:structured-macro ac:name="anchor"/><p>After</p>'
+        result = xhtml_to_markdown(xhtml)
+        assert "Before" in result
+        assert "After" in result
+        assert "structured-macro" not in result
+
+
+class TestTableCellLineBreaks:
+    """Regression tests: multiline table cell structure is preserved."""
+
+    def test_paragraph_separated_cell_content(self):
+        """Paragraph-separated cell content keeps line breaks as <br>."""
+        xhtml = (
+            "<table><tr><th>K</th></tr>"
+            "<tr><td><p>line one</p><p>line two</p></td></tr></table>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "| line one<br>line two |" in result
+
+    def test_br_separated_cell_content(self):
+        """<br>-separated cell content keeps line breaks as <br>."""
+        xhtml = "<table><tr><th>K</th></tr><tr><td>a<br/>b</td></tr></table>"
+        result = xhtml_to_markdown(xhtml)
+        assert "| a<br>b |" in result
+
+    def test_single_paragraph_cell_unchanged(self):
+        """A single-paragraph cell has no stray <br> markers."""
+        xhtml = "<table><tr><th>K</th></tr><tr><td><p>only</p></td></tr></table>"
+        result = xhtml_to_markdown(xhtml)
+        assert "| only |" in result
+        assert "<br>" not in result
+
+    def test_cell_text_starting_with_sentinel_like_characters(self):
+        """Legitimate cell text resembling a sentinel token is untouched."""
+        xhtml = (
+            "<table><tr><th>K</th></tr>"
+            "<tr><td><p>%%BR%% leading token</p><p>second</p></td></tr></table>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        assert "| %%BR%% leading token<br>second |" in result
+
+    def test_table_rows_stay_single_line(self):
+        """Multiline cells never break Markdown table row structure."""
+        xhtml = (
+            "<table><tr><th>A</th><th>B</th></tr>"
+            "<tr><td><p>x</p><p>y</p></td><td>z</td></tr></table>"
+        )
+        result = xhtml_to_markdown(xhtml)
+        table_lines = [ln for ln in result.splitlines() if ln.startswith("|")]
+        assert len(table_lines) == 3  # header, separator, one data row
+        assert "| x<br>y | z |" in result
