@@ -273,7 +273,7 @@ def am_i_watching(
             click.echo("  You will receive notifications for this page.")
         else:
             click.echo("  Status: Not watching")
-            click.echo("  Use 'confluence watch page' to start watching.")
+            click.echo("  Use 'confluence-as watch page' to start watching.")
 
     print_success("Retrieved watch status")
 

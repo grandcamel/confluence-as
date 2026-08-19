@@ -442,7 +442,7 @@ def cql_validate(ctx: click.Context, cql: str) -> None:
         click.echo('• Use double quotes for values: space = "DOCS"')
         click.echo('• Use ~ for text search: text ~ "search term"')
         click.echo("• Dates format: YYYY-MM-DD or functions like startOfWeek()")
-        click.echo("\nRun 'confluence search suggest --fields' for available fields")
+        click.echo("\nRun 'confluence-as search suggest --fields' for available fields")
 
 
 @search.command(name="suggest")
@@ -1058,4 +1058,4 @@ def cql_interactive(
         print_success(f"Found {len(results)} result(s)")
     else:
         click.echo("Query not executed. Copy and run later:")
-        click.echo(f'\n  confluence search cql "{cql}"')
+        click.echo(f'\n  confluence-as search cql "{cql}"')
