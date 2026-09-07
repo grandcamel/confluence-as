@@ -72,6 +72,14 @@ Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.
   `CONFLUENCE_AS_TRANSPORT=simulation` opt-in stateful double; rich-text tags
   on comment writes and version injection on comment and property updates;
   lazy command imports; the full table in `docs/wrapper-verbs.md`. (JAS-41)
+- JAS-61: `attachment download` rebuilt on the generic Surface (single and
+  `--all`, `--output`/`-o` kept, `--output-dir` added, server filenames
+  sanitized) — the last deferred verb besides `jira create-from-page`;
+  `specs/v1.attachments.overlay.json` tags `downloadAttatchment` as a binary
+  response and documents the multipart request shape on `createAttachment` and
+  `updateAttachmentData`, whose rename hints no longer carry a multipart
+  caveat; the Wrapper Verb inventory is 37 survivors, 70 dropped, 1 deferred.
+  (JAS-61)
 
 ### Removed verbs
 
