@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "as-engine>=0.1.0a0,<0.2"]
 build-backend = "hatchling.build"
 
 [project]
@@ -36,6 +36,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 ]
 dependencies = [
+    "as-engine>=0.1.0a0,<0.2",
     "requests>=2.28.0",
     "click>=8.0.0",
     "assistant-skills-lib>=1.0.0",
@@ -69,11 +70,18 @@ confluence-as = "confluence_as.cli.main:cli"
 # Version is now static in [project]
 
 [tool.hatch.build.targets.sdist]
+exclude = ["/src/confluence_as/_generated"]
 include = [
     "/src",
+    "/hatch_build.py",
 ]
 
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
 [tool.hatch.build.targets.wheel]
+dev-mode-dirs = ["src"]
+exclude = ["/src/confluence_as/_generated"]
 packages = ["src/confluence_as"]
 
 [tool.pytest.ini_options]

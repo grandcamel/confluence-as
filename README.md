@@ -285,3 +285,38 @@ MIT License - see [LICENSE](LICENSE) for details.
 ## Related Projects
 
 - [Confluence Assistant Skills](https://github.com/grandcamel/Confluence-Assistant-Skills) - Claude Code skills for Confluence automation
+
+## Build
+
+Confluence v2 (primary) and v1 (lower tier, loaded on demand) Base Documents
+are pinned in `src/confluence_as/specs/manifest.json` by source URL, declared
+version, SHA256 and fetch time. The JSON overlays beside them are the source
+of enrichment; vendored documents remain pristine. `as-engine` verifies the
+pins, strips the narrative extension, applies overlays and defect hooks, and
+compiles one deterministic operation index per document.
+
+Wheel and editable builds both generate `src/confluence_as/_generated/`.
+It is ignored by git; wheels include its indexes and catalog, while source
+archives include the inputs and build hook. Nothing is fetched at build or
+runtime. Consumers use `as_engine.index.load_index(path)` for one document,
+or `ProductIndexes(generated_directory)` to load primary indexes eagerly and
+retrieve v1 on demand with `.get("v1")`.
+
+Until a compatible `as-engine` release is available on PyPI, install the
+engine from its source checkout (or `git+https://github.com/grandcamel/as-engine@main`)
+and install `hatchling` in the build environment before using
+`python -m pip install --no-build-isolation -e '.[dev]'`. For offline prepared
+lanes, `python -m build --wheel --no-isolation` uses the installed engine.
+CI follows the git-source route; the engine pipeline must land there first.
+An isolated build needs `as-engine>=0.1.0a0,<0.2` available from its package
+index. Package versions are unchanged by this pipeline.
+
+Refresh deliberately with `python scripts/refresh_base_documents.py`, with
+`oasdiff` on PATH (or `OASDIFF=/path/to/oasdiff`). For an offline refresh use
+`--from-file v2=/path/to/new-v2.json`; only named documents are refreshed in
+that mode. Each refresh appends `<document>.changelog.md`, then replaces the
+source and updates the manifest pin. Review and commit those sources and
+changelogs together. A missing oasdiff binary records an explicit skip in the
+changelog and stderr; install it and obtain the real diff before accepting a
+refresh. Invalid JSON, changed existing pins or a failed oasdiff command leave
+the sources unchanged.

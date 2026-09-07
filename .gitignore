@@ -129,3 +129,7 @@ dmypy.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Compiled operation indexes (generated for wheels and editable installs)
+/src/confluence_as/_generated/*
+!/src/confluence_as/_generated/.gitignore
