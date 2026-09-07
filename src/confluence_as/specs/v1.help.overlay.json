@@ -1,0 +1,55 @@
+{
+  "overlay": "1.0.0",
+  "info": {
+    "title": "Confluence v1 help enrichment",
+    "version": "1.0.0"
+  },
+  "actions": [
+    {
+      "target": "$.paths[\"/wiki/rest/api/space/{spaceKey}\"].delete",
+      "description": "Deleting a Confluence space is irreversible; preview before confirmation.",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting a Confluence space is irreversible; preview before confirmation.",
+      "x-as-test": "help_v1_risk_deleteSpace"
+    },
+    {
+      "target": "$.paths[\"/wiki/rest/api/search\"].get",
+      "description": "CQL search is available from the lower-tier v1 API.",
+      "update": {
+        "x-as-topic": [
+          "search"
+        ],
+        "x-as-note": "CQL search belongs to the lower-tier v1 API; api describe searchByCQL loads it on demand. Supply --cql; follow the tagged paging contract rather than inventing a v2 search operation.",
+        "x-as-examples": [
+          {
+            "kind": "invocation",
+            "value": "confluence-as api call searchByCQL --cql 'type=page'"
+          }
+        ]
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "CQL search is available from the lower-tier v1 API.",
+      "x-as-test": "help_v1_searchByCQL",
+      "x-as-examples": [
+        {
+          "kind": "invocation",
+          "value": "confluence-as api call searchByCQL --cql 'type=page'"
+        }
+      ]
+    }
+  ]
+}

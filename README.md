@@ -385,3 +385,30 @@ usage/400 **2**, auth **3**, permission/scope **4**, not found **5**, server/exh
 rate limit **6**, other failure (including 409) **1**, success **0**. No Confluence
 project guard is introduced. Live-site acceptance is held separately from offline
 responder tests pending the Confluence sandbox ruling.
+
+## Progressive help
+
+Run `confluence-as` or `confluence-as help` for the surface map, `help api`
+for discovery commands, and `help adf` or `help paging` for tagged gotchas.
+`api describe deletePage` shows parameters, body and risk; `--full` includes the
+complete description, and `--examples` shows enrichment invocations and bodies.
+Wrapper `<group> <verb> --help` uses the same renderer, with `--full` and
+`--examples`. Add `--format json` to help/describe for the same content in a
+structured document. Large topic/group lists show `--offset N` to continue.
+`help search` loads the v1 CQL topic on demand; `help risk --tier v1` explicitly
+loads lower-tier help. `api describe` resolves lower-tier operation IDs on demand.
+
+Operations tagged destructive or irreversible preview by default: for example,
+`api call deletePage --id 123` prints JSON and sends no request. Add `--confirm`
+to send through the normal guard and transform pipeline. Previews validate local
+inputs but do not perform prerequisite or version lookups; unresolved requirements
+are identified in the output. Direct Python Surface calls retain their existing
+behavior. Discovery needs no credentials. API responder/cassette modes and wrapper
+`CONFLUENCE_MOCK_MODE` remain distinct offline modes.
+
+Help snapshots live in `tests/golden/help/`. Regenerate with
+`UPDATE_HELP_GOLDEN=1 .venv/bin/python -m pytest -q -p no:cacheprovider tests/test_help.py`
+and review the diff. Tests enforce `ceil(characters/4)` Markdown caps of
+400/800/1200/600 tokens for Levels 0/1/2/3 and 800 for the topic list;
+`--full` is intentionally uncapped. JSON serialization metadata is not counted
+again. Regeneration never disables cap checks.

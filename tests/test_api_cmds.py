@@ -208,8 +208,8 @@ def test_discovery_search_describe_topics_and_dynamic_help():
         and "--space-id" in result.stdout
         and "--limit" in result.stdout
     )
-    assert invoke("topics").stdout == "No topics available.\n"
-    assert json.loads(invoke("topics", "--format", "json").stdout) == []
+    assert {"adf", "paging", "risk", "scope"} <= set(invoke("topics").stdout.splitlines())
+    assert json.loads(invoke("topics", "--format", "json").stdout) == invoke("topics").stdout.splitlines()
 
 
 def test_lower_tier_and_standard_deprecation():
@@ -268,7 +268,7 @@ def test_enrichment_note_topic_and_replacement_through_argv(monkeypatch):
         return indexes
 
     monkeypatch.setattr(engine, "ProductIndexes", enriched)
-    assert invoke("topics").stdout == "pages\n"
+    assert {"pages", "adf", "risk"} <= set(invoke("topics").stdout.splitlines())
     assert "getNewPages" in invoke("call", "getPages").stderr
     result = invoke("--respond-with", "400", "call", "getPages")
     assert json.loads(result.stderr.splitlines()[-1])["note"] == "Example gotcha"

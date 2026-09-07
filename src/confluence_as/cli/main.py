@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import click
+from as_engine.help import render_help
 
 from confluence_as import __version__
 from confluence_as.cli.commands.admin_cmds import admin
@@ -11,6 +12,7 @@ from confluence_as.cli.commands.api_cmds import api
 from confluence_as.cli.commands.attachment_cmds import attachment
 from confluence_as.cli.commands.bulk_cmds import bulk
 from confluence_as.cli.commands.comment_cmds import comment
+from confluence_as.cli.commands.help_cmds import HelpGroup, help_command, surface_map
 from confluence_as.cli.commands.hierarchy_cmds import hierarchy
 from confluence_as.cli.commands.jira_cmds import jira
 from confluence_as.cli.commands.label_cmds import label
@@ -26,7 +28,7 @@ from confluence_as.cli.commands.template_cmds import template
 from confluence_as.cli.commands.watch_cmds import watch
 
 
-@click.group(invoke_without_command=True)
+@click.group(cls=HelpGroup, invoke_without_command=True)
 @click.version_option(version=__version__, prog_name="confluence-as")
 @click.option(
     "--output",
@@ -75,10 +77,11 @@ def cli(
     ctx.obj["quiet"] = quiet
 
     if ctx.invoked_subcommand is None:
-        click.echo(ctx.get_help())
+        click.echo(render_help(surface_map()))
 
 
 # Register command groups
+cli.add_command(help_command)
 cli.add_command(api)
 cli.add_command(page)
 cli.add_command(space)

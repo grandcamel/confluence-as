@@ -11,7 +11,8 @@
       "fetched_at": "2026-09-07T00:24:45Z",
       "overlays": [
         "v2.paging.overlay.json",
-        "v2.overlay.json"
+        "v2.overlay.json",
+        "v2.help.overlay.json"
       ],
       "strip_extensions": [
         "x-atlassian-narrative"
@@ -27,7 +28,8 @@
       "fetched_at": "2026-09-07T00:24:45Z",
       "overlays": [
         "v1.paging.overlay.json",
-        "v1.overlay.json"
+        "v1.overlay.json",
+        "v1.help.overlay.json"
       ],
       "strip_extensions": [
         "x-atlassian-narrative"

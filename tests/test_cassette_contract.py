@@ -152,7 +152,7 @@ def test_recorded_fake_service_scrubs_all_secrets_and_matches_committed_fixture(
         ("getPages", ["--limit", "5"], None, "results"),
         ("getPageById", ["--id", "10"], None, "id"),
         ("createPage", [], PAGE_BODY, "id"),
-        ("updatePage", ["--id", "10"], UPDATE_BODY, "version"),
+        ("updatePage", ["--id", "10", "--confirm"], UPDATE_BODY, "version"),
     ],
 )
 def test_cassette_call_verbs_replay_offline(monkeypatch, name, args, body, expected):

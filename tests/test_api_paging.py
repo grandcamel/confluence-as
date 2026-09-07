@@ -115,7 +115,7 @@ def test_alias_and_explicit_id_conflict_before_transport(responder_surface):
 
 def test_current_and_draft_versions_avoid_unnecessary_reads(responder_surface):
     responder_surface.seed("getPageById", [{"version": {"number": 7}}])
-    result = invoke("updatePage", "--id", "9", "--field", 'title="Current"')
+    result = invoke("updatePage", "--confirm", "--id", "9", "--field", 'title="Current"')
     assert result.exit_code == 0, result.output
     assert responder_surface.requests[0] == ("getPageById", {"id": 9}, None)
     assert responder_surface.requests[1][0] == "updatePage"
@@ -123,7 +123,7 @@ def test_current_and_draft_versions_avoid_unnecessary_reads(responder_surface):
 
     responder_surface.requests.clear()
     result = invoke(
-        "updatePage", "--id", "9", "--field", 'title="Draft"', "--field", "status=draft"
+        "updatePage", "--confirm", "--id", "9", "--field", 'title="Draft"', "--field", "status=draft"
     )
     assert result.exit_code == 0, result.output
     assert [request[0] for request in responder_surface.requests] == ["updatePage"]
@@ -131,7 +131,7 @@ def test_current_and_draft_versions_avoid_unnecessary_reads(responder_surface):
 
 
 def test_explicit_version_avoids_read_and_conflict_is_not_retried(responder_surface):
-    result = invoke("updatePage", "--id", "9", "--field", 'title="Explicit"', "--version", "12")
+    result = invoke("updatePage", "--confirm", "--id", "9", "--field", 'title="Explicit"', "--version", "12")
     assert result.exit_code == 0, result.output
     assert [request[0] for request in responder_surface.requests] == ["updatePage"]
     assert responder_surface.requests[0][2]["version"]["number"] == 12
@@ -139,7 +139,7 @@ def test_explicit_version_avoids_read_and_conflict_is_not_retried(responder_surf
     responder_surface.requests.clear()
     responder_surface.seed("getPageById", [{"version": {"number": 7}}])
     responder_surface.seed("updatePage", [Response(status=409, body={"code": 7, "message": "conflict"})])
-    result = invoke("updatePage", "--id", "9", "--field", 'title="Conflict"')
+    result = invoke("updatePage", "--confirm", "--id", "9", "--field", 'title="Conflict"')
     assert result.exit_code == 7, result.output
     assert json.loads(result.stderr)["status"] == 409
     assert [request[0] for request in responder_surface.requests].count("updatePage") == 1

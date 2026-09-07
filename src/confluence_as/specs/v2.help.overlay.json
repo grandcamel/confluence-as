@@ -1,0 +1,1983 @@
+{
+  "overlay": "1.0.0",
+  "info": {
+    "title": "Confluence v2 help enrichment",
+    "version": "1.0.0"
+  },
+  "actions": [
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_app_properties_get",
+      "target": "$.paths[\"/app/properties\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_attachments_get",
+      "target": "$.paths[\"/attachments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_attachments_attachment_id_properties_get",
+      "target": "$.paths[\"/attachments/{attachment-id}/properties\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_attachments_id_footer_comments_get",
+      "target": "$.paths[\"/attachments/{id}/footer-comments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ],
+        "x-as-note": "Cursor paging follows the opaque token in _links.next. One page is the default; --all aggregates pages, --all --limit N caps total items, and --parameter-limit controls page size. Never construct a cursor from an item count."
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_attachments_id_labels_get",
+      "target": "$.paths[\"/attachments/{id}/labels\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_attachments_id_operations_get",
+      "target": "$.paths[\"/attachments/{id}/operations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_attachments_id_versions_get",
+      "target": "$.paths[\"/attachments/{id}/versions\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_blogposts_get",
+      "target": "$.paths[\"/blogposts\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_blogposts_blogpost_id_properties_get",
+      "target": "$.paths[\"/blogposts/{blogpost-id}/properties\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_blogposts_id_attachments_get",
+      "target": "$.paths[\"/blogposts/{id}/attachments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_blogposts_id_custom_content_get",
+      "target": "$.paths[\"/blogposts/{id}/custom-content\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_blogposts_id_footer_comments_get",
+      "target": "$.paths[\"/blogposts/{id}/footer-comments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_blogposts_id_inline_comments_get",
+      "target": "$.paths[\"/blogposts/{id}/inline-comments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_blogposts_id_labels_get",
+      "target": "$.paths[\"/blogposts/{id}/labels\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_blogposts_id_likes_users_get",
+      "target": "$.paths[\"/blogposts/{id}/likes/users\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_blogposts_id_operations_get",
+      "target": "$.paths[\"/blogposts/{id}/operations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_blogposts_id_versions_get",
+      "target": "$.paths[\"/blogposts/{id}/versions\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_classification_levels_get",
+      "target": "$.paths[\"/classification-levels\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_comments_comment_id_properties_get",
+      "target": "$.paths[\"/comments/{comment-id}/properties\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_custom_content_get",
+      "target": "$.paths[\"/custom-content\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_custom_content_custom_content_id_properties_get",
+      "target": "$.paths[\"/custom-content/{custom-content-id}/properties\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_custom_content_custom_content_id_versions_get",
+      "target": "$.paths[\"/custom-content/{custom-content-id}/versions\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_custom_content_id_attachments_get",
+      "target": "$.paths[\"/custom-content/{id}/attachments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_custom_content_id_children_get",
+      "target": "$.paths[\"/custom-content/{id}/children\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_custom_content_id_footer_comments_get",
+      "target": "$.paths[\"/custom-content/{id}/footer-comments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_custom_content_id_labels_get",
+      "target": "$.paths[\"/custom-content/{id}/labels\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_custom_content_id_operations_get",
+      "target": "$.paths[\"/custom-content/{id}/operations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_data_policies_spaces_get",
+      "target": "$.paths[\"/data-policies/spaces\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_databases_id_ancestors_get",
+      "target": "$.paths[\"/databases/{id}/ancestors\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_databases_id_descendants_get",
+      "target": "$.paths[\"/databases/{id}/descendants\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_databases_id_direct_children_get",
+      "target": "$.paths[\"/databases/{id}/direct-children\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_databases_id_operations_get",
+      "target": "$.paths[\"/databases/{id}/operations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_databases_id_properties_get",
+      "target": "$.paths[\"/databases/{id}/properties\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_embeds_id_ancestors_get",
+      "target": "$.paths[\"/embeds/{id}/ancestors\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_embeds_id_descendants_get",
+      "target": "$.paths[\"/embeds/{id}/descendants\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_embeds_id_direct_children_get",
+      "target": "$.paths[\"/embeds/{id}/direct-children\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_embeds_id_operations_get",
+      "target": "$.paths[\"/embeds/{id}/operations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_embeds_id_properties_get",
+      "target": "$.paths[\"/embeds/{id}/properties\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_folders_id_ancestors_get",
+      "target": "$.paths[\"/folders/{id}/ancestors\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_folders_id_descendants_get",
+      "target": "$.paths[\"/folders/{id}/descendants\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_folders_id_direct_children_get",
+      "target": "$.paths[\"/folders/{id}/direct-children\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_folders_id_operations_get",
+      "target": "$.paths[\"/folders/{id}/operations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_folders_id_properties_get",
+      "target": "$.paths[\"/folders/{id}/properties\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_footer_comments_get",
+      "target": "$.paths[\"/footer-comments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_footer_comments_id_children_get",
+      "target": "$.paths[\"/footer-comments/{id}/children\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_footer_comments_id_likes_users_get",
+      "target": "$.paths[\"/footer-comments/{id}/likes/users\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_footer_comments_id_operations_get",
+      "target": "$.paths[\"/footer-comments/{id}/operations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_footer_comments_id_versions_get",
+      "target": "$.paths[\"/footer-comments/{id}/versions\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_inline_comments_get",
+      "target": "$.paths[\"/inline-comments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_inline_comments_id_children_get",
+      "target": "$.paths[\"/inline-comments/{id}/children\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_inline_comments_id_likes_users_get",
+      "target": "$.paths[\"/inline-comments/{id}/likes/users\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_inline_comments_id_operations_get",
+      "target": "$.paths[\"/inline-comments/{id}/operations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_inline_comments_id_versions_get",
+      "target": "$.paths[\"/inline-comments/{id}/versions\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_labels_get",
+      "target": "$.paths[\"/labels\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_labels_id_attachments_get",
+      "target": "$.paths[\"/labels/{id}/attachments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_labels_id_blogposts_get",
+      "target": "$.paths[\"/labels/{id}/blogposts\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_labels_id_pages_get",
+      "target": "$.paths[\"/labels/{id}/pages\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_get",
+      "target": "$.paths[\"/pages\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_id_attachments_get",
+      "target": "$.paths[\"/pages/{id}/attachments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_id_children_get",
+      "target": "$.paths[\"/pages/{id}/children\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_id_custom_content_get",
+      "target": "$.paths[\"/pages/{id}/custom-content\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_id_descendants_get",
+      "target": "$.paths[\"/pages/{id}/descendants\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_id_direct_children_get",
+      "target": "$.paths[\"/pages/{id}/direct-children\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_id_footer_comments_get",
+      "target": "$.paths[\"/pages/{id}/footer-comments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_id_inline_comments_get",
+      "target": "$.paths[\"/pages/{id}/inline-comments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_id_labels_get",
+      "target": "$.paths[\"/pages/{id}/labels\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_id_likes_users_get",
+      "target": "$.paths[\"/pages/{id}/likes/users\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_id_operations_get",
+      "target": "$.paths[\"/pages/{id}/operations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_id_versions_get",
+      "target": "$.paths[\"/pages/{id}/versions\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_pages_page_id_properties_get",
+      "target": "$.paths[\"/pages/{page-id}/properties\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_space_permissions_get",
+      "target": "$.paths[\"/space-permissions\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging",
+          "permissions"
+        ],
+        "x-as-note": "The caller must have the permissions required by this operation. Scope allowlists do not grant remote permissions; a forbidden response maps to exit 4."
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_space_permissions_transition_combinations_get",
+      "target": "$.paths[\"/space-permissions/transition/combinations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_space_roles_get",
+      "target": "$.paths[\"/space-roles\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_spaces_get",
+      "target": "$.paths[\"/spaces\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging",
+          "fields",
+          "project-types"
+        ],
+        "x-as-note": "Confluence organizes content in spaces, not Jira projects. Use getSpaces filters for space type and keys; api describe getSpaces lists the actual fields and enums."
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_spaces_id_blogposts_get",
+      "target": "$.paths[\"/spaces/{id}/blogposts\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_spaces_id_content_labels_get",
+      "target": "$.paths[\"/spaces/{id}/content/labels\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_spaces_id_custom_content_get",
+      "target": "$.paths[\"/spaces/{id}/custom-content\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_spaces_id_labels_get",
+      "target": "$.paths[\"/spaces/{id}/labels\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_spaces_id_operations_get",
+      "target": "$.paths[\"/spaces/{id}/operations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_spaces_id_pages_get",
+      "target": "$.paths[\"/spaces/{id}/pages\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_spaces_id_permissions_get",
+      "target": "$.paths[\"/spaces/{id}/permissions\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_spaces_id_role_assignments_get",
+      "target": "$.paths[\"/spaces/{id}/role-assignments\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_spaces_space_id_properties_get",
+      "target": "$.paths[\"/spaces/{space-id}/properties\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_tasks_get",
+      "target": "$.paths[\"/tasks\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_user_access_check_access_by_email_post",
+      "target": "$.paths[\"/user/access/check-access-by-email\"].post",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_whiteboards_id_ancestors_get",
+      "target": "$.paths[\"/whiteboards/{id}/ancestors\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_whiteboards_id_descendants_get",
+      "target": "$.paths[\"/whiteboards/{id}/descendants\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_whiteboards_id_direct_children_get",
+      "target": "$.paths[\"/whiteboards/{id}/direct-children\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_whiteboards_id_operations_get",
+      "target": "$.paths[\"/whiteboards/{id}/operations\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Mark this paged operation as a help topic.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Mark this paged operation as a help topic.",
+      "x-as-test": "help_v2_paging_paths_whiteboards_id_properties_get",
+      "target": "$.paths[\"/whiteboards/{id}/properties\"].get",
+      "update": {
+        "x-as-topic": [
+          "paging"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_disableAdminKey",
+      "target": "$.paths[\"/admin-key\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteAttachment",
+      "target": "$.paths[\"/attachments/{id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteAttachmentPropertyById",
+      "target": "$.paths[\"/attachments/{attachment-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteBlogPost",
+      "target": "$.paths[\"/blogposts/{id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteBlogpostPropertyById",
+      "target": "$.paths[\"/blogposts/{blogpost-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteCustomContent",
+      "target": "$.paths[\"/custom-content/{id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteCustomContentPropertyById",
+      "target": "$.paths[\"/custom-content/{custom-content-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deletePage",
+      "target": "$.paths[\"/pages/{id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deletePagePropertyById",
+      "target": "$.paths[\"/pages/{page-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteWhiteboard",
+      "target": "$.paths[\"/whiteboards/{id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteWhiteboardPropertyById",
+      "target": "$.paths[\"/whiteboards/{whiteboard-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteDatabase",
+      "target": "$.paths[\"/databases/{id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteDatabasePropertyById",
+      "target": "$.paths[\"/databases/{database-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteSmartLink",
+      "target": "$.paths[\"/embeds/{id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteSmartLinkPropertyById",
+      "target": "$.paths[\"/embeds/{embed-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteFolder",
+      "target": "$.paths[\"/folders/{id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteFolderPropertyById",
+      "target": "$.paths[\"/folders/{folder-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteSpacePropertyById",
+      "target": "$.paths[\"/spaces/{space-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteSpaceRole",
+      "target": "$.paths[\"/space-roles/{id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteFooterComment",
+      "target": "$.paths[\"/footer-comments/{comment-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteInlineComment",
+      "target": "$.paths[\"/inline-comments/{comment-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteCommentPropertyById",
+      "target": "$.paths[\"/comments/{comment-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteSpaceDefaultClassificationLevel",
+      "target": "$.paths[\"/spaces/{id}/classification-level/default\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Deleting this resource is irreversible; preview before confirmation.",
+      "x-as-test": "help_v2_risk_deleteForgeAppProperty",
+      "target": "$.paths[\"/app/properties/{propertyKey}\"].delete",
+      "update": {
+        "x-as-risk": "irreversible",
+        "x-as-topic": [
+          "risk"
+        ]
+      }
+    },
+    {
+      "description": "Page creation accepts atlas_doc_format content and has runnable examples.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Page creation accepts atlas_doc_format content and has runnable examples.",
+      "x-as-test": "help_v2_createPage",
+      "target": "$.paths[\"/pages\"].post",
+      "update": {
+        "x-as-topic": [
+          "adf",
+          "representations"
+        ],
+        "x-as-note": "For ADF input, set body.representation to atlas_doc_format and body.value to a JSON-serialized ADF document string. storage uses XHTML in body.value; these representations are distinct.",
+        "x-as-examples": [
+          {
+            "kind": "json",
+            "schema": "#/components/requestBodies/PageCreateRequest/content/application~1json/schema",
+            "value": "{\"spaceId\":\"123\",\"status\":\"draft\"}"
+          },
+          {
+            "kind": "invocation",
+            "value": "confluence-as api call createPage --field 'spaceId=\"123\"' --field status=draft"
+          }
+        ]
+      },
+      "x-as-examples": [
+        {
+          "kind": "json",
+          "schema": "#/components/requestBodies/PageCreateRequest/content/application~1json/schema",
+          "value": "{\"spaceId\":\"123\",\"status\":\"draft\"}"
+        },
+        {
+          "kind": "invocation",
+          "value": "confluence-as api call createPage --field 'spaceId=\"123\"' --field status=draft"
+        }
+      ]
+    },
+    {
+      "description": "Updating a page can replace content and requires an explicit confirmation.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Updating a page can replace content and requires an explicit confirmation.",
+      "x-as-test": "help_v2_updatePage",
+      "target": "$.paths[\"/pages/{id}\"].put",
+      "update": {
+        "x-as-risk": "destructive",
+        "x-as-topic": [
+          "adf",
+          "representations",
+          "risk"
+        ],
+        "x-as-note": "For ADF input, set body.representation to atlas_doc_format and body.value to a JSON-serialized ADF document string. storage uses XHTML in body.value; these representations are distinct.",
+        "x-as-examples": [
+          {
+            "kind": "json",
+            "schema": "#/components/requestBodies/PageUpdateRequest/content/application~1json/schema/properties/version",
+            "value": "{\"number\":2,\"message\":\"Example update\"}"
+          },
+          {
+            "kind": "invocation",
+            "value": "confluence-as api call updatePage --id 123 --body @page.json --confirm"
+          }
+        ]
+      },
+      "x-as-examples": [
+        {
+          "kind": "json",
+          "schema": "#/components/requestBodies/PageUpdateRequest/content/application~1json/schema/properties/version",
+          "value": "{\"number\":2,\"message\":\"Example update\"}"
+        },
+        {
+          "kind": "invocation",
+          "value": "confluence-as api call updatePage --id 123 --body @page.json --confirm"
+        }
+      ]
+    },
+    {
+      "description": "Page lookup carries authentication, sandbox, error, rate-limit, and representation guidance.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Page lookup carries authentication, sandbox, error, rate-limit, and representation guidance.",
+      "x-as-test": "help_v2_getPageById",
+      "target": "$.paths[\"/pages/{id}\"].get",
+      "update": {
+        "x-as-topic": [
+          "representations",
+          "auth",
+          "sandbox",
+          "errors",
+          "rate-limits"
+        ],
+        "x-as-note": "Auth uses CONFLUENCE_SITE_URL, CONFLUENCE_EMAIL and CONFLUENCE_API_TOKEN; discovery needs none. Sandbox: api --transport responder or CONFLUENCE_AS_TRANSPORT=cassette with CONFLUENCE_AS_CASSETTE; wrappers use CONFLUENCE_MOCK_MODE. body-format selects storage or atlas_doc_format. Transport honors Retry-After for 429; exhausted retries exit 6. Errors use JSON stderr: 0 success, 1 other, 2 usage, 3 auth, 4 scope/permission, 5 not found, 6 server/transport, 7 conflict (409, no retry); see as-engine docs/exit-codes.md."
+      }
+    },
+    {
+      "description": "Space lookup documents the configured Confluence space scope.",
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-40",
+      "x-as-reason": "Space lookup documents the configured Confluence space scope.",
+      "x-as-test": "help_v2_getSpaceById",
+      "target": "$.paths[\"/spaces/{id}\"].get",
+      "update": {
+        "x-as-topic": [
+          "scope"
+        ],
+        "x-as-note": "CONFLUENCE_ALLOWED_SPACES, JAS-39: the allowed-spaces setting constrains confirmed requests; a dry-run preview is not a scope authorization."
+      }
+    }
+  ]
+}

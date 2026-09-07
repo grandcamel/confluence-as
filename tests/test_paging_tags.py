@@ -124,7 +124,7 @@ def test_manifest_order_makes_hand_override_win(tmp_path):
     shutil.copytree(SPECS, specs)
     manifest = json.loads((specs / "manifest.json").read_bytes())
     assert all(
-        item["overlays"]
+        item["overlays"][:2]
         == [f"{item['id']}.paging.overlay.json", f"{item['id']}.overlay.json"]
         for item in manifest["documents"]
     )
