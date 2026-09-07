@@ -1,0 +1,2581 @@
+{
+  "actions": [
+    {
+      "description": "Declare cursor paging for getForgeAppProperties.",
+      "target": "$.paths[\"/app/properties\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getForgeAppProperties"
+    },
+    {
+      "description": "Declare cursor paging for getAttachments.",
+      "target": "$.paths[\"/attachments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getAttachments"
+    },
+    {
+      "description": "Declare cursor paging for getAttachmentContentProperties.",
+      "target": "$.paths[\"/attachments/{attachment-id}/properties\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getAttachmentContentProperties"
+    },
+    {
+      "description": "Declare cursor paging for getAttachmentComments.",
+      "target": "$.paths[\"/attachments/{id}/footer-comments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getAttachmentComments"
+    },
+    {
+      "description": "Declare cursor paging for getAttachmentLabels.",
+      "target": "$.paths[\"/attachments/{id}/labels\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getAttachmentLabels"
+    },
+    {
+      "description": "Declare none paging for getAttachmentOperations.",
+      "target": "$.paths[\"/attachments/{id}/operations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/operations",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getAttachmentOperations"
+    },
+    {
+      "description": "Declare cursor paging for getAttachmentVersions.",
+      "target": "$.paths[\"/attachments/{id}/versions\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getAttachmentVersions"
+    },
+    {
+      "description": "Declare cursor paging for getBlogPosts.",
+      "target": "$.paths[\"/blogposts\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getBlogPosts"
+    },
+    {
+      "description": "Declare cursor paging for getBlogpostContentProperties.",
+      "target": "$.paths[\"/blogposts/{blogpost-id}/properties\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getBlogpostContentProperties"
+    },
+    {
+      "description": "Declare cursor paging for getBlogpostAttachments.",
+      "target": "$.paths[\"/blogposts/{id}/attachments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getBlogpostAttachments"
+    },
+    {
+      "description": "Declare cursor paging for getCustomContentByTypeInBlogPost.",
+      "target": "$.paths[\"/blogposts/{id}/custom-content\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getCustomContentByTypeInBlogPost"
+    },
+    {
+      "description": "Declare cursor paging for getBlogPostFooterComments.",
+      "target": "$.paths[\"/blogposts/{id}/footer-comments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getBlogPostFooterComments"
+    },
+    {
+      "description": "Declare cursor paging for getBlogPostInlineComments.",
+      "target": "$.paths[\"/blogposts/{id}/inline-comments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getBlogPostInlineComments"
+    },
+    {
+      "description": "Declare cursor paging for getBlogPostLabels.",
+      "target": "$.paths[\"/blogposts/{id}/labels\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getBlogPostLabels"
+    },
+    {
+      "description": "Declare cursor paging for getBlogPostLikeUsers.",
+      "target": "$.paths[\"/blogposts/{id}/likes/users\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getBlogPostLikeUsers"
+    },
+    {
+      "description": "Declare none paging for getBlogPostOperations.",
+      "target": "$.paths[\"/blogposts/{id}/operations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/operations",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getBlogPostOperations"
+    },
+    {
+      "description": "Declare cursor paging for getBlogPostVersions.",
+      "target": "$.paths[\"/blogposts/{id}/versions\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getBlogPostVersions"
+    },
+    {
+      "description": "Declare none paging for getClassificationLevels.",
+      "target": "$.paths[\"/classification-levels\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getClassificationLevels"
+    },
+    {
+      "description": "Declare cursor paging for getCommentContentProperties.",
+      "target": "$.paths[\"/comments/{comment-id}/properties\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getCommentContentProperties"
+    },
+    {
+      "description": "Declare cursor paging for getCustomContentByType.",
+      "target": "$.paths[\"/custom-content\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getCustomContentByType"
+    },
+    {
+      "description": "Declare cursor paging for getCustomContentContentProperties.",
+      "target": "$.paths[\"/custom-content/{custom-content-id}/properties\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getCustomContentContentProperties"
+    },
+    {
+      "description": "Declare cursor paging for getCustomContentVersions.",
+      "target": "$.paths[\"/custom-content/{custom-content-id}/versions\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getCustomContentVersions"
+    },
+    {
+      "description": "Declare cursor paging for getCustomContentAttachments.",
+      "target": "$.paths[\"/custom-content/{id}/attachments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getCustomContentAttachments"
+    },
+    {
+      "description": "Declare cursor paging for getChildCustomContent.",
+      "target": "$.paths[\"/custom-content/{id}/children\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getChildCustomContent"
+    },
+    {
+      "description": "Declare cursor paging for getCustomContentComments.",
+      "target": "$.paths[\"/custom-content/{id}/footer-comments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getCustomContentComments"
+    },
+    {
+      "description": "Declare cursor paging for getCustomContentLabels.",
+      "target": "$.paths[\"/custom-content/{id}/labels\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getCustomContentLabels"
+    },
+    {
+      "description": "Declare none paging for getCustomContentOperations.",
+      "target": "$.paths[\"/custom-content/{id}/operations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/operations",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getCustomContentOperations"
+    },
+    {
+      "description": "Declare cursor paging for getDataPolicySpaces.",
+      "target": "$.paths[\"/data-policies/spaces\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getDataPolicySpaces"
+    },
+    {
+      "description": "Declare none paging for getDatabaseAncestors.",
+      "target": "$.paths[\"/databases/{id}/ancestors\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getDatabaseAncestors"
+    },
+    {
+      "description": "Declare cursor paging for getDatabaseDescendants.",
+      "target": "$.paths[\"/databases/{id}/descendants\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getDatabaseDescendants"
+    },
+    {
+      "description": "Declare cursor paging for getDatabaseDirectChildren.",
+      "target": "$.paths[\"/databases/{id}/direct-children\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getDatabaseDirectChildren"
+    },
+    {
+      "description": "Declare none paging for getDatabaseOperations.",
+      "target": "$.paths[\"/databases/{id}/operations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/operations",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getDatabaseOperations"
+    },
+    {
+      "description": "Declare cursor paging for getDatabaseContentProperties.",
+      "target": "$.paths[\"/databases/{id}/properties\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getDatabaseContentProperties"
+    },
+    {
+      "description": "Declare none paging for getSmartLinkAncestors.",
+      "target": "$.paths[\"/embeds/{id}/ancestors\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSmartLinkAncestors"
+    },
+    {
+      "description": "Declare cursor paging for getSmartLinkDescendants.",
+      "target": "$.paths[\"/embeds/{id}/descendants\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSmartLinkDescendants"
+    },
+    {
+      "description": "Declare cursor paging for getSmartLinkDirectChildren.",
+      "target": "$.paths[\"/embeds/{id}/direct-children\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSmartLinkDirectChildren"
+    },
+    {
+      "description": "Declare none paging for getSmartLinkOperations.",
+      "target": "$.paths[\"/embeds/{id}/operations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/operations",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSmartLinkOperations"
+    },
+    {
+      "description": "Declare cursor paging for getSmartLinkContentProperties.",
+      "target": "$.paths[\"/embeds/{id}/properties\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSmartLinkContentProperties"
+    },
+    {
+      "description": "Declare none paging for getFolderAncestors.",
+      "target": "$.paths[\"/folders/{id}/ancestors\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getFolderAncestors"
+    },
+    {
+      "description": "Declare cursor paging for getFolderDescendants.",
+      "target": "$.paths[\"/folders/{id}/descendants\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getFolderDescendants"
+    },
+    {
+      "description": "Declare cursor paging for getFolderDirectChildren.",
+      "target": "$.paths[\"/folders/{id}/direct-children\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getFolderDirectChildren"
+    },
+    {
+      "description": "Declare none paging for getFolderOperations.",
+      "target": "$.paths[\"/folders/{id}/operations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/operations",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getFolderOperations"
+    },
+    {
+      "description": "Declare cursor paging for getFolderContentProperties.",
+      "target": "$.paths[\"/folders/{id}/properties\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getFolderContentProperties"
+    },
+    {
+      "description": "Declare cursor paging for getFooterComments.",
+      "target": "$.paths[\"/footer-comments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getFooterComments"
+    },
+    {
+      "description": "Declare cursor paging for getFooterCommentChildren.",
+      "target": "$.paths[\"/footer-comments/{id}/children\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getFooterCommentChildren"
+    },
+    {
+      "description": "Declare cursor paging for getFooterLikeUsers.",
+      "target": "$.paths[\"/footer-comments/{id}/likes/users\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getFooterLikeUsers"
+    },
+    {
+      "description": "Declare none paging for getFooterCommentOperations.",
+      "target": "$.paths[\"/footer-comments/{id}/operations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/operations",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getFooterCommentOperations"
+    },
+    {
+      "description": "Declare cursor paging for getFooterCommentVersions.",
+      "target": "$.paths[\"/footer-comments/{id}/versions\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getFooterCommentVersions"
+    },
+    {
+      "description": "Declare cursor paging for getInlineComments.",
+      "target": "$.paths[\"/inline-comments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getInlineComments"
+    },
+    {
+      "description": "Declare cursor paging for getInlineCommentChildren.",
+      "target": "$.paths[\"/inline-comments/{id}/children\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getInlineCommentChildren"
+    },
+    {
+      "description": "Declare cursor paging for getInlineLikeUsers.",
+      "target": "$.paths[\"/inline-comments/{id}/likes/users\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getInlineLikeUsers"
+    },
+    {
+      "description": "Declare none paging for getInlineCommentOperations.",
+      "target": "$.paths[\"/inline-comments/{id}/operations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/operations",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getInlineCommentOperations"
+    },
+    {
+      "description": "Declare cursor paging for getInlineCommentVersions.",
+      "target": "$.paths[\"/inline-comments/{id}/versions\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getInlineCommentVersions"
+    },
+    {
+      "description": "Declare cursor paging for getLabels.",
+      "target": "$.paths[\"/labels\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getLabels"
+    },
+    {
+      "description": "Declare cursor paging for getLabelAttachments.",
+      "target": "$.paths[\"/labels/{id}/attachments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getLabelAttachments"
+    },
+    {
+      "description": "Declare cursor paging for getLabelBlogPosts.",
+      "target": "$.paths[\"/labels/{id}/blogposts\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getLabelBlogPosts"
+    },
+    {
+      "description": "Declare cursor paging for getLabelPages.",
+      "target": "$.paths[\"/labels/{id}/pages\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getLabelPages"
+    },
+    {
+      "description": "Declare cursor paging for getPages.",
+      "target": "$.paths[\"/pages\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPages"
+    },
+    {
+      "description": "Declare cursor paging for getPageAttachments.",
+      "target": "$.paths[\"/pages/{id}/attachments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPageAttachments"
+    },
+    {
+      "description": "Declare cursor paging for getChildPages.",
+      "target": "$.paths[\"/pages/{id}/children\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getChildPages"
+    },
+    {
+      "description": "Declare cursor paging for getCustomContentByTypeInPage.",
+      "target": "$.paths[\"/pages/{id}/custom-content\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getCustomContentByTypeInPage"
+    },
+    {
+      "description": "Declare cursor paging for getPageDescendants.",
+      "target": "$.paths[\"/pages/{id}/descendants\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPageDescendants"
+    },
+    {
+      "description": "Declare cursor paging for getPageDirectChildren.",
+      "target": "$.paths[\"/pages/{id}/direct-children\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPageDirectChildren"
+    },
+    {
+      "description": "Declare cursor paging for getPageFooterComments.",
+      "target": "$.paths[\"/pages/{id}/footer-comments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPageFooterComments"
+    },
+    {
+      "description": "Declare cursor paging for getPageInlineComments.",
+      "target": "$.paths[\"/pages/{id}/inline-comments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPageInlineComments"
+    },
+    {
+      "description": "Declare cursor paging for getPageLabels.",
+      "target": "$.paths[\"/pages/{id}/labels\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPageLabels"
+    },
+    {
+      "description": "Declare cursor paging for getPageLikeUsers.",
+      "target": "$.paths[\"/pages/{id}/likes/users\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPageLikeUsers"
+    },
+    {
+      "description": "Declare none paging for getPageOperations.",
+      "target": "$.paths[\"/pages/{id}/operations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/operations",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPageOperations"
+    },
+    {
+      "description": "Declare cursor paging for getPageVersions.",
+      "target": "$.paths[\"/pages/{id}/versions\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPageVersions"
+    },
+    {
+      "description": "Declare cursor paging for getPageContentProperties.",
+      "target": "$.paths[\"/pages/{page-id}/properties\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPageContentProperties"
+    },
+    {
+      "description": "Declare cursor paging for getAvailableSpacePermissions.",
+      "target": "$.paths[\"/space-permissions\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getAvailableSpacePermissions"
+    },
+    {
+      "description": "Declare cursor paging for listSpacePermissionCombinations.",
+      "target": "$.paths[\"/space-permissions/transition/combinations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "token",
+            "path": "/cursor"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_listSpacePermissionCombinations"
+    },
+    {
+      "description": "Declare cursor paging for getAvailableSpaceRoles.",
+      "target": "$.paths[\"/space-roles\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getAvailableSpaceRoles"
+    },
+    {
+      "description": "Declare cursor paging for getSpaces.",
+      "target": "$.paths[\"/spaces\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSpaces"
+    },
+    {
+      "description": "Declare cursor paging for getBlogPostsInSpace.",
+      "target": "$.paths[\"/spaces/{id}/blogposts\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getBlogPostsInSpace"
+    },
+    {
+      "description": "Declare cursor paging for getSpaceContentLabels.",
+      "target": "$.paths[\"/spaces/{id}/content/labels\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSpaceContentLabels"
+    },
+    {
+      "description": "Declare cursor paging for getCustomContentByTypeInSpace.",
+      "target": "$.paths[\"/spaces/{id}/custom-content\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getCustomContentByTypeInSpace"
+    },
+    {
+      "description": "Declare cursor paging for getSpaceLabels.",
+      "target": "$.paths[\"/spaces/{id}/labels\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSpaceLabels"
+    },
+    {
+      "description": "Declare none paging for getSpaceOperations.",
+      "target": "$.paths[\"/spaces/{id}/operations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/operations",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSpaceOperations"
+    },
+    {
+      "description": "Declare cursor paging for getPagesInSpace.",
+      "target": "$.paths[\"/spaces/{id}/pages\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getPagesInSpace"
+    },
+    {
+      "description": "Declare cursor paging for getSpacePermissionsAssignments.",
+      "target": "$.paths[\"/spaces/{id}/permissions\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSpacePermissionsAssignments"
+    },
+    {
+      "description": "Declare cursor paging for getSpaceRoleAssignments.",
+      "target": "$.paths[\"/spaces/{id}/role-assignments\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSpaceRoleAssignments"
+    },
+    {
+      "description": "Declare cursor paging for getSpaceProperties.",
+      "target": "$.paths[\"/spaces/{space-id}/properties\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getSpaceProperties"
+    },
+    {
+      "description": "Declare cursor paging for getTasks.",
+      "target": "$.paths[\"/tasks\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getTasks"
+    },
+    {
+      "description": "Declare none paging for checkAccessByEmail.",
+      "target": "$.paths[\"/user/access/check-access-by-email\"].post",
+      "update": {
+        "x-as-paging": {
+          "itemsPaths": [
+            "/emailsWithoutAccess",
+            "/invalidEmails"
+          ],
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_checkAccessByEmail"
+    },
+    {
+      "description": "Declare none paging for getWhiteboardAncestors.",
+      "target": "$.paths[\"/whiteboards/{id}/ancestors\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getWhiteboardAncestors"
+    },
+    {
+      "description": "Declare cursor paging for getWhiteboardDescendants.",
+      "target": "$.paths[\"/whiteboards/{id}/descendants\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getWhiteboardDescendants"
+    },
+    {
+      "description": "Declare cursor paging for getWhiteboardDirectChildren.",
+      "target": "$.paths[\"/whiteboards/{id}/direct-children\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getWhiteboardDirectChildren"
+    },
+    {
+      "description": "Declare none paging for getWhiteboardOperations.",
+      "target": "$.paths[\"/whiteboards/{id}/operations\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/operations",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getWhiteboardOperations"
+    },
+    {
+      "description": "Declare cursor paging for getWhiteboardContentProperties.",
+      "target": "$.paths[\"/whiteboards/{id}/properties\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "next": {
+            "kind": "link",
+            "path": "/_links/next"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "query",
+              "name": "cursor"
+            }
+          },
+          "style": "cursor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#pagination"
+      },
+      "x-as-origin": "research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Local response-schema and request-parameter classification; hand decisions layer separately.",
+      "x-as-test": "paging_v2_getWhiteboardContentProperties"
+    }
+  ],
+  "info": {
+    "title": "Confluence v2 generated paging (do not edit)",
+    "version": "1.0.0"
+  },
+  "overlay": "1.0.0"
+}

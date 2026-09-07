@@ -27,6 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install hatchling "git+https://github.com/grandcamel/as-engine@main"
           pip install --no-build-isolation -e ".[dev]"
+          oas-patch --version
 
       - name: Run tests
         run: |
@@ -59,6 +60,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install hatchling "git+https://github.com/grandcamel/as-engine@main"
           pip install --no-build-isolation -e ".[dev]"
+          oas-patch --version
 
       - name: Run ruff check
         run: ruff check src/ tests/

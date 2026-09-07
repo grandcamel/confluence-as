@@ -10,6 +10,7 @@
       "sha256": "1787af3d6069c67106011c59e68b63a4d14061a9277cb3849eb9f58f003696bf",
       "fetched_at": "2026-09-07T00:24:45Z",
       "overlays": [
+        "v2.paging.overlay.json",
         "v2.overlay.json"
       ],
       "strip_extensions": [
@@ -25,6 +26,7 @@
       "sha256": "b47f79e1a906f4dfa41bab97822f1f0cf7da2d325551c8af81fffb6a947778e4",
       "fetched_at": "2026-09-07T00:24:45Z",
       "overlays": [
+        "v1.paging.overlay.json",
         "v1.overlay.json"
       ],
       "strip_extensions": [

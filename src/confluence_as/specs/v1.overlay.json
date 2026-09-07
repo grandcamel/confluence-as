@@ -1,8 +1,825 @@
 {
-  "overlay": "1.0.0",
+  "actions": [
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/audit\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getAuditRecords"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/audit/since\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getAuditRecordsForTimePeriod"
+    },
+    {
+      "description": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/child/attachment\"].put",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "x-as-test": "override_v1_createOrUpdateAttachments"
+    },
+    {
+      "description": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/child/attachment\"].post",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "x-as-test": "override_v1_createAttachment"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/descendant/{type}\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getDescendantsOfType"
+    },
+    {
+      "description": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/label\"].post",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "x-as-test": "override_v1_addLabelsToContent"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/notification/child-created\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getWatchesForPage"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/notification/created\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getWatchesForSpace"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/restriction\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getRestrictions"
+    },
+    {
+      "description": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/restriction\"].put",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "x-as-test": "override_v1_updateRestrictions"
+    },
+    {
+      "description": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/restriction\"].post",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "x-as-test": "override_v1_addRestrictions"
+    },
+    {
+      "description": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/restriction\"].delete",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "x-as-test": "override_v1_deleteRestrictions"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/group\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getGroups"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/group/picker\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_searchGroups"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/group/{groupId}/membersByGroupId\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getGroupMembersByGroupId"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/longtask\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getTasks"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/relation/{relationName}/from/{sourceType}/{sourceKey}/to/{targetType}\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_findTargetFromSource"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/relation/{relationName}/to/{targetType}/{targetKey}/from/{sourceType}\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_findSourcesForTarget"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/search/user\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_searchUser"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/settings/theme\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getThemes"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/space/{spaceKey}/label\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getLabelsForSpace"
+    },
+    {
+      "description": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "target": "$.paths[\"/wiki/rest/api/space/{spaceKey}/label\"].post",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "x-as-test": "override_v1_addLabelsToSpace"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/space/{spaceKey}/state/content\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getContentsWithState"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/space/{spaceKey}/watch\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getWatchersForSpace"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/template/blueprint\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getBlueprintTemplates"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/template/page\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getContentTemplates"
+    },
+    {
+      "description": "The operation returns at most the first 100 supplied account ids and has no start/limit inputs; bulk lookup is one response, not offset pagination.",
+      "target": "$.paths[\"/wiki/rest/api/user/bulk\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "The operation returns at most the first 100 supplied account ids and has no start/limit inputs; bulk lookup is one response, not offset pagination.",
+      "x-as-test": "override_v1_getBulkUserLookup"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/user/memberof\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getGroupMembershipsForUser"
+    },
+    {
+      "description": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "target": "$.paths[\"/wiki/rest/api/user/{userId}/property\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "offset": {
+              "in": "query",
+              "name": "start"
+            }
+          },
+          "response": {
+            "limitPath": "/limit",
+            "offsetPath": "/start",
+            "sizePath": "/size"
+          },
+          "style": "start/limit"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#pagination"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "Confluence v1 uses zero-based start and limit query parameters with results/start/limit/size; the research six-style classifier leaves this vocabulary ambiguous.",
+      "x-as-test": "override_v1_getUserProperties"
+    }
+  ],
   "info": {
-    "title": "Confluence v1 enrichment",
+    "title": "Confluence v1 hand-reviewed enrichment",
     "version": "1.0.0"
   },
-  "actions": []
+  "overlay": "1.0.0"
 }

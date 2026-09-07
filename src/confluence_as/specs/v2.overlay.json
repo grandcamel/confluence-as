@@ -1,8 +1,159 @@
 {
-  "overlay": "1.0.0",
+  "actions": [
+    {
+      "description": "The operation description requires the first returned ancestor id as the next path id and preserves top-to-bottom order; no cursor query parameter exists.",
+      "target": "$.paths[\"/pages/{id}/ancestors\"].get",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "merge": "prepend",
+          "next": {
+            "kind": "token",
+            "path": "/results/0/id"
+          },
+          "request": {
+            "limit": {
+              "in": "query",
+              "name": "limit"
+            },
+            "token": {
+              "in": "path",
+              "name": "id"
+            }
+          },
+          "style": "ancestor"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "The operation description requires the first returned ancestor id as the next path id and preserves top-to-bottom order; no cursor query parameter exists.",
+      "x-as-test": "override_v2_getPageAncestors"
+    },
+    {
+      "description": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "target": "$.paths[\"/spaces/{id}/role-assignments\"].post",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "x-as-test": "override_v2_setSpaceRoleAssignments"
+    },
+    {
+      "description": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "target": "$.paths[\"/users-bulk\"].post",
+      "update": {
+        "x-as-paging": {
+          "itemsPath": "/results",
+          "request": {},
+          "style": "none"
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-origin": "JAS-35; research/atlassian-paging-styles-2026-09.md (JAS-9)",
+      "x-as-reason": "The response reuses a collection wrapper, but this operation has no paging inputs; do not repeat a mutation or invent a cursor for a bulk lookup.",
+      "x-as-test": "override_v2_createBulkUserLookup"
+    },
+    {
+      "description": "Resolve a space-key alias through getSpaces(keys); exactly one matching space supplies the string body spaceId.",
+      "target": "$.paths[\"/pages\"].post",
+      "update": {
+        "x-as-prerequisites": [
+          {
+            "alias": "space-key",
+            "matchPath": "/key",
+            "operationId": "getSpaces",
+            "parameter": {
+              "array": true,
+              "in": "query",
+              "name": "keys"
+            },
+            "resultsPath": "/results",
+            "target": {
+              "in": "body",
+              "path": "/spaceId"
+            },
+            "valuePath": "/id"
+          }
+        ]
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-examples": [
+        {
+          "kind": "json",
+          "schema": "#/components/requestBodies/PageCreateRequest/content/application~1json/schema",
+          "value": "{\"spaceId\":\"123\",\"status\":\"draft\"}"
+        }
+      ],
+      "x-as-origin": "JAS-35",
+      "x-as-reason": "Resolve a space-key alias through getSpaces(keys); exactly one matching space supplies the string body spaceId.",
+      "x-as-test": "prerequisite_v2_createPage_space_key"
+    },
+    {
+      "description": "Read getPageById for the current version and inject current + 1 when absent; draft status requires 1; explicit version wins and conflicts are surfaced.",
+      "target": "$.paths[\"/pages/{id}\"].put",
+      "update": {
+        "x-as-version": {
+          "increment": 1,
+          "operationId": "getPageById",
+          "overrides": [
+            {
+              "value": 1,
+              "when": {
+                "equals": "draft",
+                "path": "/status"
+              }
+            }
+          ],
+          "parameters": {
+            "id": {
+              "in": "path",
+              "name": "id"
+            }
+          },
+          "responsePath": "/version/number",
+          "target": {
+            "in": "body",
+            "path": "/version/number"
+          }
+        }
+      },
+      "x-as-evidence": {
+        "date": "2026-09-06",
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json"
+      },
+      "x-as-examples": [
+        {
+          "kind": "json",
+          "schema": "#/components/requestBodies/PageUpdateRequest/content/application~1json/schema/properties/version",
+          "value": "{\"number\":2,\"message\":\"Example update\"}"
+        }
+      ],
+      "x-as-origin": "JAS-35",
+      "x-as-reason": "Read getPageById for the current version and inject current + 1 when absent; draft status requires 1; explicit version wins and conflicts are surfaced.",
+      "x-as-test": "version_v2_updatePage_current"
+    }
+  ],
   "info": {
-    "title": "Confluence v2 enrichment",
+    "title": "Confluence v2 hand-reviewed enrichment",
     "version": "1.0.0"
   },
-  "actions": []
+  "overlay": "1.0.0"
 }
