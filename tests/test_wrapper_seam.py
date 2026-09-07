@@ -19,6 +19,7 @@ from confluence_as.cli.main import cli
 CASES = {
     "admin permissions check": ["--space", "DOCS"],
     "analytics space": ["DOCS"],
+    "attachment download": ["att1", "--output", "attachment.bin"],
     "bulk label add": ["--cql", "space=DOCS", "--labels", "reviewed"],
     "bulk label remove": ["--cql", "space=DOCS", "--labels", "reviewed"],
     "bulk move": ["--cql", "space=DOCS", "--target-parent", "1"],
@@ -68,7 +69,7 @@ LOCAL = {"ops cache-status", "ops cache-clear"} | {
 
 def test_seam_covers_exactly_every_reviewed_survivor():
     rows = json.loads((Path(__file__).parent / "wrapper_verbs.json").read_text())
-    assert len(CASES) == 36
+    assert len(CASES) == 37
     assert set(CASES) == {row["verb"] for row in rows if row["decision"] == "survivor"}
 
 

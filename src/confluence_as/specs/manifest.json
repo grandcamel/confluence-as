@@ -33,6 +33,7 @@
         "v1.paging.overlay.json",
         "v1.overlay.json",
         "v1.help.overlay.json",
+        "v1.attachments.overlay.json",
         "v1.rename.overlay.json"
       ],
       "strip_extensions": [

@@ -215,16 +215,15 @@
     "replacement": "api call createAttachment --id PAGE_ID",
     "operation": "createAttachment",
     "tier": "v1",
-    "note": "Multipart request body support arrives with JAS-61."
+    "note": "Multipart request bodies use --field file=@PATH and send the required X-Atlassian-Token: nocheck header."
   },
   {
     "module": "attachment_cmds.py",
     "verb": "attachment download",
     "classification": "B",
-    "decision": "deferred",
-    "reason": "Binary download transport deferred to JAS-61.",
-    "replacement": "\u2014",
-    "ticket": "JAS-61"
+    "decision": "survivor",
+    "reason": "Attachment metadata lookup followed by a binary download, including an all-attachment loop.",
+    "replacement": "\u2014"
   },
   {
     "module": "attachment_cmds.py",
@@ -235,7 +234,7 @@
     "replacement": "api call updateAttachmentData --id PAGE_ID --attachment-id ATTACHMENT_ID",
     "operation": "updateAttachmentData",
     "tier": "v1",
-    "note": "Multipart request body support arrives with JAS-61."
+    "note": "Multipart request bodies use --field file=@PATH and send the required X-Atlassian-Token: nocheck header."
   },
   {
     "module": "attachment_cmds.py",

@@ -30,9 +30,9 @@ def compiled_records():
 def test_reviewed_count_matches_compiled_renames_docs_and_argv_tree():
     assert len(ROWS) == 108
     assert Counter(row["decision"] for row in ROWS) == {
-        "survivor": 36,
+        "survivor": 37,
         "dropped": 70,
-        "deferred": 2,
+        "deferred": 1,
     }
     assert Counter(row["classification"] for row in ROWS) == {
         "A": 27,

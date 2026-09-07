@@ -1,6 +1,6 @@
 # Wrapper verbs and migration
 
-The reviewed inventory is 108 legacy verbs: **36 survivors, 70 dropped, 2 deferred**.
+The reviewed inventory is 108 legacy verbs: **37 survivors, 70 dropped, 1 deferred**.
 The original research classifications remain A27 / B63 / C6 / D12. A is a single
 indexed operation; B adds prerequisite lookups; C combines independent operations;
 D is a local transform or workflow. The reviewed decision reflects the current
@@ -44,9 +44,9 @@ existing file behavior. Legacy Python library APIs remain available.
 | analytics popular | A | dropped | Single indexed operation. | api call searchByCQL --cql 'type=page ORDER BY lastmodified desc' --all |
 | analytics space | B | survivor | Aggregate counts and contributor/date statistics across selected content categories; uncovered report transform. | — |
 | attachment list | B | dropped | Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. | api call getPageAttachments --id PAGE_ID --all |
-| attachment upload | A | dropped | Single indexed operation. | api call createAttachment --id PAGE_ID Multipart request body support arrives with JAS-61. |
-| attachment download | B | deferred | Binary download transport deferred to JAS-61. | — |
-| attachment update | B | dropped | Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. | api call updateAttachmentData --id PAGE_ID --attachment-id ATTACHMENT_ID Multipart request body support arrives with JAS-61. |
+| attachment upload | A | dropped | Single indexed operation. | api call createAttachment --id PAGE_ID Multipart request bodies use --field file=@PATH and send the required X-Atlassian-Token: nocheck header. |
+| attachment download | B | survivor | Attachment metadata lookup followed by a binary download, including an all-attachment loop. | — |
+| attachment update | B | dropped | Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. | api call updateAttachmentData --id PAGE_ID --attachment-id ATTACHMENT_ID Multipart request bodies use --field file=@PATH and send the required X-Atlassian-Token: nocheck header. |
 | attachment delete | B | dropped | Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. | api call deleteAttachment --id ATTACHMENT_ID |
 | bulk label add | B | survivor | CQL selection followed by per-page label writes; loop and checkpoints. | — |
 | bulk label remove | B | survivor | CQL selection followed by per-page label removals; loop and checkpoints. | — |
@@ -134,10 +134,6 @@ existing file behavior. Legacy Python library APIs remain available.
 
 ## Deferred
 
-- `attachment download`: **JAS-61**, as-engine multipart request and binary response
-  transport. The old implementation remains, outside the Surface survivor seam.
-  `attachment upload` and `attachment update` are dropped, but their generic
-  multipart replacements cannot send until JAS-61 lands.
 - `jira create-from-page`: **the jira-as release ticket** identified by the briefing
   (no numeric ticket key supplied). Its Jira dependency and old implementation
   remain unchanged, outside the Surface survivor seam.

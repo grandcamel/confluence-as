@@ -9,13 +9,11 @@ from assistant_skills_lib import validate_file_path_secure
 
 from confluence_as import (
     ValidationError,
+    engine,
     handle_errors,
     print_info,
     print_success,
     validate_attachment_id,
-)
-from confluence_as.cli.cli_utils import (
-    get_client_from_context,
 )
 
 
@@ -55,7 +53,12 @@ def attachment() -> None:
 @attachment.command(name="download")
 @click.argument("attachment_id")
 @click.option(
-    "--output", "-o", "output_path", default=".", help="Output file or directory"
+    "--output",
+    "--output-dir",
+    "-o",
+    "output_path",
+    default=".",
+    help="Output file or directory",
 )
 @click.option(
     "--all",
@@ -76,7 +79,7 @@ def download_attachment(
     attachment_id = validate_attachment_id(attachment_id)
     output_dir = validate_file_path_secure(output_path, "output", allow_absolute=True)
 
-    client = get_client_from_context(ctx)
+    surface = engine.create_surface()
 
     if download_all:
         # attachment_id is actually page_id
@@ -87,12 +90,9 @@ def download_attachment(
 
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        attachments = list(
-            client.paginate(
-                f"/api/v2/pages/{page_id}/attachments",
-                operation="list attachments",
-            )
-        )
+        attachments = surface.call(
+            "getPageAttachments", {"id": page_id}, all_pages=True
+        ).body
 
         if not attachments:
             click.echo("No attachments found on page.")
@@ -102,27 +102,26 @@ def download_attachment(
 
         for att in attachments:
             att_id = att.get("id")
-            title = att.get("title", "attachment")
-            download_url = att.get(
-                "downloadLink", att.get("_links", {}).get("download")
+            if not att_id:
+                raise ValidationError("Attachment metadata is missing an ID")
+            title = _attachment_filename(att.get("title"))
+            file_path = output_dir / title
+            surface.call(
+                "downloadAttatchment",
+                {"id": page_id, "attachmentId": att_id},
+                output=file_path,
             )
-
-            if download_url:
-                content = client.download_attachment(att_id)
-                file_path = output_dir / title
-                file_path.write_bytes(content)
-                print_info(f"  Downloaded: {title}")
+            print_info(f"  Downloaded: {title}")
 
         print_success(f"Downloaded {len(attachments)} attachment(s) to {output_dir}")
 
     else:
         # Download single attachment
-        att_info = client.get(
-            f"/api/v2/attachments/{attachment_id}",
-            operation="get attachment",
-        )
-
-        title = att_info.get("title", "attachment")
+        att_info = surface.call("getAttachmentById", {"id": attachment_id}).body
+        title = _attachment_filename(att_info.get("title"))
+        page_id = att_info.get("pageId") or att_info.get("blogPostId")
+        if not page_id:
+            raise ValidationError("Attachment metadata does not include a containing content ID")
 
         if output_dir.is_dir():
             file_path = output_dir / title
@@ -131,7 +130,18 @@ def download_attachment(
 
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
-        content = client.download_attachment(attachment_id)
-        file_path.write_bytes(content)
+        surface.call(
+            "downloadAttatchment",
+            {"id": page_id, "attachmentId": attachment_id},
+            output=file_path,
+        )
 
         print_success(f"Downloaded {title} to {file_path}")
+
+
+def _attachment_filename(title: Any) -> str:
+    """Use the server filename only as a basename beneath the selected output."""
+    value = str(title or "attachment")
+    value = value.replace("\\", "/").rsplit("/", 1)[-1]
+    value = "".join(char for char in value if ord(char) >= 32 and ord(char) != 127)
+    return value if value not in ("", ".", "..") else "attachment"

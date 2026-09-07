@@ -461,5 +461,8 @@ explicit space allowlist (plus site-operation permission where required). The
 simulation starts a fresh store per process and never reads credentials or sends
 HTTP; tests may inject a shared store for sequential runs. The schema responder
 remains stateless. See the engine's `docs/simulation.md` for supported operations,
-CQL and explicit failures. Attachment downloads remain deferred to JAS-61 and
-`jira create-from-page` to the jira-as release ticket.
+CQL and explicit failures. `attachment download ATTACHMENT_ID` resolves safe
+metadata through the Surface and writes the binary response; use `--all` with a
+page ID to download every attachment into `--output-dir` (also accepted as
+`--output` or `-o`). `jira create-from-page` remains deferred to the jira-as
+release ticket.

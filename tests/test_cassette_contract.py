@@ -25,6 +25,7 @@ from confluence_as.engine import create_surface
 
 pytestmark = pytest.mark.integration
 CASSETTE = Path(__file__).parent / "cassettes/generic-surface.json"
+ATTACHMENT_CASSETTE = Path(__file__).parent / "cassettes/attachment-download.json"
 SITE = "https://cassette-private-site.invalid"
 EMAIL = "cassette-private-email@example.invalid"
 TOKEN = "cassette-test-token+/=DO-NOT-PERSIST"
@@ -205,6 +206,25 @@ def test_cassette_call_verbs_replay_offline(monkeypatch, name, args, body, expec
     )
     assert result.exit_code == 0 and result.stderr == "", result.output
     assert expected in json.loads(result.stdout)
+
+
+def test_cassette_binary_attachment_download_writes_exact_bytes(monkeypatch, tmp_path):
+    monkeypatch.setenv("CONFLUENCE_AS_CASSETTE", str(ATTACHMENT_CASSETTE))
+    target = tmp_path / "download.bin"
+    response = create_surface().call(
+        "downloadAttatchment", {"id": "1", "attachmentId": "att1"}, output=target
+    )
+    assert response.body["path"] == str(target)
+    assert target.read_bytes() == b"cassette attachment bytes\x00"
+    monkeypatch.chdir(tmp_path)
+    result = invoke("call", "downloadAttatchment", "--id", "1", "--attachment-id", "att1")
+    assert result.exit_code == 0 and result.stderr == "", result.output
+    assert json.loads(result.stdout) == {
+        "path": "cassette.bin",
+        "bytes": 26,
+        "content_type": "application/octet-stream",
+    }
+    assert (tmp_path / "cassette.bin").read_bytes() == b"cassette attachment bytes\x00"
 
 
 def test_cassette_error_and_miss_are_structured_offline():

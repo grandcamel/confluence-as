@@ -1,0 +1,48 @@
+{
+  "actions": [
+    {
+      "description": "Attachment uploads use multipart form fields; --field file=@PATH supplies the file part and the transport adds X-Atlassian-Token: nocheck.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/child/attachment\"].post",
+      "update": {
+        "x-as-note": "Multipart request: use --field file=@PATH; the generic transport sends X-Atlassian-Token: nocheck."
+      },
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content---attachments/",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-61",
+      "x-as-reason": "JAS-35 generic transport provenance: this indexed operation declares multipart/form-data.",
+      "x-as-test": "jas61_createAttachment_multipart"
+    },
+    {
+      "description": "Attachment data updates use multipart form fields; --field file=@PATH supplies the file part and the transport adds X-Atlassian-Token: nocheck.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/child/attachment/{attachmentId}/data\"].post",
+      "update": {
+        "x-as-note": "Multipart request: use --field file=@PATH; the generic transport sends X-Atlassian-Token: nocheck."
+      },
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content---attachments/",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-61",
+      "x-as-reason": "JAS-35 generic transport provenance: this indexed operation declares multipart/form-data.",
+      "x-as-test": "jas61_updateAttachmentData_multipart"
+    },
+    {
+      "description": "Attachment downloads are binary responses and are written by the generic Surface output path.",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/child/attachment/{attachmentId}/download\"].get",
+      "update": {
+        "x-as-response": {
+          "kind": "binary"
+        }
+      },
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-content---attachments/",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-61",
+      "x-as-reason": "JAS-35 generic transport provenance: downloadAttatchment redirects to binary attachment data.",
+      "x-as-test": "jas61_downloadAttatchment_binary"
+    }
+  ]
+}

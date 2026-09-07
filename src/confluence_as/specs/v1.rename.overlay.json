@@ -366,7 +366,7 @@
             "group": "attachment",
             "verb": "upload",
             "invocation": "api call createAttachment --id PAGE_ID",
-            "note": "Multipart request body support arrives with JAS-61."
+            "note": "Multipart request bodies use --field file=@PATH and send the required X-Atlassian-Token: nocheck header."
           }
         ]
       }
@@ -387,7 +387,7 @@
             "group": "attachment",
             "verb": "update",
             "invocation": "api call updateAttachmentData --id PAGE_ID --attachment-id ATTACHMENT_ID",
-            "note": "Multipart request body support arrives with JAS-61."
+            "note": "Multipart request bodies use --field file=@PATH and send the required X-Atlassian-Token: nocheck header."
           }
         ]
       }
