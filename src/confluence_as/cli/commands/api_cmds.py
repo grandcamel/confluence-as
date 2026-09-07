@@ -15,6 +15,7 @@ from as_engine.help import describe_document, examples_document, render_help
 from as_engine.output import render_output
 from as_engine.params import alias_flags, body_errors, build_body, validate_parameters
 from as_engine.surface import Surface, parse_call_flags
+from as_engine.transforms.richtext import validate_options
 
 from confluence_as.engine import create_surface
 
@@ -90,6 +91,16 @@ def _call_help(operation: Any) -> str:
             )
     if "x-as-version" in tags:
         lines.append("Version: --version INTEGER overrides tagged version enrichment.")
+    if "x-as-richtext" in tags:
+        representation = tags.get("x-as-representation", {})
+        lines.append(
+            "Rich text: tagged --field path=value accepts Markdown or @file (UTF-8); "
+            "--raw keeps stored response bodies. --representation selects "
+            + ", ".join(
+                [representation["default"], *representation.get("alternatives", [])]
+            )
+            + "; default " + representation["default"] + "."
+        )
     return "\n".join(lines)
 
 
@@ -121,10 +132,11 @@ def _preview(
             for p in operation.parameters
         ],
     )
-    checked = validate_parameters(partial, parameters, index.schemas)
+    checked = validate_parameters(partial, parameters, index.schemas, defer_formats=True)
     payload = deepcopy(body)
     context = SimpleNamespace(
-        body=payload, parameters=checked, operation=operation, index=index
+        body=payload, parameters=checked, operation=operation, index=index,
+        representation=options["representation"], raw=options["raw"],
     )
     for alias in aliases:
         if target_value(context, rules[alias]["target"]) is not MISSING:
@@ -136,6 +148,14 @@ def _preview(
             raise ValueError("conflicting --version and body version")
         set_target(context, version_tag["target"], options["version"])
         payload = context.body
+    # Only pure input hooks run in a preview; lookup/guard/response hooks do not.
+    from as_engine.transforms.formats import Formats
+    from as_engine.transforms.richtext import RichText
+
+    for name, transform in (("x-as-format", Formats()), ("x-as-richtext", RichText())):
+        if name in operation.extensions:
+            transform.request(context, operation.extensions[name])
+    payload = context.body
     if options["validate_body"]:
         problems = body_errors(operation, payload, index.schemas)
         if problems:
@@ -180,6 +200,7 @@ def call(
         click.echo(
             "api call OPERATION [--parameter value] [--body @file|-] [--field path=value] "
             "[--validate-body] [--confirm] [--format json|table|markdown]\n"
+            "[--representation NAME] [--raw]\n"
             "Use api call OPERATION --help for parameter flags."
         )
         return
@@ -204,7 +225,10 @@ def call(
                 value["sections"].append({"text": _call_help(operation)})
             click.echo(render_help(value, help_format))
             return
-        body = build_body(options["body"], options["field"], sys.stdin)
+        body = build_body(options["body"], options["field"], sys.stdin, operation=operation)
+        validate_options(
+            operation, body, representation=options["representation"], raw=options["raw"]
+        )
         risk = operation.extensions.get("x-as-risk", "safe")
         if risk not in ("safe", "destructive", "irreversible"):
             raise ValueError("x-as-risk must be safe, destructive or irreversible")
@@ -223,6 +247,8 @@ def call(
             limit=options["limit"],
             aliases=options["aliases"],
             version=options["version"],
+            representation=options["representation"],
+            raw=options["raw"],
             warn=lambda message: click.echo(message, err=True),
         )
         click.echo(render_output(response.body, options["format"]))

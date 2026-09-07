@@ -264,6 +264,7 @@ def test_responder_still_works_without_credentials(monkeypatch):
     def seeded_responder(index, *, status=200):
         responder = Responder(index, status=status)
         responder.seed("getSpaces", [{"results": [{"id": "5", "key": "DOCS"}]}])
+        responder.seed("getPages", [{"results": [{"id": "10", "body": {"storage": {"representation": "storage", "value": "<p>Offline contract</p>"}}}]}])
         return responder
 
     monkeypatch.setattr("confluence_as.engine.Responder", seeded_responder)

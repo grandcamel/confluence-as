@@ -1,0 +1,608 @@
+{
+  "overlay": "1.0.0",
+  "info": {
+    "title": "Confluence v2 rich-text enrichment",
+    "version": "1.0.0"
+  },
+  "actions": [
+    {
+      "target": "$.paths[\"/blogposts\"].get",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_getBlogPosts",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map",
+              "itemsPath": "/results"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "representations",
+          "adf"
+        ],
+        "x-as-note": "Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation."
+      }
+    },
+    {
+      "target": "$.paths[\"/blogposts\"].post",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_createBlogPost",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "request": {
+              "path": "/body",
+              "shape": "envelope"
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "representations",
+          "adf"
+        ],
+        "x-as-note": "Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation."
+      }
+    },
+    {
+      "target": "$.paths[\"/blogposts/{id}\"].get",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_getBlogPostById",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "representations",
+          "adf"
+        ],
+        "x-as-note": "Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation."
+      }
+    },
+    {
+      "target": "$.paths[\"/blogposts/{id}\"].put",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_updateBlogPost",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "request": {
+              "path": "/body",
+              "shape": "envelope"
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "representations",
+          "adf"
+        ],
+        "x-as-note": "Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation."
+      }
+    },
+    {
+      "target": "$.paths[\"/blogposts/{id}/versions\"].get",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_getBlogPostVersions",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "response": {
+              "path": "/blogpost/body",
+              "shape": "representation-map",
+              "itemsPath": "/results"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "representations",
+          "adf"
+        ],
+        "x-as-note": "Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation."
+      }
+    },
+    {
+      "target": "$.paths[\"/labels/{id}/blogposts\"].get",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_getLabelBlogPosts",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map",
+              "itemsPath": "/results"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "representations",
+          "adf"
+        ],
+        "x-as-note": "Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation."
+      }
+    },
+    {
+      "target": "$.paths[\"/labels/{id}/pages\"].get",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_getLabelPages",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map",
+              "itemsPath": "/results"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "representations",
+          "adf"
+        ],
+        "x-as-note": "Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation."
+      }
+    },
+    {
+      "target": "$.paths[\"/pages\"].get",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_getPages",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map",
+              "itemsPath": "/results"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "representations",
+          "adf"
+        ]
+      }
+    },
+    {
+      "target": "$.paths[\"/pages\"].post",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_createPage",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "request": {
+              "path": "/body",
+              "shape": "envelope"
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        }
+      }
+    },
+    {
+      "target": "$.paths[\"/pages/{id}\"].get",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_getPageById",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "adf"
+        ]
+      }
+    },
+    {
+      "target": "$.paths[\"/pages/{id}\"].put",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_updatePage",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "request": {
+              "path": "/body",
+              "shape": "envelope"
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        }
+      }
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/versions\"].get",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_getPageVersions",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "response": {
+              "path": "/page/body",
+              "shape": "representation-map",
+              "itemsPath": "/results"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "representations",
+          "adf"
+        ],
+        "x-as-note": "Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation."
+      }
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/blogposts\"].get",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_getBlogPostsInSpace",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map",
+              "itemsPath": "/results"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "representations",
+          "adf"
+        ],
+        "x-as-note": "Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation."
+      }
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/pages\"].get",
+      "description": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-reason": "Declare the vendored page/blog body envelope and representation-map paths for Markdown conversion; preserve metadata and unsupported nodes with lossless placeholders.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-38",
+      "x-as-test": "richtext_v2_getPagesInSpace",
+      "update": {
+        "x-as-richtext": [
+          {
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            },
+            "response": {
+              "path": "/body",
+              "shape": "representation-map",
+              "itemsPath": "/results"
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        },
+        "x-as-topic": [
+          "representations",
+          "adf"
+        ],
+        "x-as-note": "Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation."
+      }
+    }
+  ]
+}

@@ -21,6 +21,11 @@ def responder_surface(monkeypatch):
     """Use packaged indexes with one inspectable responder for every CLI call."""
     indexes = ProductIndexes(Path(__file__).parents[1] / "src/confluence_as/_generated")
     responder = Responder(indexes.get("v2"))
+    # Valid success defaults; explicit queues in each case replace these seeds.
+    body = {"id": "9", "body": {"storage": {"representation": "storage", "value": "<p>Fixture</p>"}}}
+    responder.seed("getPages", [{"results": [body]}])
+    responder.seed("createPage", [body, body])
+    responder.seed("updatePage", [body, body])
     surface = Surface(
         indexes,
         lambda _document, _index: responder,

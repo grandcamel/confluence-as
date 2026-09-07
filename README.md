@@ -362,7 +362,21 @@ size; without it, `--limit` keeps its spec-defined page-size meaning. Tagged
 prerequisites expose their key aliases (for example `--space-key DOCS`) and resolve
 them before the call; tagged updates accept `--version` to override version enrichment.
 
-Calls emit raw JSON; `--format table|markdown` renders the top-level result.
+Tagged page/blog body fields accept literal Markdown or UTF-8 files, for example
+`api call updatePage --id 123 --field 'id="123"' --field title=Notes --field status=current
+--field body=@notes.md --confirm` (on one line, with the configured space allowlist).
+The default write representation is storage; `--representation atlas_doc_format`
+sends stringified ADF. Existing JSON envelopes remain encoded input. Reads render
+tagged bodies as Markdown with lossless placeholders; `--raw` retains the stored
+body. Use the separate spec flag `--body-format storage|atlas_doc_format` to request
+read content. Copy a mention placeholder into a Markdown file and select its same
+representation on the next write to preserve its node. Missing files and conflicting
+representation options fail before lookups; `--raw` still converts write input.
+An unseeded schema-generated responder body is not a valid rich-text document;
+offline rich-text tests seed explicit storage/ADF responses. Legacy wrapper helpers
+remain unchanged.
+
+Calls emit JSON; `--format table|markdown` renders the top-level result.
 Search defaults to a table and supports `--format json`; describe defaults to
 Markdown and supports `--format json`. Search excludes deprecated operations unless
 `--include-deprecated` is set; calls warn and show a replacement when enrichment

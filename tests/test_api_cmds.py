@@ -41,6 +41,20 @@ def offline(monkeypatch):
 
     monkeypatch.setattr(Responder, "call", metadata)
 
+    # JAS-38: bounded schema generation cannot synthesize an encoded document.
+    # Seed only success defaults; forced errors keep the original responder path.
+    def richtext_responder(index, *, status=200):
+        responder = Responder(index, status=status)
+        if 200 <= status < 300:
+            page = {"id": "1", "spaceId": "5", "status": "current", "version": {"number": 1},
+                    "body": {"storage": {"representation": "storage", "value": "<p>Fixture</p>"}}}
+            responder.seed("getPages", [{"results": [page]}])
+            responder.seed("createPage", [page])
+            responder.seed("updatePage", [page])
+        return responder
+
+    monkeypatch.setattr("confluence_as.engine.Responder", richtext_responder)
+
     def forbidden(*args, **kwargs):
         raise AssertionError("HTTP attempted by argv responder test")
 

@@ -35,6 +35,10 @@ def scoped(monkeypatch):
 
     indexes = ProductIndexes(Path(__file__).parents[1] / "src/confluence_as/_generated")
     responder = Recorded(indexes.get("v2"))
+    # JAS-38: explicit well-formed success bodies replace synthetic rich-text maps.
+    responder.seed("createPage", [{"id": "123", "body": {"storage": {
+        "representation": "storage", "value": "<p>Fixture</p>"
+    }}}] * 2)
     monkeypatch.setattr(engine, "Responder", lambda *_args, **_kwargs: responder)
     monkeypatch.setattr(ConfigManager, "_find_claude_dir", lambda _self: None)
     ConfigManager.reset_instance()
@@ -139,7 +143,7 @@ def test_allowed_page_sends_original_content_option_only_after_resolution(scoped
     )
     scoped.seed("getSpaces", [{"results": [{"id": "55", "key": "DOCS"}]}])
     result = invoke("getPageById", "--id", "123", "--body-format", "storage")
-    assert result.exit_code == 0 and "<p>T</p>" in result.stdout, result.output
+    assert result.exit_code == 0 and json.loads(result.stdout)["body"]["storage"]["value"] == "T", result.output
     assert scoped.roles == ["resolution", "resolution", "operation"]
     assert scoped.requests[0][1] == {"id": 123}
     assert scoped.requests[-1][1] == {"id": 123, "body-format": "storage"}

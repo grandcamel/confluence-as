@@ -58,15 +58,15 @@ Get permitted operations for blog post
 
 ## getBlogPostVersions
 
-Get blog post versions
+Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation.
 
 ## getBlogPosts
 
-Get blog posts
+Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation.
 
 ## getBlogPostsInSpace
 
-Get blog posts in space
+Tagged body fields accept Markdown or @file; storage is the default write representation. --representation atlas_doc_format writes stringified ADF. Reads render Markdown with lossless placeholders; --raw preserves stored bodies. Use the explicit body-format query parameter to request a read representation.
 
 ## getBlogpostAttachments
 
@@ -116,60 +116,4 @@ Get custom content by type in space
 
 Get custom content comments
 
-## getCustomContentContentProperties
-
-Get content properties for custom content
-
-## getCustomContentLabels
-
-Get labels for custom content
-
-## getCustomContentOperations
-
-Get permitted operations for custom content
-
-## getCustomContentVersions
-
-Get custom content versions
-
-## getDataPolicySpaces
-
-Get spaces with data policies
-
-## getDatabaseAncestors
-
-Get all ancestors of database
-
-## getDatabaseContentProperties
-
-Get content properties for database
-
-## getDatabaseDescendants
-
-Get descendants of a database
-
-## getDatabaseDirectChildren
-
-Get direct children of a database
-
-## getDatabaseOperations
-
-Get permitted operations for a database
-
-## getFolderAncestors
-
-Get all ancestors of folder
-
-## getFolderContentProperties
-
-Get content properties for folder
-
-## getFolderDescendants
-
-Get descendants of folder
-
-## getFolderDirectChildren
-
-Get direct children of a folder
-
-Showing entries 1–43 of 90. Continue: help paging --offset 43.
+Showing entries 1–29 of 90. Continue: help paging --offset 29.
