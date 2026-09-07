@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - Unreleased
+## [2.0.0rc1] - 2026-09-07
 
 Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.x line land on branch `1.x`.
 
