@@ -1,0 +1,33 @@
+name: Base Document drift
+
+on:
+  schedule:
+    - cron: '0 12 * * 1'
+  workflow_dispatch:
+  release:
+    types: [prereleased, published]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install hatchling "git+https://github.com/grandcamel/as-engine@main"
+          pip install --no-build-isolation -e .
+      - name: Install oasdiff 1.31.0
+        run: |
+          curl --fail --location --retry 3 --output oasdiff.tar.gz https://github.com/oasdiff/oasdiff/releases/download/1.31.0/oasdiff_1.31.0_linux_amd64.tar.gz
+          tar -xzf oasdiff.tar.gz oasdiff
+          chmod +x oasdiff
+      - name: File drift ticket when needed
+        env:
+          JIRA_SITE_URL: ${{ secrets.JIRA_SITE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: python scripts/check_base_document_drift.py --oasdiff "$GITHUB_WORKSPACE/oasdiff" --file-ticket
