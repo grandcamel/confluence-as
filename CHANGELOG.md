@@ -80,6 +80,13 @@ Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.
   `updateAttachmentData`, whose rename hints no longer carry a multipart
   caveat; the Wrapper Verb inventory is 37 survivors, 70 dropped, 1 deferred.
   (JAS-61)
+- JAS-63: `api describe`, `api search`, `help` and `--version` no longer load
+  the legacy client, the converters, the rich-text validator or the
+  configuration manager (host: `api describe getPages` 390 → 154 ms median
+  against a 41 ms interpreter start); scope configuration is applied exactly
+  once immediately before the first call, ahead of the guard and the
+  transport, with unchanged refusals and configuration-error output;
+  `tests/test_startup.py` pins the request-free discovery path. (JAS-63)
 
 ### Removed verbs
 
