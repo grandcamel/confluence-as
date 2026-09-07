@@ -61,6 +61,17 @@ Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.
   render Markdown unless --raw, tagged --field body=@file input, a richtext
   overlay on 14 operations with representation help, and offline
   argv/transport coverage (JAS-38 phase B)
+- JAS-41: Wrapper Verbs under the rule — 36 survivors rebuilt on the generic
+  Surface path (bulk operations with read-only dry-run and resumable
+  checkpoints, hierarchy, permission removals, page copy, property set, label
+  popular, analytics space, templates, search export and history, ops, admin
+  permission check, jira link/linked/embed/sync-macro); 70 legacy single-
+  operation verbs dropped behind the rename overlays (`x-as-legacy-verbs`) and
+  a legacy shim that exits 2 naming the replacing `api call`; `attachment
+  download` (JAS-61) and `jira create-from-page` deferred;
+  `CONFLUENCE_AS_TRANSPORT=simulation` opt-in stateful double; rich-text tags
+  on comment writes and version injection on comment and property updates;
+  lazy command imports; the full table in `docs/wrapper-verbs.md`. (JAS-41)
 
 ### Removed verbs
 
