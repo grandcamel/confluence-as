@@ -320,3 +320,62 @@ changelogs together. A missing oasdiff binary records an explicit skip in the
 changelog and stderr; install it and obtain the real diff before accepting a
 refresh. Invalid JSON, changed existing pins or a failed oasdiff command leave
 the sources unchanged.
+
+## Indexed API operations
+
+The `api` group calls operations from the packaged OpenAPI index through as-engine:
+
+```bash
+confluence-as api search page
+confluence-as api describe createPage
+confluence-as api call getPages --limit 5
+confluence-as api call get-pages --space-id '[123,456]' --limit 5
+confluence-as api call createPage --body @page.json
+confluence-as api call createPage --body - < page.json
+confluence-as api call createPage --field 'spaceId="123"' --field title=Example
+confluence-as api topics
+```
+
+Operation IDs accept canonical camelCase or kebab-case. Spec parameters become
+kebab-case flags; `api call OPERATION --help` lists them. Booleans take explicit
+`true`/`false`; arrays accept repeated flags, comma-separated values or JSON arrays.
+`--field path=value` builds dotted object fields, parsing JSON values where possible;
+quote a numeric ID as JSON when the body schema requires a string. Invalid
+parameters are refused before a transport is created. `--limit` is the operation's
+spec parameter; one response page is returned.
+
+Calls emit raw JSON; `--format table|markdown` renders the top-level result.
+Search defaults to a table and supports `--format json`; describe defaults to
+Markdown and supports `--format json`. Search excludes deprecated operations unless
+`--include-deprecated` is set; calls warn and show a replacement when enrichment
+provides one. Topics come from `x-as-topic`, with a clean empty state until tagged.
+Only v2 is loaded for primary discovery; a named v1 operation loads v1 on demand.
+
+Use `--validate-body` to check a body before sending. Otherwise body checks run only
+after a 400 to enrich the error. The checker reflects the indexed schema and reports
+unsupported validators explicitly. Upstream `createPage` body alternatives overlap:
+its body oneOf may reject a valid service payload until a correcting overlay lands.
+Ordinary calls do not run that optional body check.
+
+HTTP uses the existing configuration chain (`CONFLUENCE_SITE_URL`,
+`CONFLUENCE_EMAIL`, `CONFLUENCE_API_TOKEN`), timeouts, TLS settings and retry settings.
+The engine supplies pooled HTTP with 429/5xx backoff and Retry-After support.
+Confluence's existing domain error mapper is reused. JSON bodies are supported;
+non-JSON media types are explicitly refused. Existing commands remain available.
+
+Offline responder mode uses the same call path without reading credentials:
+
+```bash
+CONFLUENCE_AS_TRANSPORT=responder confluence-as api call getPages --limit 5
+CONFLUENCE_AS_TRANSPORT=responder confluence-as api --respond-with 400 call getPages
+```
+
+The responder returns indexed examples or bounded schema-generated bodies, never a
+live request. It is stateless and returns null where no 200 schema/example survives
+in the index. `--respond-with` is a test hook accepted only in responder mode.
+
+Errors are JSON on stderr: `{status, messages, operation, note}`. Exit codes are
+usage/400 **2**, auth **3**, permission/scope **4**, not found **5**, server/exhausted
+rate limit **6**, other failure (including 409) **1**, success **0**. No Confluence
+project guard is introduced. Live-site acceptance is held separately from offline
+responder tests pending the Confluence sandbox ruling.

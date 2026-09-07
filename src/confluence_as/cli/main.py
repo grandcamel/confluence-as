@@ -7,6 +7,7 @@ import click
 from confluence_as import __version__
 from confluence_as.cli.commands.admin_cmds import admin
 from confluence_as.cli.commands.analytics_cmds import analytics
+from confluence_as.cli.commands.api_cmds import api
 from confluence_as.cli.commands.attachment_cmds import attachment
 from confluence_as.cli.commands.bulk_cmds import bulk
 from confluence_as.cli.commands.comment_cmds import comment
@@ -78,6 +79,7 @@ def cli(
 
 
 # Register command groups
+cli.add_command(api)
 cli.add_command(page)
 cli.add_command(space)
 cli.add_command(search)
