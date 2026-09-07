@@ -46,6 +46,11 @@ Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.
 - Generic api call --all/--limit aggregation, --parameter-limit page sizing,
   tag-derived key aliases such as --space-key, and --version override with
   automatic current-version resolution (JAS-37)
+- Help-first discovery: a four-level help command group with a hand-authored
+  Level 0, tagged topic and example pages, full operation descriptions with
+  --full, and zero-request previews requiring --confirm for destructive or
+  irreversible api calls; Confluence v2 and lower-tier space deletion and CQL
+  help enrichment (JAS-40)
 
 ### Removed verbs
 
