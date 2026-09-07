@@ -35,6 +35,14 @@ Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.
   JSON by default with `--format table|markdown`; JSON error objects on
   stderr with documented exit codes; `CONFLUENCE_AS_TRANSPORT=responder`
   selects the offline responder double (JAS-36)
+- Cassette transports for offline contract tests: `CONFLUENCE_AS_TRANSPORT=cassette`
+  with `CONFLUENCE_AS_CASSETTE` replays a recorded, credential-free cassette;
+  `CONFLUENCE_AS_RECORD` records through the live transport with recursive
+  scrubbing of credentials and site identifiers; `tests/cassettes/` and the
+  Generic Surface contract tests; `scripts/check_base_document_drift.py` and
+  the weekly/release `drift.yml` workflow compare the pinned Base Documents
+  with Atlassian's live documents (oasdiff breaking and changelog, enriched
+  operations) and file a JAS ticket on drift (JAS-42)
 
 ### Removed verbs
 
