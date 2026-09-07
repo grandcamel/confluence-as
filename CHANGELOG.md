@@ -51,6 +51,11 @@ Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.
   --full, and zero-request previews requiring --confirm for destructive or
   irreversible api calls; Confluence v2 and lower-tier space deletion and CQL
   help enrichment (JAS-40)
+- Allowed-space (CONFLUENCE_ALLOWED_SPACES) and site-operation
+  (CONFLUENCE_ALLOW_SITE_OPERATIONS) settings with api call --space
+  enforcement on 82 tagged v2 operations: verified key/id ownership, metadata-
+  only bounded resolution reads, documented coverage, and offline request-
+  sequence and cassette acceptance tests (JAS-39)
 
 ### Removed verbs
 
