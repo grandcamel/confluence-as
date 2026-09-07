@@ -43,6 +43,9 @@ Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.
   the weekly/release `drift.yml` workflow compare the pinned Base Documents
   with Atlassian's live documents (oasdiff breaking and changelog, enriched
   operations) and file a JAS ticket on drift (JAS-42)
+- Generic api call --all/--limit aggregation, --parameter-limit page sizing,
+  tag-derived key aliases such as --space-key, and --version override with
+  automatic current-version resolution (JAS-37)
 
 ### Removed verbs
 
