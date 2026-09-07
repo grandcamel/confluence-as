@@ -18,13 +18,41 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Check the tag against the package and changelog
+        run: python scripts/check_release_tag.py "$GITHUB_REF_NAME"
+
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build
+          # Once tagged, pin git+https://github.com/grandcamel/as-engine@v<version>.
+          pip install build hatchling "git+https://github.com/grandcamel/as-engine@main"
 
       - name: Build package
-        run: python -m build
+        run: python -m build --no-isolation
+
+      - name: Verify compiled indexes in wheel
+        run: |
+          python - <<'PYCODE'
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          wheels = list(Path("dist").glob("*.whl"))
+          if not wheels:
+              raise SystemExit("no wheel was built")
+          required = {
+              "confluence_as/_generated/catalog.json",
+              "confluence_as/_generated/v1.index.json",
+              "confluence_as/_generated/v2.index.json",
+          }
+          for wheel in wheels:
+              with ZipFile(wheel) as archive:
+                  names = set(archive.namelist())
+                  print(wheel)
+                  print("\n".join(sorted(n for n in names if "/_generated/" in n)))
+                  missing = required - names
+                  if missing:
+                      raise SystemExit(f"missing compiled indexes: {sorted(missing)}")
+          PYCODE
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

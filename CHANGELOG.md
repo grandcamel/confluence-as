@@ -88,13 +88,137 @@ Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.
   transport, with unchanged refusals and configuration-error output;
   `tests/test_startup.py` pins the request-free discovery path. (JAS-63)
 
-### Removed verbs
+### Removed
 
-- (filled by the Wrapper Verb ticket: every single-call verb dropped in favour of the Generic Surface)
+The 70 dropped verbs below are the rename table, generated with
+`python scripts/changelog_removed_verbs.py`; check it with `--check`.
+The [full decision inventory](docs/wrapper-verbs.md) also records the 37
+survivors and the one remaining deferral. Replace placeholders and inspect
+`api describe OPERATION` for required fields, scope and confirmation flags.
 
-### Rename table
+- `admin group add-user` → `api call addUserToGroupByGroupId --group-id GROUP_ID --body @member.json`
+- `admin group create` → `api call createGroup --body @group.json`
+- `admin group delete` → `api call removeGroupById --id GROUP_ID`
+- `admin group get` → `api call getGroupByGroupId --id GROUP_ID`
+- `admin group list` → `api call getGroups --all`
+- `admin group members` → `api call getGroupMembersByGroupId --group-id GROUP_ID --all`
+- `admin group remove-user` → `api call removeMemberFromGroupByGroupId --group-id GROUP_ID --account-id ACCOUNT`
+- `admin space permissions` → `api call getSpacePermissionsAssignments --id SPACE_ID --all`
+- `admin space settings` → `api call getSpaceSettings --space-key KEY`
+- `admin space update` → `api call updateSpace --space-key KEY --body @space.json`
+- `admin template get` → `api call getContentTemplate --content-template-id TEMPLATE_ID`
+- `admin template list` → `api call getContentTemplates --space-key KEY --all`
+- `admin user get` → `api call getUser --account-id ACCOUNT`
+- `admin user groups` → `api call getGroupMembershipsForUser --account-id ACCOUNT --all`
+- `admin user search` → `api call searchUser --cql 'user.fullname ~ "NAME"'`
+- `analytics popular` → `api call searchByCQL --cql 'type=page ORDER BY lastmodified desc' --all`
+- `analytics views` → `api call getViews --content-id PAGE_ID`
+- `analytics watchers` → `api call getWatchesForPage --id PAGE_ID`
+- `attachment delete` → `api call deleteAttachment --id ATTACHMENT_ID`
+- `attachment list` → `api call getPageAttachments --id PAGE_ID --all`
+- `attachment update` → `api call updateAttachmentData --id PAGE_ID --attachment-id ATTACHMENT_ID`
+- `attachment upload` → `api call createAttachment --id PAGE_ID`
+- `comment add` → `api call createFooterComment --body @comment.json`
+- `comment add-inline` → `api call createInlineComment --body @comment.json`
+- `comment delete` → `api call deleteFooterComment --comment-id COMMENT_ID`
+- `comment list` → `api call getPageFooterComments --id PAGE_ID --all`
+- `comment resolve` → `api call updateInlineComment --comment-id COMMENT_ID --body @resolution.json`
+- `comment update` → `api call updateFooterComment --comment-id COMMENT_ID --body @comment.json`
+- `hierarchy ancestors` → `api call getPageAncestors --id PAGE_ID --all`
+- `hierarchy children` → `api call getChildPages --id PAGE_ID --all`
+- `hierarchy descendants` → `api call getPageDescendants --id PAGE_ID --all`
+- `label add` → `api call addLabelsToContent --id PAGE_ID --body @labels.json`
+- `label list` → `api call getPageLabels --id PAGE_ID --all`
+- `label remove` → `api call removeLabelFromContent --id PAGE_ID --label LABEL`
+- `label search` → `api call searchByCQL --cql 'label="LABEL"' --all`
+- `page blog create` → `api call createBlogPost --space DOCS --space-key DOCS --field title=T --field body=@body.md`
+- `page blog get` → `api call getBlogPostById --id BLOG_ID --body-format storage`
+- `page create` → `api call createPage --space DOCS --space-key DOCS --field title=T --field body=@body.md`
+- `page delete` → `api call deletePage --id PAGE_ID --confirm`
+- `page get` → `api call getPageById --id PAGE_ID --body-format storage`
+- `page move` → `api call updatePage --id PAGE_ID --body @move.json --confirm`
+- `page restore` → `api call restoreContentVersion --id PAGE_ID --body @version.json`
+- `page update` → `api call updatePage --id PAGE_ID --field title=T --field body=@body.md --confirm`
+- `page versions` → `api call getPageVersions --id PAGE_ID --all`
+- `permission page add` → `api call addRestrictions --id PAGE_ID --body @restrictions.json`
+- `permission page get` → `api call getRestrictions --id PAGE_ID`
+- `permission space add` → `api call addPermissionToSpace --space-key KEY --body @permission.json`
+- `permission space get` → `api call getSpacePermissionsAssignments --id SPACE_ID --all`
+- `property delete` → `api call deletePagePropertyById --page-id PAGE_ID --property-id PROPERTY_ID`
+- `property get` → `api call getPageContentPropertiesById --page-id PAGE_ID --property-id PROPERTY_ID`
+- `property list` → `api call getPageContentProperties --page-id PAGE_ID --all`
+- `search content` → `api call searchByCQL --cql 'space=DOCS AND text~"TEXT"' --all`
+- `search cql` → `api call searchByCQL --cql 'space=DOCS' --all`
+- `search interactive` → `api call searchByCQL --cql 'QUERY'`
+- `search validate` → `api call searchByCQL --cql 'QUERY' --limit 1`
+- `space content` → `api call getPagesInSpace --id SPACE_ID --all`
+- `space create` → `api call createSpace --body @space.json`
+- `space delete` → `api call deleteSpace --space-key KEY`
+- `space get` → `api call getSpaces --keys KEY`
+- `space list` → `api call getSpaces --all`
+- `space settings` → `api call getSpaces --keys KEY`
+- `space update` → `api call updateSpace --space-key KEY --body @space.json`
+- `template create` → `api call createContentTemplate --body @template.json`
+- `template get` → `api call getContentTemplate --content-template-id TEMPLATE_ID`
+- `template update` → `api call updateContentTemplate --body @template.json`
+- `watch list` → `api call getWatchesForPage --id PAGE_ID`
+- `watch page` → `api call addContentWatcher --content-id PAGE_ID`
+- `watch space` → `api call addSpaceWatcher --space-key KEY --x-atlassian-token no-check`
+- `watch status` → `api call getContentWatchStatus --content-id PAGE_ID`
+- `watch unwatch-page` → `api call removeContentWatcher --content-id PAGE_ID --x-atlassian-token no-check`
 
-- (filled by the Wrapper Verb ticket: old verb -> `api call <operationId>`)
+### Migration
+
+The generic surface in five lines:
+
+```text
+confluence-as help                          # surface map and discovery
+confluence-as api search page               # find an operation
+confluence-as api describe getPages         # parameters, body, notes and examples
+confluence-as api call getPages --help       # spec-derived invocation flags
+confluence-as api topics                    # tagged guidance and gotchas
+```
+
+- Replace each dropped command with its indexed `api call` above; camelCase
+  operation IDs also accept kebab-case. Parameters become named flags, bodies
+  come from `--body @file`, `--body -` or `--field path=value`, and paging uses
+  `--all` with optional `--limit`. Read the operation's help before calling it.
+- The legacy shim accepts the old invocation only to return a JSON error on
+  stderr naming the replacing operation and invocation, with exit **2** and
+  no request. Its `--help` remains available with exit 0. Use
+  `confluence-as help migration` to discover the rename topic.
+- Of the two JAS-41 deferrals, `attachment download` returned in JAS-61 on
+  the generic binary path (single or `--all`, `--output`/`-o` and
+  `--output-dir`). Multipart upload/update are available through their
+  replacement API operations with `--field file=@PATH`.
+  `jira create-from-page` remains deferred until the jira-as release.
+- Configuration names and the existing configuration chain remain. Discovery
+  (`api describe`, `api search`, `help`, `--version`) sends no requests and
+  does not load scope configuration. Scope configuration is applied once,
+  immediately before the first call, ahead of the guard and transport
+  (JAS-63); discovery success is not proof of permission to call.
+- Set `CONFLUENCE_ALLOWED_SPACES=DOCS,ENG` or `confluence.allowed_spaces` for
+  tagged operations. Body-scoped writes require `--space KEY` matching the
+  resolved body space; filtered lists require their space-id flags. Site
+  operations require `CONFLUENCE_ALLOW_SITE_OPERATIONS=1` or
+  `confluence.allow_site_operations`. Local scope refusals exit **4**.
+  Coverage is tag-defined, including the 82 tagged v2 operations (JAS-39).
+- Tagged page/blog Markdown writes default to storage XHTML; use
+  `--representation atlas_doc_format` for serialized ADF. Reads render
+  tagged rich text as Markdown unless `--raw` preserves its stored body;
+  `--raw` still converts write input. `--body-format` chooses the read
+  representation. Existing JSON body envelopes remain encoded input
+  (JAS-38). Destructive API operations preview until `--confirm` is given.
+- The responder is a stateless offline double; `CONFLUENCE_AS_TRANSPORT=simulation`
+  selects the opt-in stateful double for workflows. Cassette tests exercise
+  the shared request/response seam, and the weekly/release drift job compares
+  the pinned Base Documents with upstream and files a JAS ticket for breaking
+  changes or changes to enriched operations (JAS-42).
+- Main is the 2.x line; the 1.x branch carries fixes for one quarter after
+  2.0.0. Legacy Python library exports remain available in this Confluence
+  candidate; new integrations should use the generic call path and surviving
+  workflows. Jira follows with its Compatibility Contract and separate
+  organizational Promotion acceptance.
 
 ## [1.1.1] - 2026-08-19
 

@@ -1,5 +1,12 @@
 # Confluence AS
 
+> **2.0.0 release candidate:** Confluence now exposes a spec-driven `api`
+> surface through as-engine. The reviewed CLI inventory retains 37 workflows,
+> replaces 70 verbs with migration hints, and defers `jira create-from-page`;
+> `attachment download` is available on the shared binary path. Start with
+> `confluence-as help`, then read the [migration notes](CHANGELOG.md#migration)
+> and [complete rename table](CHANGELOG.md#removed) before updating scripts.
+
 [![PyPI version](https://img.shields.io/pypi/v/confluence-as.svg)](https://pypi.org/project/confluence-as/)
 [![Python versions](https://img.shields.io/pypi/pyversions/confluence-as.svg)](https://pypi.org/project/confluence-as/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)

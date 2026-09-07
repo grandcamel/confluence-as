@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from importlib import import_module
 
-__version__ = "2.0.0"
+__version__ = "2.0.0rc1"
 
 _EXPORTS = {
     "BatchConfig": ("assistant_skills_lib.batch_processor", "BatchConfig"),
