@@ -19,6 +19,13 @@ Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.
   wheels and editable installs (never committed); and an offline-capable
   `scripts/refresh_base_documents.py` that re-fetches a document, records its
   provenance and writes an oasdiff review changelog beside it (JAS-34)
+- Enrichment Entries for Confluence: deterministically generated paging
+  overlays (v2 90 entries, v1 8) from `scripts/generate_paging_tags.py`,
+  hand-reviewed overlays (v2 5, v1 29) carrying the v1 start/limit vocabulary,
+  the ambiguous paging decisions, page-create space-key resolution and
+  page-update version metadata; one generated test per entry, regeneration
+  and override-precedence tests, and an independent oas-patch cross-check
+  (test-only dependencies oas-patch and jsonschema) (JAS-35)
 
 ### Removed verbs
 
