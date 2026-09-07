@@ -26,6 +26,15 @@ Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.
   page-update version metadata; one generated test per entry, regeneration
   and override-precedence tests, and an independent oas-patch cross-check
   (test-only dependencies oas-patch and jsonschema) (JAS-35)
+- The `api` group from as-engine: `api call <operationId>` (camelCase or
+  kebab-case; parameters as spec-derived flags; body from `@file`, stdin or
+  `--field path=value`; parameters validated before any request; body
+  validation on request or after a 400), `api search <words>`,
+  `api describe <operationId>` (parameters, body outline, response schema,
+  every `x-as-*` tag, deprecation and replacement) and `api topics`; raw
+  JSON by default with `--format table|markdown`; JSON error objects on
+  stderr with documented exit codes; `CONFLUENCE_AS_TRANSPORT=responder`
+  selects the offline responder double (JAS-36)
 
 ### Removed verbs
 
