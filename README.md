@@ -6,6 +6,14 @@
 
 Python library for Confluence Cloud REST API - shared utilities for the [Confluence Assistant Skills](https://github.com/grandcamel/Confluence-Assistant-Skills) project.
 
+CLI discovery (`api describe`, `api search`, `help` and `--version`) defers HTTP,
+legacy client and converter imports. Discovery no longer loads or validates scope
+configuration because it sends no requests; the same scope configuration is loaded
+once immediately before the first call, before any guard or transport runs.
+Command-group help such as `help api` still loads wrapper modules to enumerate
+their commands. Keep optional runtime imports at their point of use when extending
+these entry paths.
+
 ## Features
 
 - **ConfluenceClient** - HTTP client with retry logic, pagination, and file uploads

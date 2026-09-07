@@ -19,8 +19,6 @@ from as_engine.help import (
 )
 from as_engine.index import OperationIndex
 
-from confluence_as.engine import create_surface
-
 
 def surface_map() -> dict[str, Any]:
     template = Path(__file__).parents[2] / "help_level0.md"
@@ -66,6 +64,8 @@ def help_command(
     if subject is None:
         value = surface_map()
     else:
+        from confluence_as.engine import create_surface
+
         surface = create_surface(transport="responder")
         indexes = (
             [(tier, surface.indexes.get(tier))]

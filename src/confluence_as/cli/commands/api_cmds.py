@@ -15,9 +15,15 @@ from as_engine.help import describe_document, examples_document, render_help
 from as_engine.output import render_output
 from as_engine.params import alias_flags, body_errors, build_body, validate_parameters
 from as_engine.surface import Surface, parse_call_flags
-from as_engine.transforms.richtext import validate_options
 
 from confluence_as.engine import create_surface
+
+
+def validate_options(*args: Any, **kwargs: Any) -> Any:
+    """Load rich-text validation only when the call path needs it."""
+    from as_engine.transforms.richtext import validate_options as validate
+
+    return validate(*args, **kwargs)
 
 
 def _fail(error: SurfaceError) -> None:

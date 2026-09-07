@@ -6,16 +6,50 @@ import base64
 import json
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from as_engine.errors import SurfaceError
 from as_engine.index import OperationIndex, ProductIndexes
 from as_engine.responder import Responder
 from as_engine.surface import Surface
-from as_engine.transport import HTTPTransport, Transport
+from as_engine.transport import HTTPTransport, Response, Transport
 
 if TYPE_CHECKING:
     from as_engine.cassette import Recorder
     from as_engine.simulation import SimulationStore
+
+
+class _ConfiguredSurface(Surface):
+    """Defer scope configuration until the first call, before guards or sends."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._scope_loaded = False
+        self._scope_overrides: set[str] = set()
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        # Consumers can still override either policy field before their first call.
+        if name in {"scope_allowlist", "scope_allow_site"}:
+            overrides = self.__dict__.get("_scope_overrides")
+            if overrides is not None:
+                overrides.add(name)
+        super().__setattr__(name, value)
+
+    def call(self, *args: Any, **kwargs: Any) -> Response:
+        if not self._scope_loaded:
+            from confluence_as.config_manager import ConfigManager
+
+            try:
+                scope = ConfigManager.get_instance().get_scope_config()
+            except ValueError as exc:
+                # Keep the API group's original configuration-error envelope;
+                # the call adapter must not relabel it as an operation error.
+                raise SurfaceError(None, [str(exc)], code=2) from exc
+            for name, value in scope.items():
+                if name not in self._scope_overrides:
+                    setattr(self, name, value)
+            self._scope_loaded = True
+        return super().call(*args, **kwargs)
 
 
 def create_surface(
@@ -118,12 +152,9 @@ def create_surface(
             recorder.transport = live
         return recorder
 
-    from confluence_as.config_manager import ConfigManager
-
-    return Surface(
+    return _ConfiguredSurface(
         indexes,
         factory,
-        **ConfigManager.get_instance().get_scope_config(),
         scope_resolution_rules={
             "v2:getPageById": (("id",),),
             "v2:getSpaceById": (("id",),),

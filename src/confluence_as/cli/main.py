@@ -7,11 +7,9 @@ from pathlib import Path
 
 import click
 from as_engine.help import render_help
-from as_engine.index import ProductIndexes
 
 from confluence_as import __version__
 from confluence_as.cli.commands.help_cmds import HelpGroup, surface_map
-from confluence_as.cli.legacy import MigrationGroup, records, register
 
 
 class LazyGroups(HelpGroup):
@@ -50,8 +48,14 @@ class LazyGroups(HelpGroup):
                 import_module("confluence_as.cli.commands." + module), symbol
             )
         else:
+            from confluence_as.cli.legacy import MigrationGroup
+
             command = MigrationGroup(name, help="Legacy migration hints.")
         if name not in {"api", "help"}:
+            from as_engine.index import ProductIndexes
+
+            from confluence_as.cli.legacy import records, register
+
             indexes = ProductIndexes(Path(__file__).parents[1] / "_generated")
             register(
                 command, records([indexes.get("v2"), indexes.get("v1")]), prefix=name
