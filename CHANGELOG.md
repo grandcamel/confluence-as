@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.x line land on branch `1.x`.
 
+### Added
+
+- Vendored, pinned Confluence v2 (primary) and v1 (lower tier) Base Documents
+  with `manifest.json` provenance (source URL, declared version, sha256,
+  fetch date) and per-document enrichment overlays under
+  `src/confluence_as/specs/`; a hatchling build hook compiles deterministic
+  operation indexes with as-engine into `src/confluence_as/_generated/` for
+  wheels and editable installs (never committed); and an offline-capable
+  `scripts/refresh_base_documents.py` that re-fetches a document, records its
+  provenance and writes an oasdiff review changelog beside it (JAS-34)
+
 ### Removed verbs
 
 - (filled by the Wrapper Verb ticket: every single-call verb dropped in favour of the Generic Surface)
