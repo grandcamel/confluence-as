@@ -81,4 +81,15 @@ def create_surface(*, transport: str | None = None, respond_with: int = 200) -> 
             recorder.transport = live
         return recorder
 
-    return Surface(indexes, factory)
+    from confluence_as.config_manager import ConfigManager
+
+    return Surface(
+        indexes,
+        factory,
+        **ConfigManager.get_instance().get_scope_config(),
+        scope_resolution_rules={
+            "v2:getPageById": (("id",),),
+            "v2:getSpaceById": (("id",),),
+            "v2:getSpaces": (("ids",), ("keys",)),
+        },
+    )

@@ -12,7 +12,8 @@
       "overlays": [
         "v2.paging.overlay.json",
         "v2.overlay.json",
-        "v2.help.overlay.json"
+        "v2.help.overlay.json",
+        "v2.scope.overlay.json"
       ],
       "strip_extensions": [
         "x-atlassian-narrative"

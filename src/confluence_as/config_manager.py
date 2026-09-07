@@ -19,6 +19,7 @@ Usage:
     client = get_confluence_client()
 """
 
+import os
 from typing import TYPE_CHECKING, Any, cast
 
 from assistant_skills_lib.config_manager import BaseConfigManager
@@ -40,6 +41,8 @@ class ConfigManager(BaseConfigManager):
     def get_default_config(self) -> dict[str, Any]:
         """Returns the default configuration dictionary for Confluence."""
         return {
+            "allowed_spaces": "",
+            "allow_site_operations": False,
             "api": {
                 "version": "2",
                 "timeout": 30,
@@ -47,6 +50,25 @@ class ConfigManager(BaseConfigManager):
                 "retry_backoff": 2.0,
                 "verify_ssl": True,
             },
+        }
+
+    def get_scope_config(self) -> dict[str, Any]:
+        """Read only API scope policy; discovery never needs credentials."""
+        settings = self.config.get("confluence", {})
+        raw = os.environ.get(
+            "CONFLUENCE_ALLOWED_SPACES", settings.get("allowed_spaces", "")
+        )
+        if not isinstance(raw, str):
+            raise ValueError("allowed_spaces must be comma-separated space keys")
+        allowed = tuple(dict.fromkeys(key.strip() for key in raw.split(",") if key.strip()))
+        site = os.environ.get(
+            "CONFLUENCE_ALLOW_SITE_OPERATIONS", settings.get("allow_site_operations", False)
+        )
+        return {
+            "scope_allowlist": allowed,
+            "scope_allow_site": site is True or (
+                isinstance(site, str) and site.strip().lower() in {"1", "true", "yes", "on"}
+            ),
         }
 
     def get_credentials(self) -> dict[str, Any]:

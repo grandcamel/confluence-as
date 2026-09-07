@@ -167,9 +167,12 @@ def _preview(
 @api.command(
     "call", context_settings={"ignore_unknown_options": True}, add_help_option=False
 )
+@click.option("--space", "scope_space", metavar="KEY", default=None)
 @click.argument("arguments", nargs=-1, type=click.UNPROCESSED)
 @click.pass_context
-def call(ctx: click.Context, arguments: tuple[str, ...]) -> None:
+def call(
+    ctx: click.Context, arguments: tuple[str, ...], scope_space: str | None
+) -> None:
     """Call OPERATION with its spec-derived flags; --help after OPERATION lists them."""
     if not arguments:
         raise SurfaceError(None, ["Missing operationId"], code=2)
@@ -214,6 +217,7 @@ def call(ctx: click.Context, arguments: tuple[str, ...]) -> None:
             name,
             parameters,
             body,
+            scope_argv_identity=scope_space,
             validate_body=options["validate_body"],
             all_pages=options["all_pages"],
             limit=options["limit"],

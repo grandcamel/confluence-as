@@ -10,6 +10,7 @@ import pytest
 import requests
 import responses
 from as_engine.responder import Responder
+from as_engine.transport import Response
 from click.testing import CliRunner
 
 from confluence_as.cli.main import cli
@@ -19,6 +20,26 @@ from confluence_as.engine import create_surface
 @pytest.fixture(autouse=True)
 def offline(monkeypatch):
     monkeypatch.setenv("CONFLUENCE_AS_TRANSPORT", "responder")
+    monkeypatch.setenv("CONFLUENCE_ALLOWED_SPACES", "S1,S4,S5")
+    monkeypatch.setenv("CONFLUENCE_ALLOW_SITE_OPERATIONS", "1")
+    original_call = Responder.call
+
+    def metadata(self, operation, parameters, body):
+        if operation.extensions.get("x-as-resolution-read"):
+            # Explicit fixture-space records served only for metadata reads.
+            spaces = [{"id": str(i), "key": f"S{i}"} for i in (1, 4, 5)]
+            if operation.operationId == "getSpaces":
+                rows = [row for row in spaces if (
+                    row["key"] in parameters.get("keys", [])
+                    or int(row["id"]) in parameters.get("ids", [])
+                )]
+                return Response(200, {"results": rows})
+            if operation.operationId == "getPageById" and parameters == {"id": 1}:
+                return Response(200, {"id": "1", "spaceId": "5"})
+            raise AssertionError("unexpected metadata lookup")
+        return original_call(self, operation, parameters, body)
+
+    monkeypatch.setattr(Responder, "call", metadata)
 
     def forbidden(*args, **kwargs):
         raise AssertionError("HTTP attempted by argv responder test")
@@ -27,6 +48,13 @@ def offline(monkeypatch):
 
 
 def invoke(*args, input=None):
+    args = list(args)
+    if "call" in args:
+        operation = args[args.index("call") + 1]
+        if operation in {"getPages", "get-pages"} and "--space-id" not in args:
+            args.extend(["--space-id", "5"])
+        if operation == "createPage" and "--space" not in args:
+            args.extend(["--space", "S5"])
     return CliRunner().invoke(cli, ["api", *args], input=input)
 
 
@@ -93,10 +121,13 @@ def test_parameters_arrays_boolean_required_and_spec_limit(monkeypatch):
     )
     assert result.exit_code == 0, result.output
     assert calls[-1][1] == {"id": [1, 2, 3], "space-id": [4, 5], "limit": 5}
-    assert len(calls) == 1
+    assert calls[0] == ("getSpaces", {"ids": [4, 5]}, None)
+    assert len(calls) == 2
     result = invoke(
         "call",
         "createPage",
+        "--space",
+        "S1",
         "--embedded",
         "false",
         "--private",
@@ -114,7 +145,8 @@ def test_body_stdin_file_fields_and_validation(monkeypatch, tmp_path):
     original = Responder.call
 
     def record(self, operation, parameters, body):
-        bodies.append(body)
+        if not operation.extensions.get("x-as-resolution-read"):
+            bodies.append(body)
         return original(self, operation, parameters, body)
 
     monkeypatch.setattr(Responder, "call", record)
@@ -178,12 +210,12 @@ def test_forced_errors(status, code):
 
 
 def test_400_triggers_body_check_but_normal_call_does_not():
-    assert invoke("call", "createPage", "--body", "-", input="{}").exit_code == 0
+    assert invoke("call", "createPage", "--body", "-", input='{"spaceId":5}').exit_code == 0
     failure = invoke(
-        "--respond-with", "400", "call", "createPage", "--body", "-", input="{}"
+        "--respond-with", "400", "call", "createPage", "--body", "-", input='{"spaceId":5}'
     )
     assert failure.exit_code == 2
-    assert "body.spaceId: is required" in json.loads(failure.stderr)["messages"]
+    assert "body.spaceId: must be string" in json.loads(failure.stderr)["messages"]
 
 
 def test_discovery_search_describe_topics_and_dynamic_help():
@@ -303,16 +335,21 @@ def test_product_http_routing_config_and_domain_mapping(monkeypatch):
         "api_token": "test-only",
     }
     config.get_api_config.return_value = {"timeout": 9, "max_retries": 0}
+    config.get_scope_config.return_value = {"scope_allowlist": ("S5",), "scope_allow_site": True}
     monkeypatch.setattr(ConfigManager, "get_instance", lambda: config)
     surface = create_surface(transport="http")
     with responses.RequestsMock() as wire:
         # responses intercepts HTTPAdapter.send; remove the stricter test guard only inside it.
         monkeypatch.setattr(requests.Session, "send", ORIGINAL_SEND)
         wire.get(
-            "https://offline.invalid/wiki/api/v2/pages?limit=5",
+            "https://offline.invalid/wiki/api/v2/pages?limit=5&space-id=5",
             json={"results": [{"id": "10"}]},
         )
-        assert surface.call("getPages", {"limit": "5"}).body == {
+        wire.get(
+            "https://offline.invalid/wiki/api/v2/spaces?ids=5",
+            json={"results": [{"id": "5", "key": "S5"}]},
+        )
+        assert surface.call("getPages", {"limit": "5", "space-id": [5]}).body == {
             "results": [{"id": "10"}]
         }
         wire.get(
@@ -326,7 +363,7 @@ def test_product_http_routing_config_and_domain_mapping(monkeypatch):
             json={"message": "No permission"},
         )
         with pytest.raises(SurfaceError) as caught:
-            surface.call("getPages", {})
+            surface.call("getPages", {"space-id": [5]})
         assert caught.value.code == 4 and "No permission" in caught.value.messages
 
 

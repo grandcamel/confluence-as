@@ -20,6 +20,7 @@ No top-level body properties.
 
 - Risk: irreversible.
 - Dry-run by default; --confirm sends the request.
+- scope: {'in': 'path', 'name': 'id', 'resolve': [{'matchPath': '/id', 'operationId': 'getPageById', 'parameter': 'id', 'valuePath': '/spaceId'}, {'array': True, 'matchPath': '/id', 'operationId': 'getSpaces', 'parameter': 'ids', 'resultsPath': '/results', 'valuePath': '/key'}]}
 - x-atlassian-connect-scope: "DELETE"
 - x-atlassian-oauth2-scopes: [{"scheme": "oAuthDefinitions", "scopes": ["delete:page:confluence"], "state": "Current"}]
 - Use --full for the complete description; --examples for examples.

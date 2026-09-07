@@ -16,6 +16,7 @@ import pytest
 import requests
 import responses
 from as_engine.errors import SurfaceError
+from as_engine.responder import Responder
 from click.testing import CliRunner
 
 from confluence_as.cli.main import cli
@@ -51,6 +52,10 @@ def record_local_fixture(path, monkeypatch):
         "api_token": TOKEN,
     }
     config.get_api_config.return_value = {"max_retries": 0}
+    config.get_scope_config.return_value = {
+        "scope_allowlist": ("DOCS",),
+        "scope_allow_site": False,
+    }
     monkeypatch.setattr(ConfigManager, "get_instance", lambda: config)
     page = {
         "id": "10",
@@ -65,6 +70,7 @@ def record_local_fixture(path, monkeypatch):
         "_links": {"base": SITE, "webui": "/spaces/5/pages/10"},
         "echo": TOKEN + " " + BASIC,
     }
+    page_metadata = {"id": "10", "spaceId": "5", "version": {"number": 1}}
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Basic " + BASIC,
@@ -73,11 +79,21 @@ def record_local_fixture(path, monkeypatch):
     surface = create_surface()
     with responses.RequestsMock() as wire:
         wire.get(
-            SITE + "/wiki/api/v2/pages?limit=5",
+            SITE + "/wiki/api/v2/spaces?ids=5",
+            json={"results": [{"id": "5", "key": "DOCS"}]},
+            headers=headers,
+        )
+        wire.get(
+            SITE + "/wiki/api/v2/spaces?keys=DOCS",
+            json={"results": [{"id": "5", "key": "DOCS"}]},
+            headers=headers,
+        )
+        wire.get(
+            SITE + "/wiki/api/v2/pages?space-id=5&limit=5",
             json={"results": [page], "_links": {"base": SITE}},
             headers=headers,
         )
-        wire.get(SITE + "/wiki/api/v2/pages/10", json=page, headers=headers)
+        wire.get(SITE + "/wiki/api/v2/pages/10", json=page_metadata, headers=headers)
         wire.post(SITE + "/wiki/api/v2/pages", json=page, status=201, headers=headers)
         wire.put(
             SITE + "/wiki/api/v2/pages/10",
@@ -90,9 +106,18 @@ def record_local_fixture(path, monkeypatch):
             status=404,
             headers=headers,
         )
-        assert surface.call("getPages", {"limit": 5}).body["results"][0]["id"] == "10"
+        wire.get(
+            SITE + "/wiki/api/v2/pages?space-id=5&limit=7",
+            json={"message": "Page not found"},
+            status=404,
+            headers=headers,
+        )
+        assert (
+            surface.call("getPages", {"space-id": [5], "limit": 5}).body["results"][0]["id"]
+            == "10"
+        )
         assert surface.call("getPageById", {"id": 10}).body["id"] == "10"
-        assert surface.call("createPage", {}, PAGE_BODY).status == 201
+        assert surface.call("createPage", {}, PAGE_BODY, scope_argv_identity="DOCS").status == 201
         assert (
             surface.call("updatePage", {"id": 10}, UPDATE_BODY).body["version"][
                 "number"
@@ -101,24 +126,35 @@ def record_local_fixture(path, monkeypatch):
         )
         with pytest.raises(SurfaceError) as error:
             surface.call("getPageById", {"id": 404})
+        assert error.value.code == 4
+        with pytest.raises(SurfaceError) as error:
+            surface.call("getPages", {"space-id": [5], "limit": 7})
         assert error.value.code == 5
-        assert len(wire.calls) == 5
+        assert len(wire.calls) == 13
         assert all(
             call.request.headers["Authorization"] == "Basic " + BASIC
             for call in wire.calls
         )
-        assert json.loads(wire.calls[2].request.body) == PAGE_BODY
-        assert json.loads(wire.calls[3].request.body) == UPDATE_BODY
+        assert json.loads(wire.calls[6].request.body) == PAGE_BODY
+        assert json.loads(wire.calls[9].request.body) == UPDATE_BODY
 
 
 @pytest.fixture(autouse=True)
 def no_network(monkeypatch):
+    """Scope settings are safe for playback; credential reads are never allowed."""
     def denied(*args, **kwargs):
         raise AssertionError("cassette contract attempted network or credential access")
 
     monkeypatch.setattr(socket.socket, "connect", denied)
     monkeypatch.setattr(socket, "create_connection", denied)
-    monkeypatch.setattr(ConfigManager, "get_instance", denied)
+    config = Mock()
+    config.get_scope_config.return_value = {
+        "scope_allowlist": ("DOCS",),
+        "scope_allow_site": False,
+    }
+    config.get_credentials.side_effect = denied
+    monkeypatch.setattr(ConfigManager, "get_credentials", denied)
+    monkeypatch.setattr(ConfigManager, "get_instance", lambda: config)
     monkeypatch.setenv("CONFLUENCE_AS_TRANSPORT", "cassette")
     monkeypatch.setenv("CONFLUENCE_AS_CASSETTE", str(CASSETTE))
     monkeypatch.delenv("CONFLUENCE_AS_RECORD", raising=False)
@@ -140,7 +176,7 @@ def test_recorded_fake_service_scrubs_all_secrets_and_matches_committed_fixture(
     monkeypatch.delenv("CONFLUENCE_AS_RECORD")
     monkeypatch.setenv("CONFLUENCE_AS_TRANSPORT", "cassette")
     monkeypatch.setenv("CONFLUENCE_AS_CASSETTE", str(path))
-    result = invoke("call", "getPages", "--limit", "5")
+    result = invoke("call", "getPages", "--space-id", "5", "--limit", "5")
     assert (
         result.exit_code == 0 and json.loads(result.stdout)["results"][0]["id"] == "10"
     )
@@ -149,9 +185,9 @@ def test_recorded_fake_service_scrubs_all_secrets_and_matches_committed_fixture(
 @pytest.mark.parametrize(
     "name,args,body,expected",
     [
-        ("getPages", ["--limit", "5"], None, "results"),
+        ("getPages", ["--space-id", "5", "--limit", "5"], None, "results"),
         ("getPageById", ["--id", "10"], None, "id"),
-        ("createPage", [], PAGE_BODY, "id"),
+        ("createPage", ["--space", "DOCS"], PAGE_BODY, "id"),
         ("updatePage", ["--id", "10", "--confirm"], UPDATE_BODY, "version"),
     ],
 )
@@ -173,9 +209,16 @@ def test_cassette_call_verbs_replay_offline(monkeypatch, name, args, body, expec
 
 def test_cassette_error_and_miss_are_structured_offline():
     result = invoke("call", "getPageById", "--id", "404")
-    assert result.exit_code == 5 and result.stdout == "", result.output
+    assert result.exit_code == 4 and result.stdout == "", result.output
+    error = json.loads(result.stderr)
+    assert error["status"] is None
+    assert "scope identity 404" in error["messages"][0]
+    assert "HTTP 404" not in error["messages"][0]
+    assert "Page not found" not in error["messages"][0]
+    result = invoke("call", "getPages", "--space-id", "5", "--limit", "7")
+    assert result.exit_code == 5 and json.loads(result.stderr)["status"] == 404
     assert json.loads(result.stderr)["messages"] == ["Page not found"]
-    result = invoke("call", "getPages", "--limit", "6")
+    result = invoke("call", "getPages", "--space-id", "5", "--limit", "6")
     assert result.exit_code == 2 and "cassette miss: getPages" in result.stderr
 
 
@@ -213,12 +256,18 @@ def test_contradictory_settings_fail_before_configuration(
             monkeypatch.delenv(name, raising=False)
         else:
             monkeypatch.setenv(name, value)
-    result = invoke("call", "getPages")
+    result = invoke("call", "getPages", "--space-id", "5")
     assert result.exit_code == 2 and message in result.stderr
 
 
 def test_responder_still_works_without_credentials(monkeypatch):
+    def seeded_responder(index, *, status=200):
+        responder = Responder(index, status=status)
+        responder.seed("getSpaces", [{"results": [{"id": "5", "key": "DOCS"}]}])
+        return responder
+
+    monkeypatch.setattr("confluence_as.engine.Responder", seeded_responder)
     monkeypatch.delenv("CONFLUENCE_AS_CASSETTE")
     monkeypatch.setenv("CONFLUENCE_AS_TRANSPORT", "responder")
-    result = invoke("call", "getPages")
+    result = invoke("call", "getPages", "--space-id", "5")
     assert result.exit_code == 0 and "results" in json.loads(result.stdout)

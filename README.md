@@ -323,6 +323,18 @@ the sources unchanged.
 
 ## Indexed API operations
 
+Tagged API calls now require `CONFLUENCE_ALLOWED_SPACES=DOCS,ENG` (or settings-file
+`confluence.allowed_spaces`); absent means default deny. Body-scope calls require
+`--space KEY`, for example `api call createPage --space DOCS --field 'spaceId="55"'`:
+one bounded space lookup must verify that id before the mutation. Space-filtered
+lists require `--space-id`; page-id calls resolve metadata before checking the
+space. Local refusals exit 4. Site-level calls such as `getSpaces` require explicit
+`CONFLUENCE_ALLOW_SITE_OPERATIONS=1` (or `confluence.allow_site_operations`). This
+policy applies to the API group only; untagged operations and legacy verbs retain
+their existing behavior. See as-engine's `docs/guard.md` for the exact 82-operation
+v2 coverage, untagged list, metadata-read exception, and request counts; the examples
+below require the corresponding scope flags and settings for tagged operations.
+
 The `api` group calls operations from the packaged OpenAPI index through as-engine:
 
 ```bash

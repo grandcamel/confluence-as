@@ -10,6 +10,7 @@ import pytest
 import requests
 from as_engine.help import CAPS, TOPICS, render_help, token_estimate
 from as_engine.responder import Responder
+from as_engine.transport import Response
 from click.testing import CliRunner
 
 from confluence_as.cli.main import cli
@@ -86,6 +87,21 @@ def test_risky_call_previews_zero_sends_and_confirm_sends_once(monkeypatch):
         return original(self, operation, parameters, body)
 
     monkeypatch.setattr(Responder, "call", record)
+    # JAS-39 landed after this test was written: a confirmed deletePage now passes the
+    # scope guard, which needs an allowlist and answers for its two metadata resolution reads.
+    monkeypatch.setenv("CONFLUENCE_ALLOWED_SPACES", "DOCS")
+    resolution = {
+        "getPageById": {"id": "123", "spaceId": "55"},
+        "getSpaces": {"results": [{"id": "55", "key": "DOCS"}]},
+    }
+
+    def record_with_resolution(self, operation, parameters, body):
+        calls.append((operation.operationId, parameters, body))
+        if operation.operationId in resolution:
+            return Response(200, resolution[operation.operationId])
+        return original(self, operation, parameters, body)
+
+    monkeypatch.setattr(Responder, "call", record_with_resolution)
     args = ["api", "call", "deletePage", "--id", "123"]
     runner = CliRunner()
     result = runner.invoke(cli, args)
@@ -102,7 +118,9 @@ def test_risky_call_previews_zero_sends_and_confirm_sends_once(monkeypatch):
     assert calls == []
     result = runner.invoke(cli, [*args, "--confirm"])
     assert result.exit_code == 0, result.output
-    assert calls == [("deletePage", {"id": 123}, None)]
+    # two metadata resolution reads (JAS-39), then exactly one operation send
+    assert [name for name, _, _ in calls[:-1]] == ["getPageById", "getSpaces"]
+    assert calls[-1] == ("deletePage", {"id": 123}, None)
 
 
 def test_destructive_preview_never_runs_version_lookup_or_transport_factory(

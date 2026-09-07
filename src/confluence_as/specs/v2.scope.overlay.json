@@ -1,0 +1,2133 @@
+{
+  "overlay": "1.0.0",
+  "info": {
+    "title": "Confluence v2 scope enforcement",
+    "version": "1.0.0"
+  },
+  "actions": [
+    {
+      "target": "$.paths[\"/admin-key\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getAdminKey.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getAdminKey"
+    },
+    {
+      "target": "$.paths[\"/admin-key\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for enableAdminKey.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_enableAdminKey"
+    },
+    {
+      "target": "$.paths[\"/admin-key\"].delete",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for disableAdminKey.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_disableAdminKey"
+    },
+    {
+      "target": "$.paths[\"/attachments\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getAttachments.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getAttachments"
+    },
+    {
+      "target": "$.paths[\"/blogposts\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "query",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getBlogPosts.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getBlogPosts"
+    },
+    {
+      "target": "$.paths[\"/blogposts\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "body",
+          "path": "/spaceId",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "keys",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/key",
+              "valuePath": "/id"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for createBlogPost.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createBlogPost"
+    },
+    {
+      "target": "$.paths[\"/custom-content\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "query",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getCustomContentByType.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getCustomContentByType"
+    },
+    {
+      "target": "$.paths[\"/custom-content\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "body",
+          "path": "/spaceId",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "keys",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/key",
+              "valuePath": "/id"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for createCustomContent.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createCustomContent"
+    },
+    {
+      "target": "$.paths[\"/labels\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getLabels.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getLabels"
+    },
+    {
+      "target": "$.paths[\"/labels/{id}/blogposts\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "query",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getLabelBlogPosts.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getLabelBlogPosts"
+    },
+    {
+      "target": "$.paths[\"/labels/{id}/pages\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "query",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getLabelPages.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getLabelPages"
+    },
+    {
+      "target": "$.paths[\"/pages\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "query",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPages.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPages"
+    },
+    {
+      "target": "$.paths[\"/pages\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "body",
+          "path": "/spaceId",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "keys",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/key",
+              "valuePath": "/id"
+            }
+          ],
+          "alias": "space-key"
+        }
+      },
+      "description": "Declare scope for createPage.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createPage"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageById.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageById"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}\"].put",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for updatePage.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_updatePage"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}\"].delete",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for deletePage.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_deletePage"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/attachments\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageAttachments.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageAttachments"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/custom-content\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getCustomContentByTypeInPage.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getCustomContentByTypeInPage"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/labels\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageLabels.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageLabels"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/likes/count\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageLikeCount.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageLikeCount"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/likes/users\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageLikeUsers.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageLikeUsers"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/operations\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageOperations.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageOperations"
+    },
+    {
+      "target": "$.paths[\"/pages/{page-id}/properties\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "page-id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageContentProperties.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageContentProperties"
+    },
+    {
+      "target": "$.paths[\"/pages/{page-id}/properties\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "page-id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for createPageProperty.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createPageProperty"
+    },
+    {
+      "target": "$.paths[\"/pages/{page-id}/properties/{property-id}\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "page-id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageContentPropertiesById.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageContentPropertiesById"
+    },
+    {
+      "target": "$.paths[\"/pages/{page-id}/properties/{property-id}\"].put",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "page-id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for updatePagePropertyById.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_updatePagePropertyById"
+    },
+    {
+      "target": "$.paths[\"/pages/{page-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "page-id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for deletePagePropertyById.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_deletePagePropertyById"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/redact\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for postRedactPage.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_postRedactPage"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/title\"].put",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for updatePageTitle.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_updatePageTitle"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/versions\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageVersions.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageVersions"
+    },
+    {
+      "target": "$.paths[\"/whiteboards\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "body",
+          "path": "/spaceId",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "keys",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/key",
+              "valuePath": "/id"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for createWhiteboard.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createWhiteboard"
+    },
+    {
+      "target": "$.paths[\"/databases\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "body",
+          "path": "/spaceId",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "keys",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/key",
+              "valuePath": "/id"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for createDatabase.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createDatabase"
+    },
+    {
+      "target": "$.paths[\"/embeds\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "body",
+          "path": "/spaceId",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "keys",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/key",
+              "valuePath": "/id"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for createSmartLink.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createSmartLink"
+    },
+    {
+      "target": "$.paths[\"/folders\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "body",
+          "path": "/spaceId",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "keys",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/key",
+              "valuePath": "/id"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for createFolder.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createFolder"
+    },
+    {
+      "target": "$.paths[\"/pages/{page-id}/versions/{version-number}\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "page-id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageVersionDetails.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageVersionDetails"
+    },
+    {
+      "target": "$.paths[\"/spaces\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getSpaces.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getSpaces"
+    },
+    {
+      "target": "$.paths[\"/spaces\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for createSpace.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createSpace"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getSpaceById.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getSpaceById"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/blogposts\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getBlogPostsInSpace.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getBlogPostsInSpace"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/labels\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getSpaceLabels.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getSpaceLabels"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/content/labels\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getSpaceContentLabels.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getSpaceContentLabels"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/custom-content\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getCustomContentByTypeInSpace.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getCustomContentByTypeInSpace"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/operations\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getSpaceOperations.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getSpaceOperations"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/pages\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPagesInSpace.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPagesInSpace"
+    },
+    {
+      "target": "$.paths[\"/spaces/{space-id}/properties\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getSpaceProperties.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getSpaceProperties"
+    },
+    {
+      "target": "$.paths[\"/spaces/{space-id}/properties\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for createSpaceProperty.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createSpaceProperty"
+    },
+    {
+      "target": "$.paths[\"/spaces/{space-id}/properties/{property-id}\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getSpacePropertyById.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getSpacePropertyById"
+    },
+    {
+      "target": "$.paths[\"/spaces/{space-id}/properties/{property-id}\"].put",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for updateSpacePropertyById.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_updateSpacePropertyById"
+    },
+    {
+      "target": "$.paths[\"/spaces/{space-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for deleteSpacePropertyById.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_deleteSpacePropertyById"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/permissions\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getSpacePermissionsAssignments.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getSpacePermissionsAssignments"
+    },
+    {
+      "target": "$.paths[\"/space-permissions\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getAvailableSpacePermissions.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getAvailableSpacePermissions"
+    },
+    {
+      "target": "$.paths[\"/space-permissions/transition/combinations\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for listSpacePermissionCombinations.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_listSpacePermissionCombinations"
+    },
+    {
+      "target": "$.paths[\"/space-permissions/transition/combinations\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for generateSpacePermissionCombinations.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_generateSpacePermissionCombinations"
+    },
+    {
+      "target": "$.paths[\"/space-permissions/transition/role-assignments\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for bulkAssignSpacePermissionRoles.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_bulkAssignSpacePermissionRoles"
+    },
+    {
+      "target": "$.paths[\"/space-permissions/transition/access-removals\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for bulkRemoveSpacePermissionAccess.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_bulkRemoveSpacePermissionAccess"
+    },
+    {
+      "target": "$.paths[\"/space-roles\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "query",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getAvailableSpaceRoles.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getAvailableSpaceRoles"
+    },
+    {
+      "target": "$.paths[\"/space-roles\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for createSpaceRole.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createSpaceRole"
+    },
+    {
+      "target": "$.paths[\"/space-role-mode\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getSpaceRoleMode.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getSpaceRoleMode"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/role-assignments\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getSpaceRoleAssignments.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getSpaceRoleAssignments"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/role-assignments\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for setSpaceRoleAssignments.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_setSpaceRoleAssignments"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/footer-comments\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageFooterComments.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageFooterComments"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/inline-comments\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageInlineComments.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageInlineComments"
+    },
+    {
+      "target": "$.paths[\"/footer-comments\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getFooterComments.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getFooterComments"
+    },
+    {
+      "target": "$.paths[\"/inline-comments\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getInlineComments.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getInlineComments"
+    },
+    {
+      "target": "$.paths[\"/tasks\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "query",
+          "name": "space-id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getTasks.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getTasks"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/children\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getChildPages.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getChildPages"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/direct-children\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageDirectChildren.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageDirectChildren"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/ancestors\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageAncestors.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageAncestors"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/descendants\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageDescendants.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageDescendants"
+    },
+    {
+      "target": "$.paths[\"/users-bulk\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for createBulkUserLookup.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_createBulkUserLookup"
+    },
+    {
+      "target": "$.paths[\"/user/access/check-access-by-email\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for checkAccessByEmail.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_checkAccessByEmail"
+    },
+    {
+      "target": "$.paths[\"/user/access/invite-by-email\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for inviteByEmail.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_inviteByEmail"
+    },
+    {
+      "target": "$.paths[\"/data-policies/metadata\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getDataPolicyMetadata.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getDataPolicyMetadata"
+    },
+    {
+      "target": "$.paths[\"/data-policies/spaces\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getDataPolicySpaces.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getDataPolicySpaces"
+    },
+    {
+      "target": "$.paths[\"/classification-levels\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getClassificationLevels.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getClassificationLevels"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/classification-level/default\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getSpaceDefaultClassificationLevel.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getSpaceDefaultClassificationLevel"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/classification-level/default\"].put",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for putSpaceDefaultClassificationLevel.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_putSpaceDefaultClassificationLevel"
+    },
+    {
+      "target": "$.paths[\"/spaces/{id}/classification-level/default\"].delete",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for deleteSpaceDefaultClassificationLevel.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_deleteSpaceDefaultClassificationLevel"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/classification-level\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getPageClassificationLevel.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getPageClassificationLevel"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/classification-level\"].put",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for putPageClassificationLevel.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_putPageClassificationLevel"
+    },
+    {
+      "target": "$.paths[\"/pages/{id}/classification-level/reset\"].post",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getPageById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for postPageClassificationLevel.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_postPageClassificationLevel"
+    },
+    {
+      "target": "$.paths[\"/app/properties\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "site"
+        }
+      },
+      "description": "Declare scope for getForgeAppProperties.",
+      "x-as-reason": "This operation is site-wide and requires explicit site-operation permission.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-06"
+      },
+      "x-as-origin": "JAS-39",
+      "x-as-test": "scope_v2_getForgeAppProperties"
+    }
+  ]
+}
