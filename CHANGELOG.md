@@ -56,6 +56,11 @@ Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.
   enforcement on 82 tagged v2 operations: verified key/id ownership, metadata-
   only bounded resolution reads, documented coverage, and offline request-
   sequence and cassette acceptance tests (JAS-39)
+- Page and blog body conversions wired into api call: Markdown writes default
+  to storage, --representation atlas_doc_format sends serialized ADF, reads
+  render Markdown unless --raw, tagged --field body=@file input, a richtext
+  overlay on 14 operations with representation help, and offline
+  argv/transport coverage (JAS-38 phase B)
 
 ### Removed verbs
 
