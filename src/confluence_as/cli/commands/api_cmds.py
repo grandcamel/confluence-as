@@ -63,6 +63,30 @@ def _surface(ctx: click.Context) -> Surface:
     return ctx.obj["api_surface"]
 
 
+def _call_help(operation: Any) -> str:
+    """Describe enrichment flags that are available for this operation."""
+    lines = [
+        "Call options: --body @file|-; --field path=value (repeatable); "
+        "--validate-body; --format json|table|markdown.",
+        "Arrays: repeat the flag or use a JSON array; booleans: true|false.",
+    ]
+    tags = operation.extensions
+    if "x-as-paging" in tags:
+        lines.append(
+            "Paging: --all aggregates pages; with --all, --limit is the total item cap; "
+            "--parameter-limit sets each response page size."
+        )
+    aliases = tags.get("x-as-prerequisites", [])
+    if isinstance(aliases, list):
+        names = [entry.get("alias") for entry in aliases if isinstance(entry, dict)]
+        names = [name for name in names if isinstance(name, str) and name]
+        if names:
+            lines.append("Aliases: " + "; ".join(f"--{name} VALUE" for name in names) + ".")
+    if "x-as-version" in tags:
+        lines.append("Version: --version INTEGER overrides tagged version enrichment.")
+    return "\n".join(lines)
+
+
 @api.command(
     "call", context_settings={"ignore_unknown_options": True}, add_help_option=False
 )
@@ -86,11 +110,7 @@ def call(ctx: click.Context, arguments: tuple[str, ...]) -> None:
         parameters, options = parse_call_flags(operation, arguments[1:])
         if options["help"]:
             click.echo(describe_markdown(surface.describe(name)))
-            click.echo(
-                "\nCall options: --body @file|-; --field path=value (repeatable); "
-                "--validate-body; --format json|table|markdown.\n"
-                "Arrays: repeat the flag or use a JSON array; booleans: true|false."
-            )
+            click.echo("\n" + _call_help(operation))
             return
         body = build_body(options["body"], options["field"], sys.stdin)
         response = surface.call(
@@ -98,6 +118,10 @@ def call(ctx: click.Context, arguments: tuple[str, ...]) -> None:
             parameters,
             body,
             validate_body=options["validate_body"],
+            all_pages=options["all_pages"],
+            limit=options["limit"],
+            aliases=options["aliases"],
+            version=options["version"],
             warn=lambda message: click.echo(message, err=True),
         )
         click.echo(render_output(response.body, options["format"]))

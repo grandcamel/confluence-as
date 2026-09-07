@@ -164,7 +164,7 @@ def test_body_stdin_file_fields_and_validation(monkeypatch, tmp_path):
 
 @pytest.mark.parametrize(
     "status,code",
-    [(400, 2), (401, 3), (403, 4), (404, 5), (409, 1), (429, 6), (500, 6)],
+    [(400, 2), (401, 3), (403, 4), (404, 5), (409, 7), (429, 6), (500, 6)],
 )
 def test_forced_errors(status, code):
     result = invoke("--respond-with", str(status), "call", "getPages", "--limit", "5")

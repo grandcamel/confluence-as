@@ -344,6 +344,12 @@ quote a numeric ID as JSON when the body schema requires a string. Invalid
 parameters are refused before a transport is created. `--limit` is the operation's
 spec parameter; one response page is returned.
 
+For operations tagged for paging, `--all` aggregates response pages. With `--all`,
+`--limit` caps the total items returned and `--parameter-limit` sets each server page
+size; without it, `--limit` keeps its spec-defined page-size meaning. Tagged
+prerequisites expose their key aliases (for example `--space-key DOCS`) and resolve
+them before the call; tagged updates accept `--version` to override version enrichment.
+
 Calls emit raw JSON; `--format table|markdown` renders the top-level result.
 Search defaults to a table and supports `--format json`; describe defaults to
 Markdown and supports `--format json`. Search excludes deprecated operations unless
