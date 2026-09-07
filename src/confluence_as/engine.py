@@ -3,21 +3,31 @@
 from __future__ import annotations
 
 import base64
+import json
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from as_engine.cassette import Player, Recorder, Scrubber
 from as_engine.index import OperationIndex, ProductIndexes
 from as_engine.responder import Responder
 from as_engine.surface import Surface
 from as_engine.transport import HTTPTransport, Transport
 
+if TYPE_CHECKING:
+    from as_engine.cassette import Recorder
+    from as_engine.simulation import SimulationStore
 
-def create_surface(*, transport: str | None = None, respond_with: int = 200) -> Surface:
+
+def create_surface(
+    *,
+    transport: str | None = None,
+    respond_with: int = 200,
+    store: SimulationStore | None = None,
+) -> Surface:
     """Keep discovery and responder mode credential-free; configure HTTP at call time."""
     mode = transport or os.environ.get("CONFLUENCE_AS_TRANSPORT", "http")
-    if mode not in ("http", "responder", "cassette"):
-        raise ValueError("CONFLUENCE_AS_TRANSPORT must be http, responder or cassette")
+    if mode not in ("http", "responder", "cassette", "simulation"):
+        raise ValueError("CONFLUENCE_AS_TRANSPORT must be http, responder, cassette or simulation")
     cassette_path = os.environ.get("CONFLUENCE_AS_CASSETTE")
     record_path = os.environ.get("CONFLUENCE_AS_RECORD")
     if mode == "cassette" and not cassette_path:
@@ -26,11 +36,28 @@ def create_surface(*, transport: str | None = None, respond_with: int = 200) -> 
         raise ValueError("CONFLUENCE_AS_RECORD requires http transport")
     if cassette_path and mode != "cassette":
         raise ValueError("CONFLUENCE_AS_CASSETTE requires cassette transport")
+    seed_path = os.environ.get("CONFLUENCE_AS_SIMULATION_SEED")
+    if seed_path and mode != "simulation":
+        raise ValueError("CONFLUENCE_AS_SIMULATION_SEED requires simulation transport")
+    if store is not None and mode != "simulation":
+        raise ValueError("simulation store requires simulation transport")
     if not 100 <= respond_with <= 599:
         raise ValueError("--respond-with must be an HTTP status from 100 to 599")
     if respond_with != 200 and mode != "responder":
         raise ValueError("--respond-with requires responder transport")
     indexes = ProductIndexes(Path(__file__).parent / "_generated")
+    simulation_store = store
+    if mode == "simulation" and simulation_store is None:
+        from as_engine.simulation import SimulationStore
+
+        if seed_path:
+            try:
+                seed = json.loads(Path(seed_path).read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                raise ValueError("unable to load CONFLUENCE_AS_SIMULATION_SEED") from exc
+            simulation_store = SimulationStore(seed)
+        else:
+            simulation_store = SimulationStore()
 
     recorder: Recorder | None = None
 
@@ -39,9 +66,17 @@ def create_surface(*, transport: str | None = None, respond_with: int = 200) -> 
         if mode == "cassette":
             if cassette_path is None:
                 raise ValueError("cassette transport requires CONFLUENCE_AS_CASSETTE")
+            from as_engine.cassette import Player
+
             return Player(cassette_path)
         if mode == "responder":
             return Responder(index, status=respond_with)
+        if mode == "simulation":
+            if simulation_store is None:
+                raise AssertionError("simulation store was not initialized")
+            from as_engine.simulation import Simulation
+
+            return Simulation(simulation_store)
         from confluence_as.config_manager import ConfigManager
         from confluence_as.error_handler import handle_confluence_error
 
@@ -62,6 +97,8 @@ def create_surface(*, transport: str | None = None, respond_with: int = 200) -> 
 
         if not record_path:
             return live
+        from as_engine.cassette import Recorder, Scrubber
+
         scrubber = recorder.scrubber if recorder is not None else Scrubber()
         scrubber.register(site, "site")
         scrubber.register(credentials["email"])

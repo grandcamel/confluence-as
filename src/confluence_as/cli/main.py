@@ -2,33 +2,65 @@
 
 from __future__ import annotations
 
+from importlib import import_module
+from pathlib import Path
+
 import click
 from as_engine.help import render_help
+from as_engine.index import ProductIndexes
 
 from confluence_as import __version__
-from confluence_as.cli.commands.admin_cmds import admin
-from confluence_as.cli.commands.analytics_cmds import analytics
-from confluence_as.cli.commands.api_cmds import api
-from confluence_as.cli.commands.attachment_cmds import attachment
-from confluence_as.cli.commands.bulk_cmds import bulk
-from confluence_as.cli.commands.comment_cmds import comment
-from confluence_as.cli.commands.help_cmds import HelpGroup, help_command, surface_map
-from confluence_as.cli.commands.hierarchy_cmds import hierarchy
-from confluence_as.cli.commands.jira_cmds import jira
-from confluence_as.cli.commands.label_cmds import label
-from confluence_as.cli.commands.ops_cmds import ops
-
-# Import command groups
-from confluence_as.cli.commands.page_cmds import page
-from confluence_as.cli.commands.permission_cmds import permission
-from confluence_as.cli.commands.property_cmds import property_cmd
-from confluence_as.cli.commands.search_cmds import search
-from confluence_as.cli.commands.space_cmds import space
-from confluence_as.cli.commands.template_cmds import template
-from confluence_as.cli.commands.watch_cmds import watch
+from confluence_as.cli.commands.help_cmds import HelpGroup, surface_map
+from confluence_as.cli.legacy import MigrationGroup, records, register
 
 
-@click.group(cls=HelpGroup, invoke_without_command=True)
+class LazyGroups(HelpGroup):
+    """Load only the selected command family and its indexed migration hints."""
+
+    modules = {
+        "admin": ("admin_cmds", "admin"),
+        "analytics": ("analytics_cmds", "analytics"),
+        "api": ("api_cmds", "api"),
+        "attachment": ("attachment_cmds", "attachment"),
+        "bulk": ("bulk_cmds", "bulk"),
+        "help": ("help_cmds", "help_command"),
+        "hierarchy": ("hierarchy_cmds", "hierarchy"),
+        "jira": ("jira_cmds", "jira"),
+        "label": ("label_cmds", "label"),
+        "ops": ("ops_cmds", "ops"),
+        "page": ("page_cmds", "page"),
+        "permission": ("permission_cmds", "permission"),
+        "property": ("property_cmds", "property_cmd"),
+        "search": ("search_cmds", "search"),
+        "template": ("template_cmds", "template"),
+    }
+    migration_groups = {"comment", "space", "watch"}
+
+    def list_commands(self, ctx):
+        return sorted(set(self.modules) | self.migration_groups)
+
+    def get_command(self, ctx, name):
+        if name in self.commands:
+            return self.commands[name]
+        if name not in self.modules and name not in self.migration_groups:
+            return None
+        if name in self.modules:
+            module, symbol = self.modules[name]
+            command = getattr(
+                import_module("confluence_as.cli.commands." + module), symbol
+            )
+        else:
+            command = MigrationGroup(name, help="Legacy migration hints.")
+        if name not in {"api", "help"}:
+            indexes = ProductIndexes(Path(__file__).parents[1] / "_generated")
+            register(
+                command, records([indexes.get("v2"), indexes.get("v1")]), prefix=name
+            )
+        self.add_command(command, name)
+        return command
+
+
+@click.group(cls=LazyGroups, invoke_without_command=True)
 @click.version_option(version=__version__, prog_name="confluence-as")
 @click.option(
     "--output",
@@ -64,11 +96,11 @@ def cli(
 
     Examples:
 
-        confluence-as page get 12345
+        confluence-as api describe getPageById
 
-        confluence-as search "space = DOCS AND type = page"
+        confluence-as api call searchByCQL --cql "space = DOCS AND type = page"
 
-        confluence-as space list --output json
+        confluence-as api search spaces
     """
     # Store options in context for subcommands
     ctx.ensure_object(dict)
@@ -78,27 +110,6 @@ def cli(
 
     if ctx.invoked_subcommand is None:
         click.echo(render_help(surface_map()))
-
-
-# Register command groups
-cli.add_command(help_command)
-cli.add_command(api)
-cli.add_command(page)
-cli.add_command(space)
-cli.add_command(search)
-cli.add_command(comment)
-cli.add_command(label)
-cli.add_command(attachment)
-cli.add_command(hierarchy)
-cli.add_command(permission)
-cli.add_command(analytics)
-cli.add_command(watch)
-cli.add_command(template)
-cli.add_command(property_cmd, name="property")
-cli.add_command(jira)
-cli.add_command(admin)
-cli.add_command(bulk)
-cli.add_command(ops)
 
 
 if __name__ == "__main__":

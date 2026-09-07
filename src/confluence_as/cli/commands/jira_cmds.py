@@ -10,6 +10,7 @@ import click
 
 from confluence_as import (
     ValidationError,
+    engine,
     format_json,
     format_table,
     handle_errors,
@@ -23,6 +24,7 @@ from confluence_as.cli.cli_utils import (
     get_client_from_context,
     resolve_output_default,
 )
+from confluence_as.cli.legacy import command_errors
 
 
 def _get_jira_client_config(
@@ -109,7 +111,7 @@ def jira() -> None:
     help="Output format",
 )
 @click.pass_context
-@handle_errors
+@command_errors
 def link_to_jira(
     ctx: click.Context,
     page_id: str,
@@ -134,10 +136,10 @@ def link_to_jira(
 
     issue_key = issue_key.upper()
 
-    client = get_client_from_context(ctx)
+    client = engine.create_surface()
 
     # Get page info
-    page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
+    page = client.call("getPageById", {"id": page_id, **{}}, raw=True).body
     page_title = page.get("title", "Unknown")
     page.get("spaceId", "")
 
@@ -145,13 +147,9 @@ def link_to_jira(
     if skip_if_exists:
         # Check remote links on page
         try:
-            links = client.get(
-                f"/rest/api/content/{page_id}",
-                params={"expand": "metadata.properties"},
-                operation="get page metadata",
-            )
+            links = client.call("getPageContentProperties", {"page-id": page_id}, all_pages=True).body
             # Check if JIRA link exists
-            properties = links.get("metadata", {}).get("properties", {})
+            properties = {item["key"]: item.get("value") for item in links}
             for _key, value in properties.items():
                 if issue_key in str(value):
                     if output == "json":
@@ -182,11 +180,7 @@ def link_to_jira(
 
     # Create remote link by adding a JIRA macro to the page
     # First, get current content
-    page_content = client.get(
-        f"/api/v2/pages/{page_id}",
-        params={"body-format": "storage"},
-        operation="get page content",
-    )
+    page_content = client.call("getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True).body
 
     current_body = page_content.get("body", {}).get("storage", {}).get("value", "")
 
@@ -198,7 +192,7 @@ def link_to_jira(
         new_body = current_body + f"\n{link_marker}"
 
         # Update page
-        current_version = page_content.get("version", {}).get("number", 1)
+
         update_data = {
             "id": page_id,
             "title": page_title,
@@ -206,16 +200,9 @@ def link_to_jira(
                 "representation": "storage",
                 "value": new_body,
             },
-            "version": {
-                "number": current_version + 1,
-            },
         }
 
-        client.put(
-            f"/api/v2/pages/{page_id}",
-            json_data=update_data,
-            operation="update page with link",
-        )
+        client.call("updatePage", {"id": page_id}, update_data)
 
     if output == "json":
         click.echo(
@@ -236,7 +223,8 @@ def link_to_jira(
         click.echo(f"  URL: {issue_url}")
         click.echo(f"  Relationship: {relationship}")
 
-    print_success(f"Linked page {page_id} to issue {issue_key}")
+    if output != "json":
+        print_success(f"Linked page {page_id} to issue {issue_key}")
 
 
 @jira.command(name="linked")
@@ -250,7 +238,7 @@ def link_to_jira(
     help="Output format",
 )
 @click.pass_context
-@handle_errors
+@command_errors
 def get_linked_issues(
     ctx: click.Context,
     page_id: str,
@@ -262,14 +250,10 @@ def get_linked_issues(
     """
     page_id = validate_page_id(page_id)
 
-    client = get_client_from_context(ctx)
+    client = engine.create_surface()
 
     # Get page info with content
-    page = client.get(
-        f"/api/v2/pages/{page_id}",
-        params={"body-format": "storage"},
-        operation="get page",
-    )
+    page = client.call("getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True).body
 
     page_title = page.get("title", "Unknown")
     body = page.get("body", {}).get("storage", {}).get("value", "")
@@ -375,7 +359,8 @@ def get_linked_issues(
                     )
                 )
 
-    print_success(f"Found {len(linked_issues)} JIRA reference(s)")
+    if output != "json":
+        print_success(f"Found {len(linked_issues)} JIRA reference(s)")
 
 
 @jira.command(name="embed")
@@ -404,7 +389,7 @@ def get_linked_issues(
     help="Output format",
 )
 @click.pass_context
-@handle_errors
+@command_errors
 def embed_jira_issues(
     ctx: click.Context,
     page_id: str,
@@ -425,18 +410,14 @@ def embed_jira_issues(
     if not jql and not issues:
         raise ValidationError("Either --jql or --issues must be provided")
 
-    client = get_client_from_context(ctx)
+    client = engine.create_surface()
 
     # Get page info
-    page = client.get(
-        f"/api/v2/pages/{page_id}",
-        params={"body-format": "storage"},
-        operation="get page",
-    )
+    page = client.call("getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True).body
 
     page_title = page.get("title", "Unknown")
     current_body = page.get("body", {}).get("storage", {}).get("value", "")
-    current_version = page.get("version", {}).get("number", 1)
+
 
     # Parse issues list
     issue_list = None
@@ -474,16 +455,9 @@ def embed_jira_issues(
             "representation": "storage",
             "value": new_body,
         },
-        "version": {
-            "number": current_version + 1,
-        },
     }
 
-    client.put(
-        f"/api/v2/pages/{page_id}",
-        json_data=update_data,
-        operation="embed jira issues",
-    )
+    client.call("updatePage", {"id": page_id}, update_data)
 
     if output == "json":
         click.echo(
@@ -507,7 +481,8 @@ def embed_jira_issues(
         click.echo(f"  Mode: {mode}")
         click.echo(f"  Max Results: {max_results}")
 
-    print_success(f"Embedded JIRA issues in page {page_id}")
+    if output != "json":
+        print_success(f"Embedded JIRA issues in page {page_id}")
 
 
 @jira.command(name="create-from-page")
@@ -690,7 +665,7 @@ def create_jira_from_page(
     help="Output format",
 )
 @click.pass_context
-@handle_errors
+@command_errors
 def sync_jira_macro(
     ctx: click.Context,
     page_id: str,
@@ -704,18 +679,14 @@ def sync_jira_macro(
     """
     page_id = validate_page_id(page_id)
 
-    client = get_client_from_context(ctx)
+    client = engine.create_surface()
 
     # Get page info
-    page = client.get(
-        f"/api/v2/pages/{page_id}",
-        params={"body-format": "storage"},
-        operation="get page",
-    )
+    page = client.call("getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True).body
 
     page_title = page.get("title", "Unknown")
     current_body = page.get("body", {}).get("storage", {}).get("value", "")
-    current_version = page.get("version", {}).get("number", 1)
+
 
     # Find JIRA macros
     macro_pattern = (
@@ -766,17 +737,9 @@ def sync_jira_macro(
             "representation": "storage",
             "value": updated_body,
         },
-        "version": {
-            "number": current_version + 1,
-            "message": "Sync JIRA macros",
-        },
     }
 
-    client.put(
-        f"/api/v2/pages/{page_id}",
-        json_data=update_data,
-        operation="sync jira macros",
-    )
+    client.call("updatePage", {"id": page_id}, update_data)
 
     if output == "json":
         click.echo(
@@ -799,4 +762,5 @@ def sync_jira_macro(
             click.echo(f"  New JQL: {update_jql}")
         click.echo("  Page refreshed to trigger macro sync.")
 
-    print_success(f"Synced JIRA macros on page {page_id}")
+    if output != "json":
+        print_success(f"Synced JIRA macros on page {page_id}")

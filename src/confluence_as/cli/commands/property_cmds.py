@@ -3,280 +3,27 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from typing import Any
 
 import click
 
 from confluence_as import (
-    NotFoundError,
     ValidationError,
+    engine,
     format_json,
-    format_table,
     handle_errors,
     print_success,
-    print_warning,
     validate_page_id,
 )
-from confluence_as.cli.cli_utils import (
-    get_client_from_context,
-    resolve_output_default,
-)
-
-
-def _get_property_id_by_key(client: Any, page_id: str, key: str) -> str:
-    """Get property ID from key for v2 API operations.
-
-    v2 API uses property-id in path instead of key, so we need to
-    look up the ID by iterating through properties.
-
-    Args:
-        client: Confluence API client
-        page_id: Page ID to get properties from
-        key: Property key to find
-
-    Returns:
-        Property ID as string
-
-    Raises:
-        NotFoundError: If property with given key is not found
-    """
-    for prop in client.paginate(
-        f"/api/v2/pages/{page_id}/properties",
-        operation="get properties for ID lookup",
-    ):
-        if prop.get("key") == key:
-            return prop["id"]
-    raise NotFoundError(f"Property '{key}' not found on page {page_id}")
+from confluence_as.cli.cli_utils import resolve_output_default
+from confluence_as.cli.legacy import command_errors
 
 
 @click.group(name="property")
 def property_cmd() -> None:
     """Manage content properties (custom metadata)."""
     pass
-
-
-@property_cmd.command(name="list")
-@click.argument("page_id")
-@click.option("--prefix", help="Filter properties by key prefix")
-@click.option("--pattern", help="Filter properties by regex pattern")
-@click.option(
-    "--sort",
-    type=click.Choice(["key", "version"]),
-    default="key",
-    help="Sort properties by field",
-)
-@click.option("--expand", help="Comma-separated fields to expand (e.g., version)")
-@click.option("--verbose", "-v", is_flag=True, help="Show detailed information")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def list_properties(
-    ctx: click.Context,
-    page_id: str,
-    prefix: str | None,
-    pattern: str | None,
-    sort: str,
-    expand: str | None,
-    verbose: bool,
-    output: str,
-) -> None:
-    """List all properties on a page."""
-    page_id = validate_page_id(page_id)
-
-    client = get_client_from_context(ctx)
-
-    # Get page info
-    page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
-    page_title = page.get("title", "Unknown")
-
-    # Get properties using v2 API
-    params: dict[str, Any] = {
-        "limit": 100,
-    }
-
-    # Note: v2 API doesn't support expand parameter for properties
-    # The expand parameter is silently ignored
-
-    properties = []
-    for prop in client.paginate(
-        f"/api/v2/pages/{page_id}/properties",
-        params=params,
-        operation="list properties",
-    ):
-        key = prop.get("key", "")
-
-        # Apply filters
-        if prefix and not key.startswith(prefix):
-            continue
-        if pattern:
-            try:
-                if not re.search(pattern, key):
-                    continue
-            except re.error as err:
-                raise ValidationError(f"Invalid regex pattern: {pattern}") from err
-
-        properties.append(prop)
-
-    # Sort properties
-    if sort == "version":
-        properties.sort(
-            key=lambda p: p.get("version", {}).get("number", 0), reverse=True
-        )
-    else:
-        properties.sort(key=lambda p: p.get("key", ""))
-
-    if output == "json":
-        click.echo(
-            format_json(
-                {
-                    "page": {"id": page_id, "title": page_title},
-                    "properties": properties,
-                    "count": len(properties),
-                }
-            )
-        )
-    else:
-        click.echo(f"\nProperties on: {page_title} ({page_id})")
-        click.echo(f"{'=' * 60}\n")
-
-        if not properties:
-            click.echo("No properties found.")
-        else:
-            if verbose:
-                for prop in properties:
-                    click.echo(f"Key: {prop.get('key', 'N/A')}")
-                    click.echo(f"  ID: {prop.get('id', 'N/A')}")
-                    click.echo(
-                        f"  Version: {prop.get('version', {}).get('number', 'N/A')}"
-                    )
-                    value = prop.get("value", {})
-                    if isinstance(value, dict):
-                        click.echo(f"  Value: {json.dumps(value, indent=4)[:200]}")
-                    else:
-                        click.echo(f"  Value: {str(value)[:200]}")
-                    click.echo()
-            else:
-                data = []
-                for prop in properties:
-                    value = prop.get("value", {})
-                    if isinstance(value, dict):
-                        value_str = json.dumps(value)[:30]
-                    else:
-                        value_str = str(value)[:30]
-
-                    data.append(
-                        {
-                            "key": prop.get("key", "")[:30],
-                            "version": prop.get("version", {}).get("number", "N/A"),
-                            "value": value_str,
-                        }
-                    )
-
-                click.echo(
-                    format_table(
-                        data,
-                        columns=["key", "version", "value"],
-                        headers=["Key", "Ver", "Value (preview)"],
-                    )
-                )
-
-    print_success(f"Found {len(properties)} property(ies)")
-
-
-@property_cmd.command(name="get")
-@click.argument("page_id")
-@click.option("--key", "-k", help="Specific property key to retrieve")
-@click.option("--expand", help="Comma-separated fields to expand (e.g., version)")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def get_properties(
-    ctx: click.Context,
-    page_id: str,
-    key: str | None,
-    expand: str | None,
-    output: str,
-) -> None:
-    """Get properties from a page. Optionally filter by key."""
-    page_id = validate_page_id(page_id)
-
-    client = get_client_from_context(ctx)
-
-    # Get page info
-    page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
-    page_title = page.get("title", "Unknown")
-
-    # Note: v2 API doesn't support expand parameter for properties
-
-    if key:
-        # Get specific property by filtering from all properties
-        # v2 API uses property-id in path, not key, so we filter client-side
-        properties = []
-        for prop in client.paginate(
-            f"/api/v2/pages/{page_id}/properties",
-            operation="get properties",
-        ):
-            if prop.get("key") == key:
-                properties = [prop]
-                break
-        if not properties:
-            raise NotFoundError(f"Property '{key}' not found on page {page_id}")
-    else:
-        # Get all properties
-        properties = list(
-            client.paginate(
-                f"/api/v2/pages/{page_id}/properties",
-                operation="get properties",
-            )
-        )
-
-    if output == "json":
-        result: dict[str, Any] = {
-            "page": {"id": page_id, "title": page_title},
-        }
-        if key:
-            result["property"] = properties[0] if properties else None
-        else:
-            result["properties"] = properties
-            result["count"] = len(properties)
-        click.echo(format_json(result))
-    else:
-        click.echo(f"\nProperties on: {page_title} ({page_id})")
-        click.echo(f"{'=' * 60}\n")
-
-        if not properties:
-            click.echo("No properties found.")
-        else:
-            for prop in properties:
-                click.echo(f"Key: {prop.get('key', 'N/A')}")
-                click.echo(f"  ID: {prop.get('id', 'N/A')}")
-                click.echo(f"  Version: {prop.get('version', {}).get('number', 'N/A')}")
-
-                value = prop.get("value", {})
-                if isinstance(value, dict):
-                    click.echo("  Value (JSON):")
-                    click.echo(f"    {json.dumps(value, indent=4)}")
-                else:
-                    click.echo(f"  Value: {value}")
-                click.echo()
-
-    print_success(f"Retrieved {len(properties)} property(ies)")
 
 
 @property_cmd.command(name="set")
@@ -304,6 +51,7 @@ def get_properties(
 )
 @click.pass_context
 @handle_errors
+@command_errors
 def set_property(
     ctx: click.Context,
     page_id: str,
@@ -325,10 +73,8 @@ def set_property(
     if not key:
         raise ValidationError("Property key is required")
 
-    client = get_client_from_context(ctx)
-
-    # Get page info
-    page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
+    surface = engine.create_surface()
+    page = surface.call("getPageById", {"id": page_id}, raw=True).body
     page_title = page.get("title", "Unknown")
 
     # Parse value
@@ -351,49 +97,21 @@ def set_property(
         "value": property_value,
     }
 
-    if update or version is not None:
-        # Get current property to find ID and version
-        property_id = None
-        current_version = 0
-        try:
-            property_id = _get_property_id_by_key(client, page_id, key)
-            # Get the property to find current version
-            for prop in client.paginate(
-                f"/api/v2/pages/{page_id}/properties",
-                operation="get current property version",
-            ):
-                if prop.get("key") == key:
-                    current_version = prop.get("version", {}).get("number", 0)
-                    break
-        except NotFoundError:
-            # Property doesn't exist, will create new
-            pass
-
-        if property_id:
-            # Update existing property using v2 API (uses property-id in path)
-            if version is None:
-                version = current_version + 1
-            property_data["version"] = {"number": version}
-
-            result = client.put(
-                f"/api/v2/pages/{page_id}/properties/{property_id}",
-                json_data=property_data,
-                operation="update property",
-            )
-        else:
-            # Property doesn't exist, create new
-            result = client.post(
-                f"/api/v2/pages/{page_id}/properties",
-                json_data=property_data,
-                operation="create property",
-            )
+    properties = surface.call(
+        "getPageContentProperties", {"page-id": page_id}, all_pages=True
+    ).body
+    existing = next((item for item in properties if item.get("key") == key), None)
+    if existing is None:
+        result = surface.call(
+            "createPageProperty", {"page-id": page_id}, property_data
+        ).body
     else:
-        # Create new property using v2 API
-        result = client.post(
-            f"/api/v2/pages/{page_id}/properties",
-            json_data=property_data,
-            operation="create property",
-        )
+        result = surface.call(
+            "updatePagePropertyById",
+            {"page-id": page_id, "property-id": existing["id"]},
+            property_data,
+            version=version,
+        ).body
 
     if output == "json":
         click.echo(
@@ -416,89 +134,5 @@ def set_property(
         click.echo(f"  Value: {str(value_preview)[:100]}")
 
     action = "Updated" if update else "Set"
-    print_success(f"{action} property '{key}' on page {page_id}")
-
-
-@property_cmd.command(name="delete")
-@click.argument("page_id")
-@click.argument("key")
-@click.option("--force", is_flag=True, help="Delete without confirmation")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def delete_property(
-    ctx: click.Context,
-    page_id: str,
-    key: str,
-    force: bool,
-    output: str,
-) -> None:
-    """Delete a property."""
-    page_id = validate_page_id(page_id)
-
-    if not key:
-        raise ValidationError("Property key is required")
-
-    client = get_client_from_context(ctx)
-
-    # Get page info
-    page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
-    page_title = page.get("title", "Unknown")
-
-    # Get property ID for v2 API (which uses property-id in path, not key)
-    try:
-        property_id = _get_property_id_by_key(client, page_id, key)
-    except NotFoundError:
-        if output == "json":
-            click.echo(
-                format_json(
-                    {
-                        "page": {"id": page_id, "title": page_title},
-                        "key": key,
-                        "deleted": False,
-                        "error": "Property not found",
-                    }
-                )
-            )
-        else:
-            print_warning(f"Property '{key}' not found on page {page_id}")
-        return
-
-    if not force:
-        click.echo(f"\nYou are about to delete property: {key}")
-        click.echo(f"  Page: {page_title} ({page_id})")
-        print_warning("This action cannot be undone!")
-
-        if not click.confirm("\nAre you sure?", default=False):
-            click.echo("Delete cancelled.")
-            return
-
-    # Delete property using v2 API (uses property-id in path)
-    client.delete(
-        f"/api/v2/pages/{page_id}/properties/{property_id}",
-        operation="delete property",
-    )
-
-    if output == "json":
-        click.echo(
-            format_json(
-                {
-                    "page": {"id": page_id, "title": page_title},
-                    "key": key,
-                    "deleted": True,
-                }
-            )
-        )
-    else:
-        click.echo("\nProperty deleted successfully")
-        click.echo(f"  Page: {page_title} ({page_id})")
-        click.echo(f"  Key: {key}")
-
-    print_success(f"Deleted property '{key}' from page {page_id}")
+    if output != "json":
+        print_success(f"{action} property '{key}' on page {page_id}")

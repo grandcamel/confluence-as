@@ -1,12 +1,8 @@
 # page get
 
-Get a Confluence page by ID.
+Removed legacy verb. Use api call getPageById --id PAGE_ID --body-format storage
 
 ## Parameters
 
-- `page_id`: argument (required)
-- `--body`: Include body content in output
-- `--format`: Body format (default: storage)
-- `--output, -o`: Output format
 
 Use --help --full for the complete description; --examples for examples.

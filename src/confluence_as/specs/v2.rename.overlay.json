@@ -1,0 +1,849 @@
+{
+  "overlay": "1.0.0",
+  "info": {
+    "title": "Confluence v2 legacy verb migration",
+    "version": "1.0.0"
+  },
+  "actions": [
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_space_permissions",
+      "target": "$.paths[\"/spaces/{id}/permissions\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin space",
+            "verb": "permissions",
+            "invocation": "api call getSpacePermissionsAssignments --id SPACE_ID --all"
+          }
+        ],
+        "x-as-topic": [
+          "migration"
+        ],
+        "x-as-note": "Legacy verbs now report their generic replacement with exit 2. Read docs/wrapper-verbs.md or invoke the old group for the complete rename hints."
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_attachment_list",
+      "target": "$.paths[\"/pages/{id}/attachments\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "attachment",
+            "verb": "list",
+            "invocation": "api call getPageAttachments --id PAGE_ID --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_attachment_delete",
+      "target": "$.paths[\"/attachments/{id}\"].delete",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "attachment",
+            "verb": "delete",
+            "invocation": "api call deleteAttachment --id ATTACHMENT_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. Comment tags added by JAS-41.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. Comment tags added by JAS-41.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_comment_list",
+      "target": "$.paths[\"/pages/{id}/footer-comments\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "comment",
+            "verb": "list",
+            "invocation": "api call getPageFooterComments --id PAGE_ID --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Rich-text transform belongs to tags. Comment tags added by JAS-41.",
+      "x-as-reason": "Rich-text transform belongs to tags. Comment tags added by JAS-41.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_comment_add",
+      "target": "$.paths[\"/footer-comments\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "comment",
+            "verb": "add",
+            "invocation": "api call createFooterComment --body @comment.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. Comment tags added by JAS-41.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. Comment tags added by JAS-41.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_comment_add_inline",
+      "target": "$.paths[\"/inline-comments\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "comment",
+            "verb": "add-inline",
+            "invocation": "api call createInlineComment --body @comment.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. Comment tags added by JAS-41.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. Comment tags added by JAS-41.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_comment_update",
+      "target": "$.paths[\"/footer-comments/{comment-id}\"].put",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "comment",
+            "verb": "update",
+            "invocation": "api call updateFooterComment --comment-id COMMENT_ID --body @comment.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. Comment tags added by JAS-41.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. Comment tags added by JAS-41.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_comment_delete",
+      "target": "$.paths[\"/footer-comments/{comment-id}\"].delete",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "comment",
+            "verb": "delete",
+            "invocation": "api call deleteFooterComment --comment-id COMMENT_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. Comment tags added by JAS-41.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. Comment tags added by JAS-41.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_comment_resolve",
+      "target": "$.paths[\"/inline-comments/{comment-id}\"].put",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "comment",
+            "verb": "resolve",
+            "invocation": "api call updateInlineComment --comment-id COMMENT_ID --body @resolution.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_hierarchy_children",
+      "target": "$.paths[\"/pages/{id}/children\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "hierarchy",
+            "verb": "children",
+            "invocation": "api call getChildPages --id PAGE_ID --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_hierarchy_ancestors",
+      "target": "$.paths[\"/pages/{id}/ancestors\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "hierarchy",
+            "verb": "ancestors",
+            "invocation": "api call getPageAncestors --id PAGE_ID --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_hierarchy_descendants",
+      "target": "$.paths[\"/pages/{id}/descendants\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "hierarchy",
+            "verb": "descendants",
+            "invocation": "api call getPageDescendants --id PAGE_ID --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_label_list",
+      "target": "$.paths[\"/pages/{id}/labels\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "label",
+            "verb": "list",
+            "invocation": "api call getPageLabels --id PAGE_ID --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Rich-text transform belongs to tags.",
+      "x-as-reason": "Rich-text transform belongs to tags.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_page_get",
+      "target": "$.paths[\"/pages/{id}\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "page",
+            "verb": "get",
+            "invocation": "api call getPageById --id PAGE_ID --body-format storage"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_page_create",
+      "target": "$.paths[\"/pages\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "page",
+            "verb": "create",
+            "invocation": "api call createPage --space DOCS --space-key DOCS --field title=T --field body=@body.md"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_page_update",
+      "target": "$.paths[\"/pages/{id}\"].put",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "page",
+            "verb": "update",
+            "invocation": "api call updatePage --id PAGE_ID --field title=T --field body=@body.md --confirm"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_page_delete",
+      "target": "$.paths[\"/pages/{id}\"].delete",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "page",
+            "verb": "delete",
+            "invocation": "api call deletePage --id PAGE_ID --confirm"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_page_move",
+      "target": "$.paths[\"/pages/{id}\"].put",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "page",
+            "verb": "move",
+            "invocation": "api call updatePage --id PAGE_ID --body @move.json --confirm"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_page_versions",
+      "target": "$.paths[\"/pages/{id}/versions\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "page",
+            "verb": "versions",
+            "invocation": "api call getPageVersions --id PAGE_ID --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Rich-text transform belongs to tags.",
+      "x-as-reason": "Rich-text transform belongs to tags.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_page_blog_get",
+      "target": "$.paths[\"/blogposts/{id}\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "page blog",
+            "verb": "get",
+            "invocation": "api call getBlogPostById --id BLOG_ID --body-format storage"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_page_blog_create",
+      "target": "$.paths[\"/blogposts\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "page blog",
+            "verb": "create",
+            "invocation": "api call createBlogPost --space DOCS --space-key DOCS --field title=T --field body=@body.md"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_permission_space_get",
+      "target": "$.paths[\"/spaces/{id}/permissions\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "permission space",
+            "verb": "get",
+            "invocation": "api call getSpacePermissionsAssignments --id SPACE_ID --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_property_list",
+      "target": "$.paths[\"/pages/{page-id}/properties\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "property",
+            "verb": "list",
+            "invocation": "api call getPageContentProperties --page-id PAGE_ID --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_property_get",
+      "target": "$.paths[\"/pages/{page-id}/properties/{property-id}\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "property",
+            "verb": "get",
+            "invocation": "api call getPageContentPropertiesById --page-id PAGE_ID --property-id PROPERTY_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_property_delete",
+      "target": "$.paths[\"/pages/{page-id}/properties/{property-id}\"].delete",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "property",
+            "verb": "delete",
+            "invocation": "api call deletePagePropertyById --page-id PAGE_ID --property-id PROPERTY_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_space_list",
+      "target": "$.paths[\"/spaces\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "space",
+            "verb": "list",
+            "invocation": "api call getSpaces --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_space_get",
+      "target": "$.paths[\"/spaces\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "space",
+            "verb": "get",
+            "invocation": "api call getSpaces --keys KEY"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_space_create",
+      "target": "$.paths[\"/spaces\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "space",
+            "verb": "create",
+            "invocation": "api call createSpace --body @space.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_space_content",
+      "target": "$.paths[\"/spaces/{id}/pages\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "space",
+            "verb": "content",
+            "invocation": "api call getPagesInSpace --id SPACE_ID --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_space_settings",
+      "target": "$.paths[\"/spaces\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "space",
+            "verb": "settings",
+            "invocation": "api call getSpaces --keys KEY"
+          }
+        ]
+      }
+    },
+    {
+      "description": "JAS-41 found missing comment body conversion coverage; use the pinned comment body envelope.",
+      "x-as-reason": "JAS-41 found missing comment body conversion coverage; use the pinned comment body envelope.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_richtext_createFooterComment",
+      "target": "$.paths[\"/footer-comments\"].post",
+      "update": {
+        "x-as-richtext": [
+          {
+            "request": {
+              "path": "/body",
+              "shape": "envelope"
+            },
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        }
+      }
+    },
+    {
+      "description": "JAS-41 found missing comment body conversion coverage; use the pinned comment body envelope.",
+      "x-as-reason": "JAS-41 found missing comment body conversion coverage; use the pinned comment body envelope.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_richtext_createInlineComment",
+      "target": "$.paths[\"/inline-comments\"].post",
+      "update": {
+        "x-as-richtext": [
+          {
+            "request": {
+              "path": "/body",
+              "shape": "envelope"
+            },
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        }
+      }
+    },
+    {
+      "description": "JAS-41 found missing comment body conversion coverage; use the pinned comment body envelope.",
+      "x-as-reason": "JAS-41 found missing comment body conversion coverage; use the pinned comment body envelope.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_richtext_updateFooterComment",
+      "target": "$.paths[\"/footer-comments/{comment-id}\"].put",
+      "update": {
+        "x-as-richtext": [
+          {
+            "request": {
+              "path": "/body",
+              "shape": "envelope"
+            },
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        }
+      }
+    },
+    {
+      "description": "JAS-41 found missing comment body conversion coverage; use the pinned comment body envelope.",
+      "x-as-reason": "JAS-41 found missing comment body conversion coverage; use the pinned comment body envelope.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_richtext_updateInlineComment",
+      "target": "$.paths[\"/inline-comments/{comment-id}\"].put",
+      "update": {
+        "x-as-richtext": [
+          {
+            "request": {
+              "path": "/body",
+              "shape": "envelope"
+            },
+            "representations": {
+              "storage": {
+                "converter": "storage",
+                "encoding": "string"
+              },
+              "atlas_doc_format": {
+                "converter": "adf",
+                "encoding": "json-string"
+              }
+            }
+          }
+        ],
+        "x-as-representation": {
+          "default": "storage",
+          "alternatives": [
+            "atlas_doc_format"
+          ]
+        }
+      }
+    },
+    {
+      "description": "JAS-41 found missing automatic version coverage; derive the current version from the pinned read operation.",
+      "x-as-reason": "JAS-41 found missing automatic version coverage; derive the current version from the pinned read operation.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_version_updateFooterComment",
+      "target": "$.paths[\"/footer-comments/{comment-id}\"].put",
+      "update": {
+        "x-as-version": {
+          "operationId": "getFooterCommentById",
+          "parameters": {
+            "comment-id": {
+              "in": "path",
+              "name": "comment-id"
+            }
+          },
+          "responsePath": "/version/number",
+          "target": {
+            "in": "body",
+            "path": "/version/number"
+          },
+          "increment": 1
+        }
+      }
+    },
+    {
+      "description": "JAS-41 found missing automatic version coverage; derive the current version from the pinned read operation.",
+      "x-as-reason": "JAS-41 found missing automatic version coverage; derive the current version from the pinned read operation.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_version_updateInlineComment",
+      "target": "$.paths[\"/inline-comments/{comment-id}\"].put",
+      "update": {
+        "x-as-version": {
+          "operationId": "getInlineCommentById",
+          "parameters": {
+            "comment-id": {
+              "in": "path",
+              "name": "comment-id"
+            }
+          },
+          "responsePath": "/version/number",
+          "target": {
+            "in": "body",
+            "path": "/version/number"
+          },
+          "increment": 1
+        }
+      }
+    },
+    {
+      "description": "JAS-41 found missing automatic version coverage; derive the current version from the pinned read operation.",
+      "x-as-reason": "JAS-41 found missing automatic version coverage; derive the current version from the pinned read operation.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_version_updatePagePropertyById",
+      "target": "$.paths[\"/pages/{page-id}/properties/{property-id}\"].put",
+      "update": {
+        "x-as-version": {
+          "operationId": "getPageContentPropertiesById",
+          "parameters": {
+            "page-id": {
+              "in": "path",
+              "name": "page-id"
+            },
+            "property-id": {
+              "in": "path",
+              "name": "property-id"
+            }
+          },
+          "responsePath": "/version/number",
+          "target": {
+            "in": "body",
+            "path": "/version/number"
+          },
+          "increment": 1
+        }
+      }
+    }
+  ]
+}

@@ -5,6 +5,7 @@ Use help TOPIC.
 - auth
 - errors
 - fields
+- migration
 - paging
 - permissions
 - project-types

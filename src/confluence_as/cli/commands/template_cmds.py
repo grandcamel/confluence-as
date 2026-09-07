@@ -9,24 +9,16 @@ import click
 
 from confluence_as import (
     ValidationError,
+    engine,
     format_json,
     format_table,
     handle_errors,
-    markdown_to_xhtml,
     print_success,
     validate_limit,
     validate_space_key,
-    xhtml_to_markdown,
 )
-from confluence_as.cli.cli_utils import (
-    get_client_from_context,
-    resolve_output_default,
-)
-from confluence_as.cli.helpers import (
-    get_space_by_key,
-    is_markdown_file,
-    read_file_content,
-)
+from confluence_as.cli.cli_utils import resolve_output_default
+from confluence_as.cli.legacy import command_errors
 
 
 @click.group()
@@ -58,6 +50,7 @@ def template() -> None:
 )
 @click.pass_context
 @handle_errors
+@command_errors
 def list_templates(
     ctx: click.Context,
     space: str | None,
@@ -72,63 +65,26 @@ def list_templates(
 
     limit = validate_limit(limit, max_value=250)
 
-    client = get_client_from_context(ctx)
+    surface = engine.create_surface()
 
     if blueprints:
-        # List blueprints using v1 API
-        params: dict[str, Any] = {
-            "limit": min(limit, 25),
-            "expand": "description,body.storage",
-        }
-
+        params: dict[str, Any] = {"limit": min(limit, 25)}
         if space:
             params["spaceKey"] = space
-
-        templates = []
-        for blueprint in client.paginate(
-            "/rest/api/content/blueprint/instance",
-            params=params,
-            operation="list blueprints",
-        ):
-            templates.append(blueprint)
-            if len(templates) >= limit:
-                break
+        templates = surface.call(
+            "getBlueprintTemplates", params, all_pages=True, limit=limit
+        ).body
     else:
-        # List space templates using v1 API
-        params = {
-            "limit": min(limit, 25),
-            "expand": "body.storage",
-        }
-
+        params = {"limit": min(limit, 25)}
         if space:
-            templates = []
-            for tmpl in client.paginate(
-                f"/rest/api/template/page?spaceKey={space}",
-                params=params,
-                operation="list space templates",
-            ):
-                if (
-                    template_type is None
-                    or tmpl.get("templateType", "").lower() == template_type
-                ):
-                    templates.append(tmpl)
-                if len(templates) >= limit:
-                    break
-        else:
-            # List global templates
-            templates = []
-            for tmpl in client.paginate(
-                "/rest/api/template/page",
-                params=params,
-                operation="list global templates",
-            ):
-                if (
-                    template_type is None
-                    or tmpl.get("templateType", "").lower() == template_type
-                ):
-                    templates.append(tmpl)
-                if len(templates) >= limit:
-                    break
+            params["spaceKey"] = space
+        templates = surface.call(
+            "getContentTemplates", params, all_pages=True, limit=limit
+        ).body
+    if template_type:
+        templates = [
+            t for t in templates if t.get("templateType", "").lower() == template_type
+        ]
 
     if output == "json":
         click.echo(
@@ -172,322 +128,8 @@ def list_templates(
                 )
             )
 
-    print_success(f"Found {len(templates)} template(s)")
-
-
-@template.command(name="get")
-@click.argument("template_id")
-@click.option("--body", is_flag=True, help="Include body content in output")
-@click.option(
-    "--format",
-    "body_format",
-    type=click.Choice(["storage", "markdown"]),
-    default="storage",
-    help="Body format (storage or markdown)",
-)
-@click.option("--blueprint", is_flag=True, help="Get blueprint instead of template")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def get_template(
-    ctx: click.Context,
-    template_id: str,
-    body: bool,
-    body_format: str,
-    blueprint: bool,
-    output: str,
-) -> None:
-    """Get a template by ID."""
-    if not template_id:
-        raise ValidationError("Template ID is required")
-
-    client = get_client_from_context(ctx)
-
-    if blueprint:
-        # Get blueprint
-        tmpl = client.get(
-            f"/rest/api/content/blueprint/instance/{template_id}",
-            params={"expand": "body.storage,description"},
-            operation="get blueprint",
-        )
-    else:
-        # Get template
-        tmpl = client.get(
-            f"/rest/api/template/{template_id}",
-            params={"expand": "body.storage"},
-            operation="get template",
-        )
-
-    # Get body content if requested
-    body_content = None
-    if body:
-        body_data = tmpl.get("body", {}).get("storage", {})
-        body_content = body_data.get("value", "")
-        if body_format == "markdown" and body_content:
-            body_content = xhtml_to_markdown(body_content)
-
-    if output == "json":
-        result: dict[str, Any] = {
-            "template": tmpl,
-        }
-        if body_content is not None:
-            result["body"] = body_content
-            result["bodyFormat"] = body_format
-        click.echo(format_json(result))
-    else:
-        name = tmpl.get("name", tmpl.get("title", "Unknown"))
-        click.echo(f"\nTemplate: {name}")
-        click.echo(f"{'=' * 60}\n")
-
-        click.echo(f"ID: {tmpl.get('templateId', tmpl.get('id', 'N/A'))}")
-        click.echo(f"Name: {name}")
-        click.echo(f"Type: {tmpl.get('templateType', 'page')}")
-
-        description = tmpl.get("description", "")
-        if description:
-            click.echo(f"Description: {description}")
-
-        if body and body_content:
-            click.echo(f"\nBody ({body_format}):")
-            click.echo("-" * 40)
-            click.echo(body_content[:2000])
-            if len(body_content) > 2000:
-                click.echo(f"\n... (truncated, {len(body_content)} chars total)")
-
-    print_success("Retrieved template")
-
-
-@template.command(name="create")
-@click.option("--name", required=True, help="Template name")
-@click.option("--space", "-s", required=True, help="Space key for the template")
-@click.option("--description", help="Template description")
-@click.option("--content", help="Template body content (HTML/XHTML)")
-@click.option(
-    "--file",
-    "content_file",
-    type=click.Path(exists=True, path_type=Path),  # type: ignore[type-var]
-    help="File with template content",
-)
-@click.option("--labels", help="Comma-separated labels")
-@click.option(
-    "--type",
-    "-t",
-    "template_type",
-    type=click.Choice(["page", "blogpost"]),
-    default="page",
-    help="Template type (default: page)",
-)
-@click.option("--blueprint-id", help="Base on existing blueprint")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def create_template(
-    ctx: click.Context,
-    name: str,
-    space: str,
-    description: str | None,
-    content: str | None,
-    content_file: Path | None,
-    labels: str | None,
-    template_type: str,
-    blueprint_id: str | None,
-    output: str,
-) -> None:
-    """Create a new template."""
-    space = validate_space_key(space)
-
-    if not content and not content_file:
-        raise ValidationError("Either --content or --file is required")
-    if content and content_file:
-        raise ValidationError("Cannot specify both --content and --file")
-
-    client = get_client_from_context(ctx)
-
-    # Get space info
-    get_space_by_key(client, space)
-
-    # Read content
-    body_content = content
-    if content_file:
-        body_content = read_file_content(content_file)
-        if is_markdown_file(content_file):
-            body_content = markdown_to_xhtml(body_content)
-
-    # Build template data
-    template_data: dict[str, Any] = {
-        "name": name,
-        "templateType": template_type,
-        "body": {
-            "storage": {
-                "value": body_content or "",
-                "representation": "storage",
-            }
-        },
-        "space": {
-            "key": space,
-        },
-    }
-
-    if description:
-        template_data["description"] = description
-
-    if labels:
-        label_list = [lbl.strip() for lbl in labels.split(",") if lbl.strip()]
-        template_data["labels"] = [{"name": lbl} for lbl in label_list]
-
-    if blueprint_id:
-        template_data["referencedBlueprint"] = {"moduleKey": blueprint_id}
-
-    # Create template using v1 API
-    result = client.post(
-        "/rest/api/template",
-        json_data=template_data,
-        operation="create template",
-    )
-
-    if output == "json":
-        click.echo(format_json(result))
-    else:
-        click.echo("\nTemplate created successfully")
-        click.echo(f"  ID: {result.get('templateId', 'N/A')}")
-        click.echo(f"  Name: {name}")
-        click.echo(f"  Space: {space}")
-        click.echo(f"  Type: {template_type}")
-
-    print_success(f"Created template '{name}' in space {space}")
-
-
-@template.command(name="update")
-@click.argument("template_id")
-@click.option("--name", help="New template name")
-@click.option("--description", help="New template description")
-@click.option("--content", help="New template body content (HTML/XHTML)")
-@click.option(
-    "--file",
-    "content_file",
-    type=click.Path(exists=True, path_type=Path),  # type: ignore[type-var]
-    help="File with new content",
-)
-@click.option("--add-labels", help="Comma-separated labels to add")
-@click.option("--remove-labels", help="Comma-separated labels to remove")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def update_template(
-    ctx: click.Context,
-    template_id: str,
-    name: str | None,
-    description: str | None,
-    content: str | None,
-    content_file: Path | None,
-    add_labels: str | None,
-    remove_labels: str | None,
-    output: str,
-) -> None:
-    """Update an existing template."""
-    if not template_id:
-        raise ValidationError("Template ID is required")
-
-    if content and content_file:
-        raise ValidationError("Cannot specify both --content and --file")
-
-    client = get_client_from_context(ctx)
-
-    # Get current template
-    current = client.get(
-        f"/rest/api/template/{template_id}",
-        params={"expand": "body.storage,labels"},
-        operation="get template",
-    )
-
-    # Build update data
-    update_data: dict[str, Any] = {
-        "templateId": template_id,
-    }
-
-    if name:
-        update_data["name"] = name
-    else:
-        update_data["name"] = current.get("name", "")
-
-    if description is not None:
-        update_data["description"] = description
-
-    # Handle content
-    if content:
-        update_data["body"] = {
-            "storage": {
-                "value": content,
-                "representation": "storage",
-            }
-        }
-    elif content_file:
-        body_content = read_file_content(content_file)
-        if is_markdown_file(content_file):
-            body_content = markdown_to_xhtml(body_content)
-        update_data["body"] = {
-            "storage": {
-                "value": body_content,
-                "representation": "storage",
-            }
-        }
-
-    # Handle labels
-    current_labels = [
-        lbl.get("name") for lbl in current.get("labels", {}).get("results", [])
-    ]
-
-    if add_labels:
-        for lbl_name in add_labels.split(","):
-            lbl_name = lbl_name.strip()
-            if lbl_name and lbl_name not in current_labels:
-                current_labels.append(lbl_name)
-
-    if remove_labels:
-        for lbl_name in remove_labels.split(","):
-            lbl_name = lbl_name.strip()
-            if lbl_name in current_labels:
-                current_labels.remove(lbl_name)
-
-    if add_labels or remove_labels:
-        update_data["labels"] = [{"name": lbl} for lbl in current_labels]
-
-    # Update template
-    result = client.put(
-        f"/rest/api/template/{template_id}",
-        json_data=update_data,
-        operation="update template",
-    )
-
-    if output == "json":
-        click.echo(format_json(result))
-    else:
-        click.echo("\nTemplate updated successfully")
-        click.echo(f"  ID: {template_id}")
-        click.echo(f"  Name: {result.get('name', name or current.get('name'))}")
-
-    print_success(f"Updated template {template_id}")
+    if output != "json":
+        print_success(f"Found {len(templates)} template(s)")
 
 
 @template.command(name="create-from")
@@ -518,6 +160,7 @@ def update_template(
 )
 @click.pass_context
 @handle_errors
+@command_errors
 def create_from_template(
     ctx: click.Context,
     template_id: str | None,
@@ -537,54 +180,54 @@ def create_from_template(
         raise ValidationError("Either --template or --blueprint is required")
     if template_id and blueprint_id:
         raise ValidationError("Cannot specify both --template and --blueprint")
+    if blueprint_id:
+        raise ValueError(
+            "Blueprint application is not supported by an indexed operation"
+        )
     if content and content_file:
         raise ValidationError("Cannot specify both --content and --file")
 
-    client = get_client_from_context(ctx)
-
-    # Get space info
-    space_info = get_space_by_key(client, space)
-    space_id = space_info.get("id")
+    surface = engine.create_surface()
 
     # Get template content if not overriding
     body_content = content
+    stored_body = False
     if content_file:
-        body_content = read_file_content(content_file)
-        if is_markdown_file(content_file):
-            body_content = markdown_to_xhtml(body_content)
+        body_content = content_file.read_text(encoding="utf-8")
 
     if not body_content:
         if template_id:
-            tmpl = client.get(
-                f"/rest/api/template/{template_id}",
-                params={"expand": "body.storage"},
-                operation="get template",
-            )
-            body_content = tmpl.get("body", {}).get("storage", {}).get("value", "")
-        elif blueprint_id:
-            # Blueprint content needs to be fetched differently
-            body_content = ""  # Start with empty, blueprint applied on creation
+            tmpl = surface.call(
+                "getContentTemplate", {"contentTemplateId": template_id}
+            ).body
+            storage = tmpl.get("body", {}).get("storage", {})
+            body_content = {
+                "representation": "storage",
+                "value": storage.get("value", "") if isinstance(storage, dict) else "",
+            }
+            stored_body = True
 
     # Build page data for v2 API
     page_data: dict[str, Any] = {
-        "spaceId": space_id,
         "title": title,
         "status": "current",
-        "body": {
-            "representation": "storage",
-            "value": body_content or "",
-        },
+        "body": body_content
+        if not stored_body
+        else body_content or {"representation": "storage", "value": ""},
     }
 
     if parent_id:
         page_data["parentId"] = parent_id
 
     # Create page
-    result = client.post(
-        "/api/v2/pages",
-        json_data=page_data,
-        operation="create page from template",
-    )
+    result = surface.call(
+        "createPage",
+        {},
+        page_data,
+        aliases={"space-key": space},
+        scope_argv_identity=space,
+        raw=True,
+    ).body
 
     new_page_id = result.get("id")
 
@@ -592,11 +235,7 @@ def create_from_template(
     if labels and new_page_id:
         label_list = [{"name": lbl.strip()} for lbl in labels.split(",") if lbl.strip()]
         if label_list:
-            client.post(
-                f"/api/v2/pages/{new_page_id}/labels",
-                json_data=label_list,
-                operation="add labels",
-            )
+            surface.call("addLabelsToContent", {"id": new_page_id}, label_list)
 
     if output == "json":
         click.echo(
@@ -618,4 +257,5 @@ def create_from_template(
         if blueprint_id:
             click.echo(f"  Blueprint: {blueprint_id}")
 
-    print_success(f"Created page '{title}' from template in space {space}")
+    if output != "json":
+        print_success(f"Created page '{title}' from template in space {space}")

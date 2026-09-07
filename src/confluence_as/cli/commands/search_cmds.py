@@ -14,19 +14,16 @@ from assistant_skills_lib import validate_file_path_secure
 
 from confluence_as import (
     ValidationError,
+    engine,
     format_json,
-    format_table,
-    handle_errors,
     print_info,
     print_success,
-    print_warning,
     validate_limit,
-    validate_space_key,
 )
 from confluence_as.cli.cli_utils import (
-    get_client_from_context,
     resolve_output_default,
 )
+from confluence_as.cli.legacy import command_errors as handle_errors
 
 # CQL field and operator reference data
 CQL_FIELDS = [
@@ -200,251 +197,6 @@ def search() -> None:
     pass
 
 
-@search.command(name="cql")
-@click.argument("cql")
-@click.option(
-    "--limit", "-l", type=int, default=25, help="Maximum results (default: 25)"
-)
-@click.option("--show-excerpts", is_flag=True, help="Show content excerpts")
-@click.option("--show-labels", is_flag=True, help="Show content labels")
-@click.option("--show-ancestors", is_flag=True, help="Show ancestor pages")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def cql_search(
-    ctx: click.Context,
-    cql: str,
-    limit: int,
-    show_excerpts: bool,
-    show_labels: bool,
-    show_ancestors: bool,
-    output: str,
-) -> None:
-    """Execute CQL queries against Confluence."""
-    if not cql or not cql.strip():
-        raise ValidationError("CQL query is required")
-
-    limit = validate_limit(limit, max_value=250)
-
-    client = get_client_from_context(ctx)
-
-    params: dict[str, Any] = {
-        "cql": cql.strip(),
-        "limit": min(limit, 25),  # API max per request
-    }
-
-    expand = []
-    if show_excerpts:
-        expand.append("content.body.view")
-    if show_labels:
-        expand.append("content.metadata.labels")
-    if show_ancestors:
-        expand.append("content.ancestors")
-
-    if expand:
-        params["expand"] = ",".join(expand)
-
-    results = []
-    for result in client.paginate(
-        "/rest/api/search", params=params, operation="CQL search"
-    ):
-        results.append(result)
-        if len(results) >= limit:
-            break
-
-    # Add to history
-    _add_to_history(cql.strip(), len(results))
-
-    if output == "json":
-        click.echo(
-            format_json(
-                {
-                    "query": cql,
-                    "count": len(results),
-                    "results": results,
-                }
-            )
-        )
-    else:
-        click.echo(f"\nCQL: {cql}")
-        click.echo(f"{'=' * 60}\n")
-
-        if not results:
-            click.echo("No results found.")
-        else:
-            data = []
-            for r in results:
-                formatted = _format_search_result(r, show_excerpts)
-                row = {
-                    "id": formatted["id"],
-                    "title": formatted["title"][:40],
-                    "type": formatted["type"],
-                    "space": formatted["space"],
-                }
-
-                if show_labels:
-                    content = r.get("content", r)
-                    labels = (
-                        content.get("metadata", {}).get("labels", {}).get("results", [])
-                    )
-                    row["labels"] = ", ".join(lbl.get("name", "") for lbl in labels[:3])
-
-                data.append(row)
-
-            columns = ["id", "title", "type", "space"]
-            headers = ["ID", "Title", "Type", "Space"]
-
-            if show_labels:
-                columns.append("labels")
-                headers.append("Labels")
-
-            click.echo(format_table(data, columns=columns, headers=headers))
-
-            if show_excerpts:
-                click.echo("\n--- Excerpts ---\n")
-                for r in results[:5]:  # Show first 5 excerpts
-                    formatted = _format_search_result(r, True)
-                    if formatted.get("excerpt"):
-                        click.echo(f"[{formatted['id']}] {formatted['title']}")
-                        click.echo(f"    {formatted['excerpt']}\n")
-
-    print_success(f"Found {len(results)} result(s)")
-
-
-@search.command(name="content")
-@click.argument("query")
-@click.option("--space", "-s", help="Limit to specific space")
-@click.option("--type", "content_type", help="Content type (page, blogpost)")
-@click.option("--limit", "-l", type=int, default=25, help="Maximum results")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def search_content(
-    ctx: click.Context,
-    query: str,
-    space: str | None,
-    content_type: str | None,
-    limit: int,
-    output: str,
-) -> None:
-    """Search content by text."""
-    if not query or not query.strip():
-        raise ValidationError("Search query is required")
-
-    if space:
-        space = validate_space_key(space)
-
-    if content_type and content_type.lower() not in ("page", "blogpost", "all"):
-        raise ValidationError("Content type must be 'page', 'blogpost', or 'all'")
-
-    limit = validate_limit(limit, max_value=250)
-
-    # Build CQL query
-    cql = _build_cql_from_text(query.strip(), space, content_type)
-
-    client = get_client_from_context(ctx)
-
-    params: dict[str, Any] = {
-        "cql": cql,
-        "limit": min(limit, 25),
-    }
-
-    results = []
-    for result in client.paginate(
-        "/rest/api/search", params=params, operation="content search"
-    ):
-        results.append(result)
-        if len(results) >= limit:
-            break
-
-    if output == "json":
-        click.echo(
-            format_json(
-                {
-                    "query": query,
-                    "cql": cql,
-                    "count": len(results),
-                    "results": results,
-                }
-            )
-        )
-    else:
-        click.echo(f"\nSearch: {query}")
-        if space:
-            click.echo(f"Space: {space}")
-        click.echo(f"{'=' * 60}\n")
-
-        if not results:
-            click.echo("No results found.")
-        else:
-            data = []
-            for r in results:
-                formatted = _format_search_result(r)
-                data.append(
-                    {
-                        "id": formatted["id"],
-                        "title": formatted["title"][:50],
-                        "type": formatted["type"],
-                        "space": formatted["space"],
-                    }
-                )
-
-            click.echo(
-                format_table(
-                    data,
-                    columns=["id", "title", "type", "space"],
-                    headers=["ID", "Title", "Type", "Space"],
-                )
-            )
-
-    print_success(f"Found {len(results)} result(s)")
-
-
-@search.command(name="validate")
-@click.argument("cql")
-@click.pass_context
-@handle_errors
-def cql_validate(ctx: click.Context, cql: str) -> None:
-    """Validate a CQL query syntax."""
-    if not cql or not cql.strip():
-        raise ValidationError("CQL query is required")
-
-    client = get_client_from_context(ctx)
-
-    # Try to execute the query with limit 0 to validate syntax
-    try:
-        client.get(
-            "/rest/api/search",
-            params={"cql": cql.strip(), "limit": 0},
-            operation="validate CQL",
-        )
-        print_success(f"CQL query is valid: {cql}")
-    except Exception as e:
-        error_msg = str(e)
-        print_warning(f"CQL query validation failed: {error_msg}")
-
-        # Provide suggestions
-        click.echo("\n--- CQL Tips ---")
-        click.echo('• Use double quotes for values: space = "DOCS"')
-        click.echo('• Use ~ for text search: text ~ "search term"')
-        click.echo("• Dates format: YYYY-MM-DD or functions like startOfWeek()")
-        click.echo("\nRun 'confluence-as search suggest --fields' for available fields")
-
-
 @search.command(name="suggest")
 @click.option("--fields", is_flag=True, help="List all CQL fields")
 @click.option("--field", help="Get values for a specific field")
@@ -483,12 +235,8 @@ def cql_suggest(
         # Get values for specific field
         field_lower = field.lower()
         if field_lower == "space":
-            client = get_client_from_context(ctx)
-            spaces = list(
-                client.paginate(
-                    "/api/v2/spaces", params={"limit": 25}, operation="get spaces"
-                )
-            )
+            client = engine.create_surface()
+            spaces = list(client.call("getSpaces", {"limit": 25}, all_pages=True).body)
             result["space_values"] = [s.get("key") for s in spaces]
         elif field_lower == "type":
             result["type_values"] = CONTENT_TYPES
@@ -533,7 +281,8 @@ def cql_suggest(
             for fn in CQL_FUNCTIONS:
                 click.echo(f"  {fn['function']:20} - {fn['description']}")
 
-    print_success("CQL suggestions retrieved")
+    if output != "json":
+        print_success("CQL suggestions retrieved")
 
 
 @search.command(name="export")
@@ -575,7 +324,7 @@ def export_results(
     default_columns = ["id", "title", "type", "space", "created", "lastModified"]
     selected_columns = columns.split(",") if columns else default_columns
 
-    client = get_client_from_context(ctx)
+    client = engine.create_surface()
 
     params: dict[str, Any] = {
         "cql": cql.strip(),
@@ -586,9 +335,7 @@ def export_results(
     results = []
     print_info(f"Executing query: {cql}")
 
-    for result in client.paginate(
-        "/rest/api/search", params=params, operation="export search"
-    ):
+    for result in client.call("searchByCQL", params, all_pages=True).body:
         content = result.get("content", result)
         row = {
             "id": content.get("id", ""),
@@ -690,7 +437,7 @@ def streaming_export(
     default_columns = ["id", "title", "type", "space", "created", "lastModified"]
     selected_columns = columns.split(",") if columns else default_columns
 
-    client = get_client_from_context(ctx)
+    client = engine.create_surface()
 
     # Note: 'start' parameter is deprecated (removed July 2020).
     # The paginate() method handles cursor-based pagination automatically.
@@ -706,9 +453,7 @@ def streaming_export(
 
     print_info(f"Starting streaming export: {cql}")
 
-    for result in client.paginate(
-        "/rest/api/search", params=params, operation="stream export"
-    ):
+    for result in client.call("searchByCQL", params, all_pages=True).body:
         total_processed += 1
 
         # Skip already-processed items when resuming
@@ -810,7 +555,8 @@ def history_list(limit: int | None, output: str) -> None:
                     click.echo("       ...")
                 click.echo()
 
-    print_success(f"Showing {len(history)} query(ies)")
+    if output != "json":
+        print_success(f"Showing {len(history)} query(ies)")
 
 
 @history_group.command(name="search")
@@ -845,7 +591,8 @@ def history_search(keyword: str, output: str) -> None:
                 click.echo(f"      {entry.get('query', '')}")
                 click.echo()
 
-    print_success(f"Found {len(matches)} matching query(ies)")
+    if output != "json":
+        print_success(f"Found {len(matches)} matching query(ies)")
 
 
 @history_group.command(name="show")
@@ -877,7 +624,8 @@ def history_show(index: int, output: str) -> None:
         click.echo("\nQuery:")
         click.echo(f"  {entry.get('query', '')}")
 
-    print_success(f"Query #{index} retrieved")
+    if output != "json":
+        print_success(f"Query #{index} retrieved")
 
 
 @history_group.command(name="clear")
@@ -948,114 +696,3 @@ def history_cleanup(days: int) -> None:
     removed = original_count - len(history)
 
     print_success(f"Removed {removed} entries older than {days} days")
-
-
-@search.command(name="interactive")
-@click.option("--space", help="Pre-filter by space key")
-@click.option(
-    "--type",
-    "content_type",
-    type=click.Choice(["page", "blogpost", "comment", "attachment"]),
-    help="Pre-filter by content type",
-)
-@click.option(
-    "--limit", "-l", type=int, default=25, help="Maximum results (default: 25)"
-)
-@click.option("--execute", is_flag=True, help="Execute query after building")
-@click.pass_context
-@handle_errors
-def cql_interactive(
-    ctx: click.Context,
-    space: str | None,
-    content_type: str | None,
-    limit: int,
-    execute: bool,
-) -> None:
-    """Start interactive CQL query builder."""
-    parts = []
-
-    if space:
-        space = validate_space_key(space)
-        parts.append(f'space = "{space}"')
-
-    if content_type:
-        parts.append(f"type = {content_type}")
-
-    click.echo("\n--- Interactive CQL Builder ---\n")
-    click.echo("Build your query step by step. Enter 'done' when finished.\n")
-
-    if parts:
-        click.echo(f"Starting query: {' AND '.join(parts)}\n")
-
-    # Prompt for additional conditions
-    while True:
-        click.echo(
-            "Available fields: space, title, text, type, label, creator, created, lastModified"
-        )
-        field = click.prompt("Enter field (or 'done' to finish)", default="done")
-
-        if field.lower() == "done":
-            break
-
-        if field.lower() not in [f["name"] for f in CQL_FIELDS]:
-            print_warning(f"Unknown field: {field}")
-            continue
-
-        operator = click.prompt("Enter operator (=, !=, ~, >, <, >=, <=)", default="=")
-        value = click.prompt("Enter value")
-
-        # Quote string values
-        if field.lower() in ("space", "title", "text", "label", "creator"):
-            value = f'"{value}"'
-
-        parts.append(f"{field} {operator} {value}")
-        click.echo(f"\nCurrent query: {' AND '.join(parts)}\n")
-
-    if not parts:
-        click.echo("No query built.")
-        return
-
-    cql = " AND ".join(parts)
-    click.echo("\n--- Final Query ---")
-    click.echo(f"\n  {cql}\n")
-
-    if execute or click.confirm("Execute this query?", default=True):
-        # Call the cql_search function with the built query
-        client = get_client_from_context(ctx)
-
-        params = {"cql": cql, "limit": limit}
-        results = list(
-            client.paginate(
-                "/rest/api/search", params=params, operation="interactive search"
-            )
-        )
-
-        _add_to_history(cql, len(results))
-
-        click.echo(f"\n--- Results ({len(results)}) ---\n")
-
-        if results:
-            data = []
-            for r in results[:limit]:
-                formatted = _format_search_result(r)
-                data.append(
-                    {
-                        "id": formatted["id"],
-                        "title": formatted["title"][:40],
-                        "type": formatted["type"],
-                        "space": formatted["space"],
-                    }
-                )
-
-            click.echo(
-                format_table(
-                    data,
-                    columns=["id", "title", "type", "space"],
-                    headers=["ID", "Title", "Type", "Space"],
-                )
-            )
-
-        print_success(f"Found {len(results)} result(s)")
-    else:
-        click.echo("Query not executed. Copy and run later:")
-        click.echo(f'\n  confluence-as search cql "{cql}"')

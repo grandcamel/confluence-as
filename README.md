@@ -330,8 +330,8 @@ one bounded space lookup must verify that id before the mutation. Space-filtered
 lists require `--space-id`; page-id calls resolve metadata before checking the
 space. Local refusals exit 4. Site-level calls such as `getSpaces` require explicit
 `CONFLUENCE_ALLOW_SITE_OPERATIONS=1` (or `confluence.allow_site_operations`). This
-policy applies to the API group only; untagged operations and legacy verbs retain
-their existing behavior. See as-engine's `docs/guard.md` for the exact 82-operation
+policy applies to tagged API calls and surviving wrapper workflows; untagged
+operations and the two deferred legacy implementations keep existing behavior. See as-engine's `docs/guard.md` for the exact 82-operation
 v2 coverage, untagged list, metadata-read exception, and request counts; the examples
 below require the corresponding scope flags and settings for tagged operations.
 
@@ -373,8 +373,7 @@ read content. Copy a mention placeholder into a Markdown file and select its sam
 representation on the next write to preserve its node. Missing files and conflicting
 representation options fail before lookups; `--raw` still converts write input.
 An unseeded schema-generated responder body is not a valid rich-text document;
-offline rich-text tests seed explicit storage/ADF responses. Legacy wrapper helpers
-remain unchanged.
+offline rich-text tests seed explicit storage/ADF responses. Surviving wrapper writes use the same tagged conversion and version pipeline.
 
 Calls emit JSON; `--format table|markdown` renders the top-level result.
 Search defaults to a table and supports `--format json`; describe defaults to
@@ -393,7 +392,8 @@ HTTP uses the existing configuration chain (`CONFLUENCE_SITE_URL`,
 `CONFLUENCE_EMAIL`, `CONFLUENCE_API_TOKEN`), timeouts, TLS settings and retry settings.
 The engine supplies pooled HTTP with 429/5xx backoff and Retry-After support.
 Confluence's existing domain error mapper is reused. JSON bodies are supported;
-non-JSON media types are explicitly refused. Existing commands remain available.
+non-JSON media types are explicitly refused pending JAS-61. Legacy single-operation
+commands now return migration hints; workflow survivors remain available.
 
 Offline responder mode uses the same call path without reading credentials:
 
@@ -429,8 +429,8 @@ Operations tagged destructive or irreversible preview by default: for example,
 to send through the normal guard and transform pipeline. Previews validate local
 inputs but do not perform prerequisite or version lookups; unresolved requirements
 are identified in the output. Direct Python Surface calls retain their existing
-behavior. Discovery needs no credentials. API responder/cassette modes and wrapper
-`CONFLUENCE_MOCK_MODE` remain distinct offline modes.
+behavior. Discovery needs no credentials. API responder/cassette modes are distinct from the stateful simulation mode.
+`CONFLUENCE_MOCK_MODE` applies only to deferred legacy implementations.
 
 Help snapshots live in `tests/golden/help/`. Regenerate with
 `UPDATE_HELP_GOLDEN=1 .venv/bin/python -m pytest -q -p no:cacheprovider tests/test_help.py`
@@ -438,3 +438,28 @@ and review the diff. Tests enforce `ceil(characters/4)` Markdown caps of
 400/800/1200/600 tokens for Levels 0/1/2/3 and 800 for the topic list;
 `--full` is intentionally uncapped. JSON serialization metadata is not counted
 again. Regeneration never disables cap checks.
+
+
+## Wrapper workflows and migration
+
+The reviewed 108-verb inventory retains 36 workflows, replaces 70 verbs with
+index-backed migration hints, and defers two implementations. See
+[the full decision table](docs/wrapper-verbs.md) for every old command, reason,
+replacement invocation and deferral. For example, executing `page create --space
+DOCS --title T` now emits JSON on stderr, exits 2, and points to `api call createPage`;
+`page get --help` still succeeds. `help migration` discovers the rename topic.
+
+Survivors cover bulk selection/checkpoint/resume, hierarchy traversal/copy,
+CSV/history/cache/report transforms, permission decisions and Jira macro workflows.
+All survivor HTTP goes through Surface and the same scope/tag pipeline as `api`.
+Bulk dry-run resolves targets using reads, prints intended operations, and sends
+no writes. Both `bulk label add --labels reviewed --cql 'space=DOCS' --dry-run` and
+`bulk label --add reviewed --cql 'space=DOCS' --dry-run` are supported.
+
+For offline stateful workflows set `CONFLUENCE_AS_TRANSPORT=simulation` and an
+explicit space allowlist (plus site-operation permission where required). The
+simulation starts a fresh store per process and never reads credentials or sends
+HTTP; tests may inject a shared store for sequential runs. The schema responder
+remains stateless. See the engine's `docs/simulation.md` for supported operations,
+CQL and explicit failures. Attachment downloads remain deferred to JAS-61 and
+`jira create-from-page` to the jira-as release ticket.

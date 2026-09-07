@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import mimetypes
-from pathlib import Path
 from typing import Any
 
 import click
@@ -11,19 +9,13 @@ from assistant_skills_lib import validate_file_path_secure
 
 from confluence_as import (
     ValidationError,
-    format_json,
-    format_table,
     handle_errors,
     print_info,
     print_success,
-    print_warning,
     validate_attachment_id,
-    validate_limit,
-    validate_page_id,
 )
 from confluence_as.cli.cli_utils import (
     get_client_from_context,
-    resolve_output_default,
 )
 
 
@@ -56,160 +48,8 @@ def attachment() -> None:
     pass
 
 
-@attachment.command(name="list")
-@click.argument("page_id")
-@click.option(
-    "--limit", "-l", type=int, default=25, help="Maximum attachments to return"
-)
-@click.option("--media-type", "-m", help="Filter by media type (e.g., application/pdf)")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json", "table"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def list_attachments(
-    ctx: click.Context,
-    page_id: str,
-    limit: int,
-    media_type: str | None,
-    output: str,
-) -> None:
-    """List attachments on a page."""
-    page_id = validate_page_id(page_id)
-    limit = validate_limit(limit, max_value=250)
-
-    client = get_client_from_context(ctx)
-
-    # Get page info
-    page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
-    page_title = page.get("title", "Unknown")
-
-    params: dict[str, Any] = {
-        "limit": min(limit, 25),
-    }
-
-    if media_type:
-        params["mediaType"] = media_type
-
-    attachments = []
-    for att in client.paginate(
-        f"/api/v2/pages/{page_id}/attachments",
-        params=params,
-        operation="list attachments",
-    ):
-        attachments.append(att)
-        if len(attachments) >= limit:
-            break
-
-    if output == "json":
-        click.echo(
-            format_json(
-                {
-                    "page": {"id": page_id, "title": page_title},
-                    "attachments": attachments,
-                    "count": len(attachments),
-                }
-            )
-        )
-    else:
-        click.echo(f"\nAttachments on: {page_title} ({page_id})")
-        click.echo(f"{'=' * 60}\n")
-
-        if not attachments:
-            click.echo("No attachments found.")
-        else:
-            data = []
-            for a in attachments:
-                formatted = _format_attachment(a)
-                data.append(
-                    {
-                        "id": formatted["id"],
-                        "title": formatted["title"][:30],
-                        "type": formatted["mediaType"][:20],
-                        "size": formatted["fileSize"],
-                        "ver": formatted["version"],
-                    }
-                )
-
-            click.echo(
-                format_table(
-                    data,
-                    columns=["id", "title", "type", "size", "ver"],
-                    headers=["ID", "Name", "Type", "Size", "Ver"],
-                )
-            )
-
-    print_success(f"Found {len(attachments)} attachment(s)")
 
 
-@attachment.command(name="upload")
-@click.argument("page_id")
-@click.argument("file_path", type=click.Path(exists=True, path_type=Path))  # type: ignore[type-var]
-@click.option("--comment", help="Attachment comment")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def upload_attachment(
-    ctx: click.Context,
-    page_id: str,
-    file_path: Path,
-    comment: str | None,
-    output: str,
-) -> None:
-    """Upload a file attachment to a page."""
-    page_id = validate_page_id(page_id)
-
-    if not file_path.exists():
-        raise ValidationError(f"File not found: {file_path}")
-
-    if not file_path.is_file():
-        raise ValidationError(f"Path is not a file: {file_path}")
-
-    # Determine content type
-    content_type, _ = mimetypes.guess_type(str(file_path))
-    if not content_type:
-        content_type = "application/octet-stream"
-
-    client = get_client_from_context(ctx)
-
-    # Read file content
-    file_content = file_path.read_bytes()
-    file_name = file_path.name
-
-    print_info(f"Uploading {file_name} ({_format_file_size(len(file_content))})...")
-
-    # Use v1 API for file upload as v2 API has different semantics
-    result = client.upload_attachment(
-        page_id=page_id,
-        file_path=str(file_path),
-        comment=comment,
-    )
-
-    if output == "json":
-        click.echo(format_json(result))
-    else:
-        # Result may be a list or a single item
-        if isinstance(result, list):
-            result = result[0] if result else {}
-
-        click.echo("\nAttachment uploaded successfully")
-        click.echo(f"  ID: {result.get('id', 'N/A')}")
-        click.echo(f"  Name: {file_name}")
-        click.echo(f"  Page: {page_id}")
-
-    print_success(f"Uploaded {file_name} to page {page_id}")
 
 
 @attachment.command(name="download")
@@ -295,124 +135,3 @@ def download_attachment(
         file_path.write_bytes(content)
 
         print_success(f"Downloaded {title} to {file_path}")
-
-
-@attachment.command(name="update")
-@click.argument("attachment_id")
-@click.argument("file_path", type=click.Path(exists=True, path_type=Path))  # type: ignore[type-var]
-@click.option("--comment", help="Update comment")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def update_attachment(
-    ctx: click.Context,
-    attachment_id: str,
-    file_path: Path,
-    comment: str | None,
-    output: str,
-) -> None:
-    """Update an existing attachment."""
-    attachment_id = validate_attachment_id(attachment_id)
-
-    if not file_path.exists():
-        raise ValidationError(f"File not found: {file_path}")
-
-    client = get_client_from_context(ctx)
-
-    # Get current attachment info
-    att_info = client.get(
-        f"/api/v2/attachments/{attachment_id}",
-        operation="get attachment",
-    )
-
-    page_id = att_info.get("pageId")
-    if not page_id:
-        raise ValidationError("Could not determine page ID for attachment")
-
-    print_info(f"Updating attachment {att_info.get('title', attachment_id)}...")
-
-    # Use v1 API for file update
-    result = client.update_attachment(
-        attachment_id=attachment_id,
-        page_id=page_id,
-        file_path=str(file_path),
-        comment=comment,
-    )
-
-    if output == "json":
-        click.echo(format_json(result))
-    else:
-        if isinstance(result, list):
-            result = result[0] if result else {}
-
-        click.echo("\nAttachment updated successfully")
-        click.echo(f"  ID: {result.get('id', attachment_id)}")
-        click.echo(f"  Name: {file_path.name}")
-
-    print_success(f"Updated attachment {attachment_id}")
-
-
-@attachment.command(name="delete")
-@click.argument("attachment_id")
-@click.option("--force", "-f", is_flag=True, help="Skip confirmation prompt")
-@click.option(
-    "--purge",
-    is_flag=True,
-    help="Permanently delete (otherwise moves to trash)",
-)
-@click.pass_context
-@handle_errors
-def delete_attachment(
-    ctx: click.Context,
-    attachment_id: str,
-    force: bool,
-    purge: bool,
-) -> None:
-    """Delete an attachment.
-
-    By default, the attachment is moved to trash. Use --purge to permanently
-    delete a trashed attachment.
-    """
-    attachment_id = validate_attachment_id(attachment_id)
-
-    client = get_client_from_context(ctx)
-
-    # Get attachment info
-    try:
-        att_info = client.get(
-            f"/api/v2/attachments/{attachment_id}",
-            operation="get attachment",
-        )
-        title = att_info.get("title", "Unknown")
-    except Exception:
-        title = "Unknown"
-
-    action = "permanently delete" if purge else "delete"
-    if not force:
-        click.echo(f"\nYou are about to {action} attachment: {title}")
-        click.echo(f"ID: {attachment_id}")
-        if purge:
-            print_warning("This will PERMANENTLY delete the attachment!")
-        else:
-            print_warning("This will move the attachment to trash.")
-
-        if not click.confirm("\nAre you sure?", default=False):
-            click.echo("Delete cancelled.")
-            return
-
-    params = {"purge": "true"} if purge else None
-    client.delete(
-        f"/api/v2/attachments/{attachment_id}",
-        params=params,
-        operation="delete attachment",
-    )
-
-    result_msg = "Permanently deleted" if purge else "Deleted"
-    print_success(f"{result_msg} attachment {title} ({attachment_id})")

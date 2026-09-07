@@ -1,0 +1,817 @@
+{
+  "overlay": "1.0.0",
+  "info": {
+    "title": "Confluence v1 legacy verb migration",
+    "version": "1.0.0"
+  },
+  "actions": [
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_user_search",
+      "target": "$.paths[\"/wiki/rest/api/search/user\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin user",
+            "verb": "search",
+            "invocation": "api call searchUser --cql 'user.fullname ~ \"NAME\"'"
+          }
+        ],
+        "x-as-topic": [
+          "migration"
+        ],
+        "x-as-note": "Legacy verbs now report their generic replacement with exit 2. Read docs/wrapper-verbs.md or invoke the old group for the complete rename hints."
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_user_get",
+      "target": "$.paths[\"/wiki/rest/api/user\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin user",
+            "verb": "get",
+            "invocation": "api call getUser --account-id ACCOUNT"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_user_groups",
+      "target": "$.paths[\"/wiki/rest/api/user/memberof\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin user",
+            "verb": "groups",
+            "invocation": "api call getGroupMembershipsForUser --account-id ACCOUNT --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_group_list",
+      "target": "$.paths[\"/wiki/rest/api/group\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin group",
+            "verb": "list",
+            "invocation": "api call getGroups --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_group_get",
+      "target": "$.paths[\"/wiki/rest/api/group/by-id\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin group",
+            "verb": "get",
+            "invocation": "api call getGroupByGroupId --id GROUP_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_group_members",
+      "target": "$.paths[\"/wiki/rest/api/group/{groupId}/membersByGroupId\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin group",
+            "verb": "members",
+            "invocation": "api call getGroupMembersByGroupId --group-id GROUP_ID --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_group_create",
+      "target": "$.paths[\"/wiki/rest/api/group\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin group",
+            "verb": "create",
+            "invocation": "api call createGroup --body @group.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_group_delete",
+      "target": "$.paths[\"/wiki/rest/api/group/by-id\"].delete",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin group",
+            "verb": "delete",
+            "invocation": "api call removeGroupById --id GROUP_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_group_add_user",
+      "target": "$.paths[\"/wiki/rest/api/group/userByGroupId\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin group",
+            "verb": "add-user",
+            "invocation": "api call addUserToGroupByGroupId --group-id GROUP_ID --body @member.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_group_remove_user",
+      "target": "$.paths[\"/wiki/rest/api/group/userByGroupId\"].delete",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin group",
+            "verb": "remove-user",
+            "invocation": "api call removeMemberFromGroupByGroupId --group-id GROUP_ID --account-id ACCOUNT"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_space_settings",
+      "target": "$.paths[\"/wiki/rest/api/space/{spaceKey}/settings\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin space",
+            "verb": "settings",
+            "invocation": "api call getSpaceSettings --space-key KEY"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_space_update",
+      "target": "$.paths[\"/wiki/rest/api/space/{spaceKey}\"].put",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin space",
+            "verb": "update",
+            "invocation": "api call updateSpace --space-key KEY --body @space.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_template_list",
+      "target": "$.paths[\"/wiki/rest/api/template/page\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin template",
+            "verb": "list",
+            "invocation": "api call getContentTemplates --space-key KEY --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_admin_template_get",
+      "target": "$.paths[\"/wiki/rest/api/template/{contentTemplateId}\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "admin template",
+            "verb": "get",
+            "invocation": "api call getContentTemplate --content-template-id TEMPLATE_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_analytics_views",
+      "target": "$.paths[\"/wiki/rest/api/analytics/content/{contentId}/views\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "analytics",
+            "verb": "views",
+            "invocation": "api call getViews --content-id PAGE_ID",
+            "note": "The legacy verb read content history; getViews is the indexed analytics replacement."
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_analytics_watchers",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/notification/child-created\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "analytics",
+            "verb": "watchers",
+            "invocation": "api call getWatchesForPage --id PAGE_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_analytics_popular",
+      "target": "$.paths[\"/wiki/rest/api/search\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "analytics",
+            "verb": "popular",
+            "invocation": "api call searchByCQL --cql 'type=page ORDER BY lastmodified desc' --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_attachment_upload",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/child/attachment\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "attachment",
+            "verb": "upload",
+            "invocation": "api call createAttachment --id PAGE_ID",
+            "note": "Multipart request body support arrives with JAS-61."
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_attachment_update",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/child/attachment/{attachmentId}/data\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "attachment",
+            "verb": "update",
+            "invocation": "api call updateAttachmentData --id PAGE_ID --attachment-id ATTACHMENT_ID",
+            "note": "Multipart request body support arrives with JAS-61."
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_label_add",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/label\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "label",
+            "verb": "add",
+            "invocation": "api call addLabelsToContent --id PAGE_ID --body @labels.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_label_remove",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/label/{label}\"].delete",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "label",
+            "verb": "remove",
+            "invocation": "api call removeLabelFromContent --id PAGE_ID --label LABEL"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_label_search",
+      "target": "$.paths[\"/wiki/rest/api/search\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "label",
+            "verb": "search",
+            "invocation": "api call searchByCQL --cql 'label=\"LABEL\"' --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_page_restore",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/version\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "page",
+            "verb": "restore",
+            "invocation": "api call restoreContentVersion --id PAGE_ID --body @version.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_permission_page_get",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/restriction\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "permission page",
+            "verb": "get",
+            "invocation": "api call getRestrictions --id PAGE_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_permission_page_add",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/restriction\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "permission page",
+            "verb": "add",
+            "invocation": "api call addRestrictions --id PAGE_ID --body @restrictions.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_permission_space_add",
+      "target": "$.paths[\"/wiki/rest/api/space/{spaceKey}/permission\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "permission space",
+            "verb": "add",
+            "invocation": "api call addPermissionToSpace --space-key KEY --body @permission.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_search_cql",
+      "target": "$.paths[\"/wiki/rest/api/search\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "search",
+            "verb": "cql",
+            "invocation": "api call searchByCQL --cql 'space=DOCS' --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_search_content",
+      "target": "$.paths[\"/wiki/rest/api/search\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "search",
+            "verb": "content",
+            "invocation": "api call searchByCQL --cql 'space=DOCS AND text~\"TEXT\"' --all"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_search_validate",
+      "target": "$.paths[\"/wiki/rest/api/search\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "search",
+            "verb": "validate",
+            "invocation": "api call searchByCQL --cql 'QUERY' --limit 1"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Single indexed operation.",
+      "x-as-reason": "Single indexed operation.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_search_interactive",
+      "target": "$.paths[\"/wiki/rest/api/search\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "search",
+            "verb": "interactive",
+            "invocation": "api call searchByCQL --cql 'QUERY'"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_space_update",
+      "target": "$.paths[\"/wiki/rest/api/space/{spaceKey}\"].put",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "space",
+            "verb": "update",
+            "invocation": "api call updateSpace --space-key KEY --body @space.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_space_delete",
+      "target": "$.paths[\"/wiki/rest/api/space/{spaceKey}\"].delete",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "space",
+            "verb": "delete",
+            "invocation": "api call deleteSpace --space-key KEY"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_template_get",
+      "target": "$.paths[\"/wiki/rest/api/template/{contentTemplateId}\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "template",
+            "verb": "get",
+            "invocation": "api call getContentTemplate --content-template-id TEMPLATE_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_template_create",
+      "target": "$.paths[\"/wiki/rest/api/template\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "template",
+            "verb": "create",
+            "invocation": "api call createContentTemplate --body @template.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_template_update",
+      "target": "$.paths[\"/wiki/rest/api/template\"].put",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "template",
+            "verb": "update",
+            "invocation": "api call updateContentTemplate --body @template.json"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_watch_page",
+      "target": "$.paths[\"/wiki/rest/api/user/watch/content/{contentId}\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "watch",
+            "verb": "page",
+            "invocation": "api call addContentWatcher --content-id PAGE_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_watch_unwatch_page",
+      "target": "$.paths[\"/wiki/rest/api/user/watch/content/{contentId}\"].delete",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "watch",
+            "verb": "unwatch-page",
+            "invocation": "api call removeContentWatcher --content-id PAGE_ID --x-atlassian-token no-check"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_watch_space",
+      "target": "$.paths[\"/wiki/rest/api/user/watch/space/{spaceKey}\"].post",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "watch",
+            "verb": "space",
+            "invocation": "api call addSpaceWatcher --space-key KEY --x-atlassian-token no-check",
+            "note": "For unwatch use api call removeSpaceWatch --space-key KEY --x-atlassian-token no-check."
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_watch_status",
+      "target": "$.paths[\"/wiki/rest/api/user/watch/content/{contentId}\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "watch",
+            "verb": "status",
+            "invocation": "api call getContentWatchStatus --content-id PAGE_ID"
+          }
+        ]
+      }
+    },
+    {
+      "description": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-reason": "Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement.",
+      "x-as-evidence": {
+        "url": "https://developer.atlassian.com/cloud/confluence/swagger.json",
+        "date": "2026-09-07"
+      },
+      "x-as-origin": "JAS-41",
+      "x-as-test": "legacy_watch_list",
+      "target": "$.paths[\"/wiki/rest/api/content/{id}/notification/child-created\"].get",
+      "update": {
+        "x-as-legacy-verbs": [
+          {
+            "group": "watch",
+            "verb": "list",
+            "invocation": "api call getWatchesForPage --id PAGE_ID"
+          }
+        ]
+      }
+    }
+  ]
+}

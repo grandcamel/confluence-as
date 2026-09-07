@@ -2,304 +2,27 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 
 import click
 
 from confluence_as import (
     ValidationError,
+    engine,
     format_json,
     format_table,
     handle_errors,
     print_success,
-    validate_limit,
     validate_page_id,
 )
-from confluence_as.cli.cli_utils import (
-    get_client_from_context,
-    resolve_output_default,
-)
-
-
-def _get_page_info(client: Any, page_id: str) -> dict[str, Any]:
-    """Get basic page info."""
-    return cast(
-        dict[str, Any], client.get(f"/api/v2/pages/{page_id}", operation="get page")
-    )
+from confluence_as.cli.cli_utils import resolve_output_default
+from confluence_as.cli.legacy import command_errors
 
 
 @click.group()
 def hierarchy() -> None:
     """Navigate content hierarchy."""
     pass
-
-
-@hierarchy.command(name="children")
-@click.argument("page_id")
-@click.option("--limit", "-l", type=int, default=25, help="Maximum children to return")
-@click.option(
-    "--sort",
-    type=click.Choice(["title", "id", "created"]),
-    help="Sort children by field",
-)
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def get_children(
-    ctx: click.Context,
-    page_id: str,
-    limit: int,
-    sort: str | None,
-    output: str,
-) -> None:
-    """Get child pages of a page."""
-    page_id = validate_page_id(page_id)
-    limit = validate_limit(limit, max_value=250)
-
-    client = get_client_from_context(ctx)
-
-    # Get page info
-    page = _get_page_info(client, page_id)
-    page_title = page.get("title", "Unknown")
-
-    # Get children
-    params: dict[str, Any] = {
-        "limit": min(limit, 25),
-    }
-
-    if sort:
-        sort_map = {
-            "title": "title",
-            "id": "id",
-            "created": "created-date",
-        }
-        params["sort"] = sort_map.get(sort, "title")
-
-    children = []
-    for child in client.paginate(
-        f"/api/v2/pages/{page_id}/children",
-        params=params,
-        operation="get children",
-    ):
-        children.append(child)
-        if len(children) >= limit:
-            break
-
-    if output == "json":
-        click.echo(
-            format_json(
-                {
-                    "page": {"id": page_id, "title": page_title},
-                    "children": children,
-                    "count": len(children),
-                }
-            )
-        )
-    else:
-        click.echo(f"\nChildren of: {page_title} ({page_id})")
-        click.echo(f"{'=' * 60}\n")
-
-        if not children:
-            click.echo("No child pages found.")
-        else:
-            data = []
-            for child in children:
-                data.append(
-                    {
-                        "id": child.get("id", ""),
-                        "title": child.get("title", "")[:40],
-                        "status": child.get("status", ""),
-                    }
-                )
-
-            click.echo(
-                format_table(
-                    data,
-                    columns=["id", "title", "status"],
-                    headers=["ID", "Title", "Status"],
-                )
-            )
-
-    print_success(f"Found {len(children)} child page(s)")
-
-
-@hierarchy.command(name="ancestors")
-@click.argument("page_id")
-@click.option("--breadcrumb", is_flag=True, help="Show as breadcrumb path")
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def get_ancestors(
-    ctx: click.Context,
-    page_id: str,
-    breadcrumb: bool,
-    output: str,
-) -> None:
-    """Get ancestor pages (parents, grandparents, etc.)."""
-    page_id = validate_page_id(page_id)
-
-    client = get_client_from_context(ctx)
-
-    # Get page info with ancestors
-    page = _get_page_info(client, page_id)
-    page_title = page.get("title", "Unknown")
-
-    # Get ancestors
-    ancestors = list(
-        client.paginate(
-            f"/api/v2/pages/{page_id}/ancestors",
-            operation="get ancestors",
-        )
-    )
-
-    if output == "json":
-        click.echo(
-            format_json(
-                {
-                    "page": {"id": page_id, "title": page_title},
-                    "ancestors": ancestors,
-                    "count": len(ancestors),
-                }
-            )
-        )
-    else:
-        click.echo(f"\nAncestors of: {page_title} ({page_id})")
-        click.echo(f"{'=' * 60}\n")
-
-        if not ancestors:
-            click.echo("No ancestor pages found (this is a root page).")
-        elif breadcrumb:
-            # Display as breadcrumb path
-            path_parts = [a.get("title", "Unknown") for a in ancestors]
-            path_parts.append(page_title)
-            click.echo(" > ".join(path_parts))
-        else:
-            data = []
-            for i, ancestor in enumerate(ancestors):
-                data.append(
-                    {
-                        "level": i + 1,
-                        "id": ancestor.get("id", ""),
-                        "title": ancestor.get("title", "")[:40],
-                    }
-                )
-
-            click.echo(
-                format_table(
-                    data,
-                    columns=["level", "id", "title"],
-                    headers=["Level", "ID", "Title"],
-                )
-            )
-
-    print_success(f"Found {len(ancestors)} ancestor(s)")
-
-
-@hierarchy.command(name="descendants")
-@click.argument("page_id")
-@click.option("--max-depth", "-d", type=int, help="Maximum depth to traverse")
-@click.option(
-    "--limit", "-l", type=int, default=100, help="Maximum descendants to return"
-)
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["text", "json"]),
-    default=None,
-    callback=resolve_output_default,
-    help="Output format",
-)
-@click.pass_context
-@handle_errors
-def get_descendants(
-    ctx: click.Context,
-    page_id: str,
-    max_depth: int | None,
-    limit: int,
-    output: str,
-) -> None:
-    """Get all descendant pages."""
-    page_id = validate_page_id(page_id)
-    limit = validate_limit(limit, max_value=500)
-
-    client = get_client_from_context(ctx)
-
-    # Get page info
-    page = _get_page_info(client, page_id)
-    page_title = page.get("title", "Unknown")
-
-    # Use v2 descendants endpoint instead of recursive children calls
-    params: dict[str, Any] = {"limit": min(limit, 25)}
-    if max_depth is not None:
-        params["depth"] = max_depth
-
-    descendants: list[dict[str, Any]] = []
-    for desc in client.paginate(
-        f"/api/v2/pages/{page_id}/descendants",
-        params=params,
-        operation="get descendants",
-    ):
-        if len(descendants) >= limit:
-            break
-        # v2 API returns depth in response, use it if available
-        if "_depth" not in desc:
-            desc["_depth"] = desc.get("depth", 1)
-        descendants.append(desc)
-
-    if output == "json":
-        click.echo(
-            format_json(
-                {
-                    "page": {"id": page_id, "title": page_title},
-                    "descendants": descendants,
-                    "count": len(descendants),
-                    "maxDepth": max_depth,
-                }
-            )
-        )
-    else:
-        click.echo(f"\nDescendants of: {page_title} ({page_id})")
-        if max_depth:
-            click.echo(f"Max depth: {max_depth}")
-        click.echo(f"{'=' * 60}\n")
-
-        if not descendants:
-            click.echo("No descendant pages found.")
-        else:
-            data = []
-            for desc in descendants:
-                indent = "  " * desc.get("_depth", 0)
-                data.append(
-                    {
-                        "depth": desc.get("_depth", 0),
-                        "id": desc.get("id", ""),
-                        "title": indent + desc.get("title", "")[:35],
-                    }
-                )
-
-            click.echo(
-                format_table(
-                    data,
-                    columns=["depth", "id", "title"],
-                    headers=["Depth", "ID", "Title"],
-                )
-            )
-
-    print_success(f"Found {len(descendants)} descendant(s)")
 
 
 @hierarchy.command(name="tree")
@@ -318,6 +41,7 @@ def get_descendants(
 )
 @click.pass_context
 @handle_errors
+@command_errors
 def get_page_tree(
     ctx: click.Context,
     page_id: str,
@@ -328,10 +52,8 @@ def get_page_tree(
     """Display page tree structure."""
     page_id = validate_page_id(page_id)
 
-    client = get_client_from_context(ctx)
-
-    # Get page info
-    page = _get_page_info(client, page_id)
+    surface = engine.create_surface()
+    page = surface.call("getPageById", {"id": page_id}, raw=True).body
     page_title = page.get("title", "Unknown")
 
     # Build tree structure
@@ -340,10 +62,8 @@ def get_page_tree(
             return []
 
         tree = []
-        for child in client.paginate(
-            f"/api/v2/pages/{parent_id}/children",
-            operation="get children",
-        ):
+        children = surface.call("getChildPages", {"id": parent_id}, all_pages=True).body
+        for child in children:
             node = {
                 "id": child.get("id", ""),
                 "title": child.get("title", ""),
@@ -410,7 +130,8 @@ def get_page_tree(
             click.echo(f"  Max depth: {tree_stats['maxDepth']}")
             click.echo(f"  Root children: {tree_stats['rootChildren']}")
 
-    print_success("Tree generated successfully")
+    if output != "json":
+        print_success("Tree generated successfully")
 
 
 @hierarchy.command(name="reorder")
@@ -427,6 +148,7 @@ def get_page_tree(
 )
 @click.pass_context
 @handle_errors
+@command_errors
 def reorder_children(
     ctx: click.Context,
     parent_id: str,
@@ -445,19 +167,12 @@ def reorder_children(
     """
     parent_id = validate_page_id(parent_id)
 
-    client = get_client_from_context(ctx)
-
-    # Get page info
-    page = _get_page_info(client, parent_id)
+    surface = engine.create_surface()
+    page = surface.call("getPageById", {"id": parent_id}, raw=True).body
     page_title = page.get("title", "Unknown")
 
     # Get current children
-    children = list(
-        client.paginate(
-            f"/api/v2/pages/{parent_id}/children",
-            operation="get children",
-        )
-    )
+    children = surface.call("getChildPages", {"id": parent_id}, all_pages=True).body
 
     if not children:
         raise ValidationError(f"No child pages found under {page_title}")
@@ -532,4 +247,5 @@ def reorder_children(
 
         click.echo("\nNote: Use Confluence UI to apply actual reordering.")
 
-    print_success(f"Calculated new order for {len(reordered)} child page(s)")
+    if output != "json":
+        print_success(f"Calculated new order for {len(reordered)} child page(s)")

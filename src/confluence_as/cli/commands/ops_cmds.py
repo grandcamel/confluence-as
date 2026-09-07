@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import json
 import os
 import time
 from datetime import datetime
@@ -22,9 +23,56 @@ from confluence_as import (
     validate_space_key,
 )
 from confluence_as.cli.cli_utils import (
-    get_client_from_context,
     resolve_output_default,
 )
+from confluence_as.engine import create_surface
+
+
+class _SurfaceOps:
+    """Small compatibility adapter: every legacy probe name maps to an operationId."""
+
+    def __init__(self) -> None:
+        self.surface = create_surface()
+
+    def _operation(self, path: str) -> str:
+        exact = {
+            "/api/v2/spaces": "getSpaces",
+            "/api/v2/pages": "getPages",
+            "/rest/api/user/current": "getCurrentUser",
+            "/rest/api/group": "getGroups",
+            "/rest/api/search": "searchByCQL",
+            # v1 space-list has no indexed operation; v2 getSpaces is its documented replacement.
+            "/rest/api/space": "getSpaces",
+        }
+        if path in exact:
+            return exact[path]
+        raise ValueError(f"No indexed GET operation for endpoint: {path}")
+
+    def get(
+        self, path: str, *, params: dict[str, Any] | None = None, operation: str = ""
+    ) -> Any:
+        name = self._operation(path)
+        values = dict(params or {})
+        if name == "searchByCQL":
+            values.setdefault("cql", "type=page")
+        return self.surface.call(name, values).body
+
+    def paginate(
+        self, path: str, *, params: dict[str, Any] | None = None, operation: str = ""
+    ):
+        name = self._operation(path)
+        values = dict(params or {})
+        if name == "searchByCQL":
+            values.setdefault("cql", "type=page")
+        response = self.surface.call(name, values, all_pages=True)
+        body = response.body
+        return (
+            body
+            if isinstance(body, list)
+            else body.get("results", [])
+            if isinstance(body, dict)
+            else []
+        )
 
 
 def _get_cache_dir() -> Path:
@@ -42,6 +90,13 @@ def _format_bytes(size: int) -> str:
             return f"{size:.1f} {unit}"
         size //= 1024
     return f"{size:.1f} TB"
+
+
+def _cache_warm_value(category: str, key: str, value: Any) -> None:
+    """Use the legacy cache directory layout so status and clear see warmed values."""
+    directory = _get_cache_dir() / category
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / f"{key}.json").write_text(json.dumps(value), encoding="utf-8")
 
 
 @click.group()
@@ -178,7 +233,8 @@ def cache_status(
             if len(entries) > 20:
                 click.echo(f"  ... and {len(entries) - 20} more")
 
-    print_success("Cache status retrieved")
+    if output != "json":
+        print_success("Cache status retrieved")
 
 
 # ============================================================================
@@ -348,7 +404,8 @@ def cache_clear(
             for err in errors[:5]:
                 click.echo(f"  - {err['file']}: {err['error']}")
 
-    print_success(f"Cleared {cleared} cache entries")
+    if output != "json":
+        print_success(f"Cleared {cleared} cache entries")
 
 
 # ============================================================================
@@ -383,7 +440,7 @@ def cache_warm(
     if not spaces and not space and not warm_all:
         raise ValidationError("At least one of --spaces, --space, or --all is required")
 
-    client = get_client_from_context(ctx)
+    client = _SurfaceOps()
 
     warmed = []
     errors = []
@@ -401,6 +458,7 @@ def cache_warm(
                     operation="warm space list",
                 )
             )
+            _cache_warm_value("spaces", "all", space_list)
             warmed.append(
                 {
                     "type": "space_list",
@@ -426,6 +484,7 @@ def cache_warm(
             )
 
             if space_info:
+                _cache_warm_value("spaces", space, space_info)
                 space_id = space_info[0].get("id")
 
                 # Get space homepage
@@ -444,6 +503,7 @@ def cache_warm(
                             operation=f"warm space {space} pages",
                         )
                     )
+                    _cache_warm_value("pages", space, pages)
                     warmed.append(
                         {
                             "type": f"space_{space}",
@@ -462,7 +522,10 @@ def cache_warm(
             # Warm current user
             if verbose and output == "text":
                 click.echo("  Warming: current user...")
-            client.get("/rest/api/user/current", operation="warm current user")
+            current_user = client.get(
+                "/rest/api/user/current", operation="warm current user"
+            )
+            _cache_warm_value("users", "current", current_user)
             warmed.append({"type": "current_user"})
         except Exception as e:
             errors.append({"type": "current_user", "error": str(e)})
@@ -478,6 +541,7 @@ def cache_warm(
                     operation="warm groups",
                 )
             )
+            _cache_warm_value("groups", "all", groups)
             warmed.append({"type": "groups", "count": len(groups)})
         except Exception as e:
             errors.append({"type": "groups", "error": str(e)})
@@ -505,7 +569,8 @@ def cache_warm(
             for err in errors:
                 click.echo(f"  - {err['type']}: {err['error']}")
 
-    print_success(f"Warmed {len(warmed)} cache categories")
+    if output != "json":
+        print_success(f"Warmed {len(warmed)} cache categories")
 
 
 # ============================================================================
@@ -533,7 +598,7 @@ def health_check(
     output: str,
 ) -> None:
     """Test API connectivity and health."""
-    client = get_client_from_context(ctx)
+    client = _SurfaceOps()
 
     results: dict[str, Any] = {
         "siteUrl": os.environ.get("CONFLUENCE_SITE_URL", "Not configured"),
@@ -557,9 +622,18 @@ def health_check(
 
     # Test specific endpoint if provided
     if endpoint:
+        try:
+            _document, _index, resolved = client.surface.resolve(endpoint)
+        except Exception:
+            resolved = None
+        if resolved is not None and resolved.method.upper() != "GET":
+            raise click.UsageError("health probes require an indexed GET operation")
         ep_start = time.time()
         try:
-            client.get(endpoint, operation=f"health check - {endpoint}")
+            if resolved is None:
+                client.get(endpoint, operation=f"health check - {endpoint}")
+            else:
+                client.surface.call(resolved.operationId, {})
             ep_time = (time.time() - ep_start) * 1000
             results["endpoints"].append(
                 {
@@ -645,7 +719,8 @@ def health_check(
         else:
             click.echo("\nAuthentication: - Failed")
 
-    print_success("Health check complete")
+    if output != "json":
+        print_success("Health check complete")
 
 
 # ============================================================================
@@ -669,7 +744,7 @@ def rate_limit_status(
     output: str,
 ) -> None:
     """Check current rate limit status."""
-    client = get_client_from_context(ctx)
+    client = _SurfaceOps()
 
     # Make a request and check response headers for rate limit info
     # Atlassian APIs include rate limit headers in responses
@@ -727,7 +802,8 @@ def rate_limit_status(
             click.echo("Status:         - Error")
             click.echo(f"Error:          {results.get('error', 'Unknown')}")
 
-    print_success("Rate limit status retrieved")
+    if output != "json":
+        print_success("Rate limit status retrieved")
 
 
 # ============================================================================
@@ -753,7 +829,7 @@ def api_diagnostics(
     output: str,
 ) -> None:
     """Run API diagnostics."""
-    client = get_client_from_context(ctx)
+    client = _SurfaceOps()
 
     diagnostics: dict[str, Any] = {
         "timestamp": datetime.now().isoformat(),
@@ -881,4 +957,5 @@ def api_diagnostics(
         if verbose:
             click.echo(f"\nDiagnostic Timestamp: {diagnostics['timestamp']}")
 
-    print_success("Diagnostics complete")
+    if output != "json":
+        print_success("Diagnostics complete")

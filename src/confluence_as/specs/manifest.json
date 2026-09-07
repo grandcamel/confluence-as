@@ -14,7 +14,8 @@
         "v2.overlay.json",
         "v2.help.overlay.json",
         "v2.scope.overlay.json",
-        "v2.richtext.overlay.json"
+        "v2.richtext.overlay.json",
+        "v2.rename.overlay.json"
       ],
       "strip_extensions": [
         "x-atlassian-narrative"
@@ -31,7 +32,8 @@
       "overlays": [
         "v1.paging.overlay.json",
         "v1.overlay.json",
-        "v1.help.overlay.json"
+        "v1.help.overlay.json",
+        "v1.rename.overlay.json"
       ],
       "strip_extensions": [
         "x-atlassian-narrative"
