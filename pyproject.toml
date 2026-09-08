@@ -44,6 +44,9 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "hatchling",
+    "build",
+    "editables~=0.3",  # Required by hatchling for editable builds
     "oas-patch>=0.6.0,<0.7",  # Independent Overlay applier cross-check (tests only)
     "jsonschema>=4.18",  # Enrichment example validation (tests only)
     "pytest>=7.0.0",

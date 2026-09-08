@@ -10,6 +10,8 @@ This is the `confluence-as` PyPI package - a shared Python library providing HTT
 
 ## Common Commands
 
+Development prerequisites: see [README.md](README.md#contributing) for `pip install -e '.[dev]'` (includes hatchling and build), `python -m build --no-isolation`, oasdiff 1.31.0 installation and `OASDIFF=/path/to/oasdiff`.
+
 ```bash
 # Install for development
 pip install -e ".[dev]"

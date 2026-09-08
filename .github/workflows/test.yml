@@ -29,6 +29,18 @@ jobs:
           pip install --no-build-isolation -e ".[dev]"
           oas-patch --version
 
+      - name: Build distributions
+        run: python -m build --no-isolation
+
+      - name: Install oasdiff 1.31.0
+        run: |
+          curl --fail --location --retry 3 --output oasdiff.tar.gz https://github.com/oasdiff/oasdiff/releases/download/1.31.0/oasdiff_1.31.0_linux_amd64.tar.gz
+          tar -xzf oasdiff.tar.gz oasdiff
+          chmod +x oasdiff
+
+      - name: Add oasdiff to PATH
+        run: echo "$GITHUB_WORKSPACE" >> "$GITHUB_PATH"
+
       - name: Run tests
         run: |
           pytest -v --tb=short
