@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the dev extra; document development prerequisites (no-isolation builds,
   oasdiff 1.31.0 install, `OASDIFF` override); build distributions and run
   the refresh acceptance with oasdiff in test CI.
+- `tests/cassettes/generic-surface.json` re-recorded with the as-engine header
+  allowlist: responses carry Content-Type only (Authorization and Set-Cookie
+  placeholders removed). (JAS-70)
 
 ## [2.0.0rc1] - 2026-09-07
 
