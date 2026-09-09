@@ -1,0 +1,503 @@
+{
+  "schema": "confluence-pins/v1",
+  "mode": "fixed-benchmark",
+  "sources": {
+    "product": {
+      "commit": "a653afea42956bc00369cf8a02bababd5fc03dbf",
+      "tree": "1a4b15d0507ff693fa723a8f74dd656f324b3cd6"
+    },
+    "engine": {
+      "commit": "1ec67cb4886f1ae1818f303b878a51fd7cc81f37",
+      "tree": "17a795070f3ea73af9e5e6919831098f0ad931bd"
+    }
+  },
+  "content": {
+    ".github/workflows/confluence-pilot.yml": "b0bf98888e86b9be44f476fe70a97da154e5554df27b62f4cd633c1dfde3b577",
+    "ci/locks/linux-py312.txt": "13a4f559dc96c005520ce1f6b872623a382de5c8fef0ec783038f53738bed465",
+    "ci/selections/confluence-offline-core-v1.json": "9d487e2ed0f204f823a4afb3915e5e729213c186c43e175c2bb7054a1f8220a4",
+    "ci/pilot.py": "ccf50aab747a9f456ed02acf211844649b1d474e5f9863bd7e076070d099f72c",
+    "ci/pytest_evidence.py": "1a9c708583976fe7d0d49d277f076eb8713c06e74fd78155bd7f3525730f0268",
+    "tests/test_ci_evidence.py": "0c7a921d4f5e00822f58e3b79c5ec190f81737d9a34b02564ce545b430bbac73"
+  },
+  "external_bindings": [
+    "ci/pins.json",
+    "control.commit",
+    "control.tree",
+    "runtime.tools",
+    "runtime.platform",
+    "event",
+    "timing"
+  ],
+  "python": {
+    "version": "3.12.12",
+    "availability": "published",
+    "filename": "python-3.12.12-linux-24.04-x64.tar.gz",
+    "url": "https://github.com/actions/python-versions/releases/download/3.12.12-18393146713/python-3.12.12-linux-24.04-x64.tar.gz",
+    "sha256": "fba5169cce4ca9a564fddde612e31928cb7c6e1d462b1040aabc4af8289cb101",
+    "digest_source": "https://github.com/actions/python-versions/releases/tag/3.12.12-18393146713",
+    "asset_id": 302529347,
+    "recipe": {
+      "id": "actions-python-3.12.12-ubuntu24-private-v1",
+      "member_count": 9341,
+      "unpacked_bytes": 333935181,
+      "archive_bytes": 122120252,
+      "inventory_sha256": "dad15839b48b14c8cec7cb0335c217583a80985a6168f73859622d536acf0f64",
+      "setup_sha256": "bdc8a07256dbcc5fea6e8a97077c8b55804e176b11cbc981b9bb9862128b9101",
+      "executable_sha256": "a63496e80d3fceef521a96c0885529dcc03272e2111f37ae3e652bfd112980d8",
+      "library_sha256": "7310c6bfc49783e3c816110fe46ce13894e7484239007463f701970462df4d89",
+      "links": {
+        "lib/libpython3.12.so": "libpython3.12.so.1.0",
+        "lib/pkgconfig/python3.pc": "python-3.12.pc",
+        "lib/pkgconfig/python3-embed.pc": "python-3.12-embed.pc",
+        "bin/2to3": "2to3-3.12",
+        "bin/idle3": "idle3.12",
+        "bin/python3-config": "python3.12-config",
+        "bin/python3": "python3.12",
+        "bin/pydoc3": "pydoc3.12",
+        "share/man/man1/python3.1": "python3.12.1"
+      },
+      "mode_policy": "private root 0700; regular files 0755 if executable else 0644; no owner/time restoration",
+      "loader_policy": "DT_RUNPATH observed absolute; pinned private prefix/lib via scrubbed LD_LIBRARY_PATH; verify executable/base_prefix and prefix digest",
+      "pip_policy": "never run setup.sh/ensurepip; existing exact pinned pip wheel installs hash lock without resolver",
+      "inspection_source": "https://github.com/actions/python-versions/releases/download/3.12.12-18393146713/python-3.12.12-linux-24.04-x64.tar.gz"
+    }
+  },
+  "actions": {
+    "actions/checkout": "11bd71901bbe5b1630ceea73d27597364c9af683",
+    "actions/upload-artifact": "ea165f8d65b6e75b540449e92b4886f43607fa02"
+  },
+  "distributions": [
+    {
+      "name": "pytest",
+      "version": "9.1.1",
+      "filename": "pytest-9.1.1-py3-none-any.whl",
+      "sha256": "37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c",
+      "url": "https://files.pythonhosted.org/packages/24/25/1de2678b631f5a49215c6c96fff41ba892b0a34df68d6d80292b1b48aa7f/pytest-9.1.1-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/pytest/9.1.1/json",
+      "metadata_sha256": "8ed48304ba7fd0ae974a041f117487b499d553b40e5ce55a9ece677e946f68dd",
+      "requires_python": ">=3.10",
+      "requires_dist": [
+        "colorama>=0.4; sys_platform == \"win32\"",
+        "exceptiongroup>=1; python_version < \"3.11\"",
+        "iniconfig>=1.0.1",
+        "packaging>=22",
+        "pluggy<2,>=1.5",
+        "pygments>=2.7.2",
+        "tomli>=1; python_version < \"3.11\"",
+        "argcomplete; extra == \"dev\"",
+        "attrs>=19.2; extra == \"dev\"",
+        "hypothesis>=3.56; extra == \"dev\"",
+        "mock; extra == \"dev\"",
+        "requests; extra == \"dev\"",
+        "setuptools; extra == \"dev\"",
+        "xmlschema; extra == \"dev\""
+      ],
+      "availability": "archive-verified",
+      "dependencies": [
+        "iniconfig",
+        "packaging",
+        "pluggy",
+        "pygments"
+      ]
+    },
+    {
+      "name": "responses",
+      "version": "0.26.3",
+      "filename": "responses-0.26.3-py3-none-any.whl",
+      "sha256": "74474f799334ac4f37d93b6437ecc3bb1bb5c77a8d31780a338643be2dce0af8",
+      "url": "https://files.pythonhosted.org/packages/6d/86/ca7958de70cb0752350575e98229368a3a2f746a2942034b3364e17312bb/responses-0.26.3-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/responses/0.26.3/json",
+      "metadata_sha256": "de8d3052cd4898d9d2a0c284801f858a40d323f480e479fea7776c7e4a6be39a",
+      "requires_python": ">=3.8",
+      "requires_dist": [
+        "requests<3.0,>=2.30.0",
+        "urllib3<3.0,>=1.25.10",
+        "pyyaml",
+        "pytest>=7.0.0; extra == \"tests\"",
+        "coverage>=6.0.0; extra == \"tests\"",
+        "pytest-cov; extra == \"tests\"",
+        "pytest-asyncio; extra == \"tests\"",
+        "pytest-httpserver; extra == \"tests\"",
+        "flake8; extra == \"tests\"",
+        "types-PyYAML; extra == \"tests\"",
+        "types-requests; extra == \"tests\"",
+        "mypy; extra == \"tests\"",
+        "tomli; python_version < \"3.11\" and extra == \"tests\"",
+        "tomli-w; extra == \"tests\""
+      ],
+      "availability": "archive-verified",
+      "dependencies": [
+        "requests",
+        "urllib3",
+        "pyyaml"
+      ]
+    },
+    {
+      "name": "click",
+      "version": "8.5.0",
+      "filename": "click-8.5.0-py3-none-any.whl",
+      "sha256": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360",
+      "url": "https://files.pythonhosted.org/packages/58/50/6c0d534c5f134586a8e1ba4e330569e32f057e33372ae556463212fb4cd3/click-8.5.0-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/click/8.5.0/json",
+      "metadata_sha256": "4e36adc9b46f837e10ce801b7a478f9146fefdfb287292b7668fc64b1474e41d",
+      "requires_python": ">=3.10",
+      "requires_dist": [],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "requests",
+      "version": "2.34.2",
+      "filename": "requests-2.34.2-py3-none-any.whl",
+      "sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+      "url": "https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/requests/2.34.2/json",
+      "metadata_sha256": "8622e50ffd295ed759ec793f2a009172a4ed0204bbc5e948de23111bc3d2aeae",
+      "requires_python": ">=3.10",
+      "requires_dist": [
+        "charset_normalizer<4,>=2",
+        "idna<4,>=2.5",
+        "urllib3<3,>=1.26",
+        "certifi>=2023.5.7",
+        "PySocks!=1.5.7,>=1.5.6; extra == \"socks\"",
+        "chardet<8,>=3.0.2; extra == \"use-chardet-on-py3\""
+      ],
+      "availability": "archive-verified",
+      "dependencies": [
+        "charset-normalizer",
+        "idna",
+        "urllib3",
+        "certifi"
+      ]
+    },
+    {
+      "name": "assistant-skills-lib",
+      "version": "1.0.1",
+      "filename": "assistant_skills_lib-1.0.1-py3-none-any.whl",
+      "sha256": "1a6ca72e02ec4ddf7711de3924df018e06aa86a82782055cf7e1544a6ea5d0b1",
+      "url": "https://files.pythonhosted.org/packages/bb/96/e79f4582576cfbc4cbd1c9494a843a66de89cd72f5f33a0976ca733caad7/assistant_skills_lib-1.0.1-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/assistant-skills-lib/1.0.1/json",
+      "metadata_sha256": "0b8d9674545a75300d3408a038c737b0d87eb09271f67c51347f2741affdd83d",
+      "requires_python": ">=3.9",
+      "requires_dist": [
+        "requests>=2.28.0",
+        "tabulate>=0.9.0",
+        "mypy>=1.0.0; extra == 'all'",
+        "pytest-cov>=4.0.0; extra == 'all'",
+        "pytest>=7.0.0; extra == 'all'",
+        "ruff>=0.1.0; extra == 'all'",
+        "mypy>=1.0.0; extra == 'dev'",
+        "pytest-cov>=4.0.0; extra == 'dev'",
+        "pytest>=7.0.0; extra == 'dev'",
+        "ruff>=0.1.0; extra == 'dev'"
+      ],
+      "availability": "archive-verified",
+      "dependencies": [
+        "requests",
+        "tabulate"
+      ]
+    },
+    {
+      "name": "hatchling",
+      "version": "1.32.0",
+      "filename": "hatchling-1.32.0-py3-none-any.whl",
+      "sha256": "0e17c9c3b9aa7c625acc8d0f5b622f107d5049af9ecf5ada4de1aada5be7cdbc",
+      "url": "https://files.pythonhosted.org/packages/a9/84/1798b6d85ecde0e31546004efd25c5de1b1f49250644a60cce460e12593a/hatchling-1.32.0-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/hatchling/1.32.0/json",
+      "metadata_sha256": "6c551d704bfe931ed1a4c05ff764b99f2441d6a4ab28a73a5d57dd0338d49634",
+      "requires_python": ">=3.10",
+      "requires_dist": [
+        "packaging>=24.2",
+        "pathspec>=0.10.1",
+        "pluggy>=1.0.0",
+        "tomli>=1.2.2; python_version < '3.11'",
+        "tomlkit>=0.11.1",
+        "trove-classifiers"
+      ],
+      "availability": "archive-verified",
+      "dependencies": [
+        "packaging",
+        "pathspec",
+        "pluggy",
+        "tomlkit",
+        "trove-classifiers"
+      ]
+    },
+    {
+      "name": "build",
+      "version": "1.6.0",
+      "filename": "build-1.6.0-py3-none-any.whl",
+      "sha256": "f7aaf1ebbb79178a02ba248bb524f2176b256017e17e8e4bd4289c7b38cc2bad",
+      "url": "https://files.pythonhosted.org/packages/ab/e5/aa1e81b21aea0ce0ba435311837a37d4cb936e7461f9fecac08580073ba9/build-1.6.0-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/build/1.6.0/json",
+      "metadata_sha256": "6c9a049edd7d3010ee619eecf7626172d5595ab98db004d0275452f25c0af419",
+      "requires_python": ">= 3.10",
+      "requires_dist": [
+        "packaging >= 24.0",
+        "pyproject_hooks",
+        "colorama; os_name == \"nt\"",
+        "importlib-metadata >= 4.6; python_full_version < \"3.10.2\"",
+        "tomli >= 1.1.0; python_version < \"3.11\"",
+        "keyring ; extra == \"keyring\"",
+        "uv >= 0.1.18 ; extra == \"uv\"",
+        "virtualenv >= 20.36.1 ; extra == \"virtualenv\""
+      ],
+      "availability": "archive-verified",
+      "dependencies": [
+        "packaging",
+        "pyproject-hooks"
+      ]
+    },
+    {
+      "name": "editables",
+      "version": "0.5",
+      "filename": "editables-0.5-py3-none-any.whl",
+      "sha256": "61e5ffa82629e0d8bfe09bc44a07db3c1ab8ed1ce78a6980732870f19b5e7d4c",
+      "url": "https://files.pythonhosted.org/packages/6b/be/0f2f4a5e8adc114a02b63d92bf8edbfa24db6fc602fca83c885af2479e0e/editables-0.5-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/editables/0.5/json",
+      "metadata_sha256": "ecf3f94c7183fb7e880049ea13d45ae20e663971fb840e7d99a4519ed0f4a3bc",
+      "requires_python": ">=3.7",
+      "requires_dist": [],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "pip",
+      "version": "26.2",
+      "filename": "pip-26.2-py3-none-any.whl",
+      "sha256": "931c303696af6fa3417112103b1cad26890e5a07eccb5b99783700e33f2b8aad",
+      "url": "https://files.pythonhosted.org/packages/62/36/a3aed958d60531cb442b7ab4596cda7b3621cfb916f8ae1d6769795c7dc1/pip-26.2-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/pip/26.2/json",
+      "metadata_sha256": "bc1b608d89fa343293085715efd4f10d68ad136a04fd4629fc85b2d6e655a518",
+      "requires_python": ">=3.10",
+      "requires_dist": [],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "iniconfig",
+      "version": "2.3.0",
+      "filename": "iniconfig-2.3.0-py3-none-any.whl",
+      "sha256": "f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12",
+      "url": "https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/iniconfig/json",
+      "metadata_sha256": "53b903cfe8147a2473a4d25cf53a8bb9aff1cacbec3ac9b91bf21ebbdd8155b0",
+      "requires_python": ">=3.10",
+      "requires_dist": [],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "packaging",
+      "version": "26.3",
+      "filename": "packaging-26.3-py3-none-any.whl",
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/packaging/json",
+      "metadata_sha256": "9d7a2885e9e79296598f8c943e0a94c2468e21c800abd26ed13c633465a78835",
+      "requires_python": ">=3.9",
+      "requires_dist": [],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "pluggy",
+      "version": "1.6.0",
+      "filename": "pluggy-1.6.0-py3-none-any.whl",
+      "sha256": "e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746",
+      "url": "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/pluggy/json",
+      "metadata_sha256": "61d625a54043b8181d28ea7a583a7542c7f45f065e8efa3964804cd7f42ff0f4",
+      "requires_python": ">=3.9",
+      "requires_dist": [
+        "pre-commit; extra == \"dev\"",
+        "tox; extra == \"dev\"",
+        "pytest; extra == \"testing\"",
+        "pytest-benchmark; extra == \"testing\"",
+        "coverage; extra == \"testing\""
+      ],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "pygments",
+      "version": "2.21.0",
+      "filename": "pygments-2.21.0-py3-none-any.whl",
+      "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+      "url": "https://files.pythonhosted.org/packages/71/46/17f022dd3e953bf20a04a028a21ec746d942f8d2af30fa0f124fa0e6a684/pygments-2.21.0-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/pygments/json",
+      "metadata_sha256": "d48c0f74c08c450aeabfd5e90fc93b01ec127074c0f3e22cfe74a968c4299771",
+      "requires_python": ">=3.9",
+      "requires_dist": [
+        "colorama>=0.4.6; extra == 'windows-terminal'"
+      ],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "pyyaml",
+      "version": "6.0.3",
+      "filename": "pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "ba1cc08a7ccde2d2ec775841541641e4548226580ab850948cbfda66a1befcdc",
+      "url": "https://files.pythonhosted.org/packages/8b/9d/b3589d3877982d4f2329302ef98a8026e7f4443c765c46cfecc8858c6b4b/pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "metadata_url": "https://pypi.org/pypi/pyyaml/json",
+      "metadata_sha256": "d0c463a86ed24144dd112fd1fe43b7c208e52c7d3903c2f51c84acfb5b10c749",
+      "requires_python": ">=3.8",
+      "requires_dist": [],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.5.1",
+      "filename": "charset_normalizer-3.5.1-py3-none-any.whl",
+      "sha256": "6df0ec430f9a831772c23ca5a224cba36517a58a84bb32c32bb59a9fa67c47f6",
+      "url": "https://files.pythonhosted.org/packages/cc/61/d01fc49b8dea277640b55a9e15960dbca9fdc8c9fde18e572d39c59f4019/charset_normalizer-3.5.1-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/charset-normalizer/json",
+      "metadata_sha256": "e253a5f40b3258ff3310ddce6b40e6b5a7852f404261c2cffa6d969d8c014e07",
+      "requires_python": ">=3.7",
+      "requires_dist": [],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "idna",
+      "version": "3.19",
+      "filename": "idna-3.19-py3-none-any.whl",
+      "sha256": "815e7be7a7806d54abb586dc943addc79e8b2ee16915059658cbeff4b1b43bf4",
+      "url": "https://files.pythonhosted.org/packages/57/b0/0e52c878c53f245edd3a11020f20979b3f490f245af532c7cae3027754b5/idna-3.19-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/idna/json",
+      "metadata_sha256": "8352dbda1fdc62df06b272b894d69d3a55a7dbc5d506266a02a855daa1a35ac6",
+      "requires_python": ">=3.9",
+      "requires_dist": [
+        "ruff >= 0.16.0 ; extra == \"all\"",
+        "mypy >= 1.11.2 ; extra == \"all\"",
+        "ty >= 0.0.37 ; extra == \"all\"",
+        "pytest >= 8.3.2 ; extra == \"all\"",
+        "hypothesis >= 6.141.1 ; extra == \"all\"",
+        "coverage >= 7.10.0 ; extra == \"all\""
+      ],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "urllib3",
+      "version": "2.7.0",
+      "filename": "urllib3-2.7.0-py3-none-any.whl",
+      "sha256": "9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897",
+      "url": "https://files.pythonhosted.org/packages/7f/3e/5db95bcf282c52709639744ca2a8b149baccf648e39c8cc87553df9eae0c/urllib3-2.7.0-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/urllib3/json",
+      "metadata_sha256": "9dd6118e8e32259fb3e012ae5facda8dc0a3cace92519363bd10d97457c58b00",
+      "requires_python": ">=3.10",
+      "requires_dist": [
+        "brotli>=1.2.0; (platform_python_implementation == 'CPython') and extra == 'brotli'",
+        "brotlicffi>=1.2.0.0; (platform_python_implementation != 'CPython') and extra == 'brotli'",
+        "h2<5,>=4; extra == 'h2'",
+        "pysocks!=1.5.7,<2.0,>=1.5.6; extra == 'socks'",
+        "backports-zstd>=1.0.0; (python_version < '3.14') and extra == 'zstd'"
+      ],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "certifi",
+      "version": "2026.7.22",
+      "filename": "certifi-2026.7.22-py3-none-any.whl",
+      "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+      "url": "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/certifi/json",
+      "metadata_sha256": "3b94efeb879dddf7172a6ab03cd53b68e76f046c11893249d6c17e99a0293a3c",
+      "requires_python": ">=3.7",
+      "requires_dist": [],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "tabulate",
+      "version": "0.10.0",
+      "filename": "tabulate-0.10.0-py3-none-any.whl",
+      "sha256": "f0b0622e567335c8fabaaa659f1b33bcb6ddfe2e496071b743aa113f8774f2d3",
+      "url": "https://files.pythonhosted.org/packages/99/55/db07de81b5c630da5cbf5c7df646580ca26dfaefa593667fc6f2fe016d2e/tabulate-0.10.0-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/tabulate/json",
+      "metadata_sha256": "5d389e91b80ed1d726a656a4371a0e5a1049d6e567681511b375cc862796ccbe",
+      "requires_python": ">=3.10",
+      "requires_dist": [
+        "wcwidth; extra == \"widechars\""
+      ],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "pathspec",
+      "version": "1.1.1",
+      "filename": "pathspec-1.1.1-py3-none-any.whl",
+      "sha256": "a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189",
+      "url": "https://files.pythonhosted.org/packages/f1/d9/7fb5aa316bc299258e68c73ba3bddbc499654a07f151cba08f6153988714/pathspec-1.1.1-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/pathspec/json",
+      "metadata_sha256": "df109cf06c88402cc0907de428b352e676ce059ed5eb51c87a8732c0fb9e90a6",
+      "requires_python": ">=3.9",
+      "requires_dist": [
+        "hyperscan >=0.7 ; extra == \"hyperscan\"",
+        "typing-extensions >=4 ; extra == \"optional\"",
+        "google-re2 >=1.1 ; extra == \"re2\""
+      ],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "tomlkit",
+      "version": "0.15.1",
+      "filename": "tomlkit-0.15.1-py3-none-any.whl",
+      "sha256": "177a05aece5a8ca5266fd3c448abb47b8d352f09d477d3ca8332db4d89b24304",
+      "url": "https://files.pythonhosted.org/packages/13/bc/8c13eb66537dce1d2bd3a57132902f38d0e7f5bb46fa9f4daed9fe9d76ee/tomlkit-0.15.1-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/tomlkit/json",
+      "metadata_sha256": "34bb25874656580643c57fb63ec69b45cb6c0dc6517f0e27e3c115f8522f0301",
+      "requires_python": ">=3.9",
+      "requires_dist": [],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "trove-classifiers",
+      "version": "2026.6.1.19",
+      "filename": "trove_classifiers-2026.6.1.19-py3-none-any.whl",
+      "sha256": "ab4c4ec93cc4a4e7815fa759906e05e6bb3f2fbd92ea0f897288c6a43efd15b3",
+      "url": "https://files.pythonhosted.org/packages/7c/a4/81502f486f01db95bc8320646a8a12511f5e556cb63d5e224d91816605c4/trove_classifiers-2026.6.1.19-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/trove-classifiers/json",
+      "metadata_sha256": "5021a5f3c880269f6be2e85ee7f2f06ad52f7f733389504766b66f98c8536d23",
+      "requires_python": null,
+      "requires_dist": [],
+      "availability": "archive-verified",
+      "dependencies": []
+    },
+    {
+      "name": "pyproject-hooks",
+      "version": "1.2.0",
+      "filename": "pyproject_hooks-1.2.0-py3-none-any.whl",
+      "sha256": "9e5c6bfa8dcc30091c74b0cf803c81fdd29d94f01992a7707bc97babb1141913",
+      "url": "https://files.pythonhosted.org/packages/bd/24/12818598c362d7f300f18e74db45963dbcb85150324092410c8b49405e42/pyproject_hooks-1.2.0-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/pyproject-hooks/json",
+      "metadata_sha256": "2e3ec62f103d44b7433d57afa45be51670ea3e0a2f4a68d222adee1e19c68f23",
+      "requires_python": ">=3.7",
+      "requires_dist": [],
+      "availability": "archive-verified",
+      "dependencies": []
+    }
+  ],
+  "generated_expectations": {
+    "catalog.json": "ff528ae791bb80c2b6c1151ea4d40f80f3de1536397ba2ffa5458ef70664d750",
+    "v1.index.json": "0e2614aa2d2c761ef57833c44434e5f98d0ab9726b0ccfc33d7e220499e7f910",
+    "v2.index.json": "25a6fba23dedf94995e4b64c9d9988a720c9d25880536dbacafb07b989bb61d9"
+  },
+  "admission_prerequisites": [
+    "reviewed external control commit/tree and pins digest",
+    "trusted launcher checks control before Python execution",
+    "exact product and engine commits available to authorized runner; not queried here",
+    "preprovisioned interpreter/archive and 23 verified wheels; no runtime downloader",
+    "external installed-interpreter prefix and tool digests; exact image/hardware record",
+    "exact workflow event/run/attempt and arm release/job-start timestamps",
+    "independent API/artifact verification before paired comparison or acceptance",
+    "separate execution Clearance, full-suite/native obligations, and publication authority"
+  ],
+  "scope": "47 static expected nodes do not waive full-suite, native, live or landing obligations"
+}

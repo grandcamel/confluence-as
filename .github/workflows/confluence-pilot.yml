@@ -1,0 +1,907 @@
+name: confluence-offline-core-pilot (bounded benchmark)
+# Activation source: one separately approved manual pilot, no reruns.
+# Boss verifies these external prerequisites before publication/dispatch:
+# exact immutable gc286-reviewed-* tag restricted by the gc286-bounded environment;
+# required reviewer, no bypass, environment-only GC286_OPERATOR_ENVELOPE secret;
+# contents:read for pinned checkout and actions:read for two per-attempt GETs.
+# No repository/org fallback envelope secret; no custom allocator/service.
+# Operator sets envelope for the allocated run ID/attempt 1 before environment approval.
+# Trusted GitHub-hosted Ubuntu /usr/bin/python3 is the bootstrap trust base;
+# the benchmark Python comes only from the verified private pinned archive.
+# Never treat this fixed-source benchmark as a required current-PR check.
+# Existing test.yml and all full-suite/Python/coverage/native gates remain required.
+# HTTP 30s metadata/300s asset budgets are cooperative elapsed checks with socket
+# idle timeouts, not hard DNS or continuous-header wall caps. The 20-minute job
+# timeout is an external platform cancellation backstop, not kernel containment.
+# always() upload is best effort; cancellation can prevent final artifact receipt.
+# Missing or partial evidence is always nonaccepting.
+"on":
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: gc286-benchmark-${{ github.run_id }}
+  cancel-in-progress: false
+jobs:
+  serial:
+    name: gc286-serial
+    environment: gc286-bounded
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: grandcamel/confluence-as
+          ref: a653afea42956bc00369cf8a02bababd5fc03dbf
+          path: product
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: grandcamel/as-engine
+          ref: 1ec67cb4886f1ae1818f303b878a51fd7cc81f37
+          path: engine
+          persist-credentials: false
+      - name: Verified bootstrap for fixed benchmark
+        shell: bash
+        env:
+          GC286_OPERATOR_ENVELOPE: ${{ secrets.GC286_OPERATOR_ENVELOPE }}
+          GC286_METADATA_TOKEN: ${{ github.token }}
+          SHARD: serial
+        run: |
+          set -euo pipefail
+          # No checkout shell/module executes here. Environment originates in the
+          # trusted workflow/platform; the candidate cannot supply its own authority.
+          env -i PATH=/usr/bin:/bin LC_ALL=C.UTF-8 \
+            SHARD="$SHARD" \
+            GITHUB_WORKSPACE="$GITHUB_WORKSPACE" RUNNER_TEMP="$RUNNER_TEMP" \
+            GITHUB_REPOSITORY="$GITHUB_REPOSITORY" GITHUB_SHA="$GITHUB_SHA" \
+            GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" GITHUB_RUN_ID="$GITHUB_RUN_ID" \
+            GITHUB_RUN_ATTEMPT="$GITHUB_RUN_ATTEMPT" GITHUB_REF="$GITHUB_REF" \
+            GITHUB_WORKFLOW_SHA="$GITHUB_WORKFLOW_SHA" GITHUB_WORKFLOW_REF="$GITHUB_WORKFLOW_REF" \
+            RUNNER_ENVIRONMENT="$RUNNER_ENVIRONMENT" RUNNER_NAME="$RUNNER_NAME" \
+            ImageOS="$ImageOS" ImageVersion="$ImageVersion" \
+            /usr/bin/python3 -I -B - \
+              3< <(printf '%s' "$GC286_OPERATOR_ENVELOPE") \
+              4< <(printf '%s' "$GC286_METADATA_TOKEN") <<'GC286_BOOTSTRAP'
+          # GC286_INLINE_BEGIN
+          # Trust root: externally protected exact workflow tag + environment approval.
+          # This code cannot authenticate a candidate workflow that replaces this code.
+          import hashlib
+          import importlib.util
+          import json
+          import os
+          import re
+          import stat
+          import subprocess
+          import sys
+          import time
+          from datetime import datetime
+          from pathlib import Path
+          
+          FILES = {
+              ".github/workflows/confluence-pilot.yml",
+              "ci/pins.json",
+              "ci/pilot.py",
+              "ci/pytest_evidence.py",
+              "ci/locks/linux-py312.txt",
+              "ci/selections/confluence-offline-core-v1.json",
+              "tests/test_ci_evidence.py",
+          }
+          
+          
+          def need(ok, message):
+              if not ok:
+                  raise ValueError(message)
+          
+          
+          def unique(pairs):
+              value = {}
+              for key, item in pairs:
+                  need(key not in value, "duplicate JSON key")
+                  value[key] = item
+              return value
+          
+          
+          def read_json(raw):
+              need(len(raw) <= 1024 * 1024, "oversized JSON")
+              return json.loads(raw, object_pairs_hook=unique)
+          
+          
+          def sha256(raw):
+              return hashlib.sha256(raw).hexdigest()
+          
+          
+          def timestamp(value):
+              need(isinstance(value, str) and value.endswith("Z"), "missing UTC timestamp")
+              return datetime.fromisoformat(value[:-1] + "+00:00").timestamp()
+          
+          
+          def authorize(raw, env, now):
+              # Environment secret is supplied by the protected job, never a dispatch input
+              # or checkout file. Configuration provenance is an external enabling gate.
+              authority = read_json(raw)
+              need(
+                  set(authority)
+                  == {
+                      "schema",
+                      "control",
+                      "repository",
+                      "run_id",
+                      "attempt",
+                      "ref",
+                      "not_before",
+                      "expires_at",
+                      "platform",
+                      "sources",
+                      "shards",
+                  },
+                  "wrong authority fields",
+              )
+              need(authority["schema"] == "gc286-operator/v1", "wrong authority schema")
+              control = authority["control"]
+              need(set(control) == {"commit", "tree", "pins_sha256"}, "wrong control fields")
+              for name, length in [("commit", 40), ("tree", 40), ("pins_sha256", 64)]:
+                  need(
+                      isinstance(control[name], str)
+                      and re.fullmatch(f"[0-9a-f]{{{length}}}", control[name]),
+                      "bad control digest",
+                  )
+              need(
+                  authority["repository"]
+                  == env["GITHUB_REPOSITORY"]
+                  == "grandcamel/confluence-as",
+                  "wrong repository",
+              )
+              need(
+                  authority["run_id"] == env["GITHUB_RUN_ID"]
+                  and re.fullmatch("[1-9][0-9]*", authority["run_id"]),
+                  "wrong run",
+              )
+              need(
+                  authority["attempt"] == env["GITHUB_RUN_ATTEMPT"] == "1",
+                  "replay or wrong attempt",
+              )
+              need(env["GITHUB_EVENT_NAME"] == "workflow_dispatch", "wrong event")
+              need(
+                  authority["ref"] == env["GITHUB_REF"]
+                  and re.fullmatch(r"refs/tags/gc286-reviewed-[A-Za-z0-9._-]+", authority["ref"]),
+                  "wrong protected ref",
+              )
+              need(
+                  env["GITHUB_SHA"] == env["GITHUB_WORKFLOW_SHA"] == control["commit"],
+                  "wrong workflow revision",
+              )
+              need(
+                  env["GITHUB_WORKFLOW_REF"]
+                  == authority["repository"]
+                  + "/.github/workflows/confluence-pilot.yml@"
+                  + authority["ref"],
+                  "wrong workflow path",
+              )
+              start, end = timestamp(authority["not_before"]), timestamp(authority["expires_at"])
+              need(start <= now < end and 0 < end - start <= 3600, "missing or expired authority")
+              need(
+                  authority["shards"] == ["serial", "A", "B"]
+                  and env["SHARD"] in authority["shards"],
+                  "wrong bounded selection",
+              )
+              need(
+                  authority["platform"]
+                  == {
+                      "system": "Linux",
+                      "machine": "x86_64",
+                      "image_os": "ubuntu24",
+                      "runner": "github-hosted",
+                      "bootstrap": "/usr/bin/python3",
+                  },
+                  "wrong platform policy",
+              )
+              need(
+                  authority["sources"]
+                  == {
+                      "product": {
+                          "commit": "a653afea42956bc00369cf8a02bababd5fc03dbf",
+                          "tree": "1a4b15d0507ff693fa723a8f74dd656f324b3cd6",
+                      },
+                      "engine": {
+                          "commit": "1ec67cb4886f1ae1818f303b878a51fd7cc81f37",
+                          "tree": "17a795070f3ea73af9e5e6919831098f0ad931bd",
+                      },
+                  },
+                  "wrong fixed sources",
+              )
+              return authority
+          
+          
+          def regular(root, relative):
+              parts = Path(relative).parts
+              need(
+                  parts
+                  and not Path(relative).is_absolute()
+                  and all(p not in (".", "..", ".git") for p in parts),
+                  "unsafe input path",
+              )
+              path = root
+              need(root.is_dir() and not root.is_symlink(), "symlink root")
+              for index, part in enumerate(parts):
+                  path = path / part
+                  mode = path.lstat().st_mode
+                  need(
+                      stat.S_ISDIR(mode) if index < len(parts) - 1 else stat.S_ISREG(mode),
+                      "symlink or nonregular input",
+                  )
+              return path
+          
+          
+          def inventory(root):
+              names = set()
+              for folder, directories, files in os.walk(root, followlinks=False):
+                  if Path(folder) == root:
+                      directories[:] = [d for d in directories if d != ".git"]
+                      files = [f for f in files if f != ".git"]
+                  need(
+                      all(not (Path(folder) / d).is_symlink() for d in directories),
+                      "symlink directory",
+                  )
+                  names.update((Path(folder) / f).relative_to(root).as_posix() for f in files)
+              return names
+          
+          
+          def verified_tree(root, control, work):
+              # Only checkout's local object storage is data. Never read its config, index,
+              # hooks, filters, replace refs or remotes. Expected objects are rehashed.
+              gitdir = root / ".git"
+              need(gitdir.is_dir() and not gitdir.is_symlink(), "unsupported Git layout")
+              need(
+                  (gitdir / "HEAD").read_text().strip() == control["commit"],
+                  "wrong detached HEAD",
+              )
+              isolated = work / "object-reader"
+              isolated.mkdir()
+              (isolated / "refs").mkdir()
+              (isolated / "objects").mkdir()
+              (isolated / "HEAD").write_text("ref: refs/heads/unused\n")
+              (isolated / "config").write_text(
+                  "[core]\nrepositoryformatversion = 0\nbare = true\n"
+              )
+              clean = {
+                  "PATH": "/usr/bin:/bin",
+                  "LC_ALL": "C",
+                  "GIT_CONFIG_NOSYSTEM": "1",
+                  "GIT_CONFIG_GLOBAL": "/dev/null",
+                  "GIT_CONFIG_SYSTEM": "/dev/null",
+                  "GIT_NO_REPLACE_OBJECTS": "1",
+                  "GIT_NO_LAZY_FETCH": "1",
+                  "GIT_TERMINAL_PROMPT": "0",
+                  "GIT_OBJECT_DIRECTORY": str(gitdir / "objects"),
+              }
+          
+              def obj(kind, oid):
+                  raw = subprocess.check_output(
+                      [
+                          "/usr/bin/git",
+                          "--no-pager",
+                          "--no-replace-objects",
+                          "--git-dir=" + str(isolated),
+                          "cat-file",
+                          kind,
+                          oid,
+                      ],
+                      env=clean,
+                      cwd=isolated,
+                      timeout=10,
+                  )
+                  need(len(raw) <= 8 * 1024 * 1024, "oversized Git object")
+                  need(
+                      hashlib.sha1(
+                          kind.encode() + b" " + str(len(raw)).encode() + b"\0" + raw
+                      ).hexdigest()
+                      == oid,
+                      "wrong Git object",
+                  )
+                  return raw
+          
+              commit = obj("commit", control["commit"])
+              need(
+                  commit.split(b"\n", 1)[0] == b"tree " + control["tree"].encode(),
+                  "wrong control tree",
+              )
+              pending, manifest = [("", control["tree"])], {}
+              while pending:
+                  prefix, oid = pending.pop()
+                  data = obj("tree", oid)
+                  while data:
+                      header, separator, tail = data.partition(b"\0")
+                      need(separator and len(tail) >= 20, "malformed tree")
+                      mode, name = header.decode().split(" ", 1)
+                      need(
+                          name not in (".", "..", ".git") and "/" not in name, "unsafe tree entry"
+                      )
+                      oid, data = tail[:20].hex(), tail[20:]
+                      relative = prefix + name
+                      need(
+                          len(relative) <= 1024 and len(manifest) + len(pending) < 20000,
+                          "tree bound exceeded",
+                      )
+                      if mode == "40000":
+                          pending.append((relative + "/", oid))
+                          continue
+                      need(
+                          mode in ("100644", "100755") and relative not in manifest,
+                          "unsupported tree entry",
+                      )
+                      path = regular(root, relative)
+                      need(path.stat().st_size <= 64 * 1024 * 1024, "oversized source")
+                      raw = path.read_bytes()
+                      need(
+                          hashlib.sha1(
+                              b"blob " + str(len(raw)).encode() + b"\0" + raw
+                          ).hexdigest()
+                          == oid,
+                          "changed source bytes",
+                      )
+                      need(
+                          stat.S_IMODE(path.stat().st_mode) == int(mode[-3:], 8),
+                          "changed source mode",
+                      )
+                      manifest[relative] = {"sha256": sha256(raw), "mode": int(mode[-3:], 8)}
+              need(inventory(root) == set(manifest), "extra or missing control input")
+              return manifest
+          
+          
+          def verify_copy(root, private, manifest, copy_file=None):
+              # Read and verify again at copy time, then check the private inventory/bytes.
+              private.mkdir(mode=0o700)
+              for relative, record in manifest.items():
+                  source = regular(root, relative)
+                  target = private / relative
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  if copy_file is None:
+                      target.write_bytes(source.read_bytes())
+                  else:
+                      copy_file(source, target)
+                  target.chmod(record["mode"])
+              need(inventory(private) == set(manifest), "extra private input")
+              for relative, record in manifest.items():
+                  path = regular(private, relative)
+                  need(
+                      sha256(path.read_bytes()) == record["sha256"]
+                      and stat.S_IMODE(path.stat().st_mode) == record["mode"],
+                      "mutated private copy",
+                  )
+          
+          
+          def verified_entry(env, now=None, tree_reader=verified_tree, loader=None):
+              authority = authorize(
+                  env["GC286_OPERATOR_ENVELOPE"], env, time.time() if now is None else now
+              )
+              need(
+                  sys.platform == "linux"
+                  and os.uname().machine == "x86_64"
+                  and os.geteuid() != 0,
+                  "wrong bootstrap platform",
+              )
+              need(
+                  env["RUNNER_ENVIRONMENT"] == "github-hosted"
+                  and env["ImageOS"] == "ubuntu24"
+                  and bool(env["ImageVersion"]),
+                  "missing hosted image",
+              )
+              root = Path(env["GITHUB_WORKSPACE"]) / "control"
+              pins_raw = regular(root, "ci/pins.json").read_bytes()
+              need(sha256(pins_raw) == authority["control"]["pins_sha256"], "changed pins")
+              pins = read_json(pins_raw)
+              need(set(pins["content"]) == FILES - {"ci/pins.json"}, "wrong six-file inventory")
+              need(pins["sources"] == authority["sources"], "wrong source pins")
+              for relative, expected in pins["content"].items():
+                  path = regular(root, relative)
+                  need(
+                      sha256(path.read_bytes()) == expected
+                      and stat.S_IMODE(path.stat().st_mode) == 0o644,
+                      "changed controller/recorder/input",
+                  )
+              # Exclusive fixed per-run/attempt/shard marker. GitHub gives each job once per
+              # attempt; reruns advance attempt. Re-entry on this runner refuses, even failed.
+              work = Path(env["RUNNER_TEMP"]) / (
+                  "gc286-" + authority["run_id"] + "-1-" + env["SHARD"]
+              )
+              work.mkdir(mode=0o700)
+              manifest = tree_reader(root, authority["control"], work)
+              need(FILES <= set(manifest), "missing owned inputs")
+              private = work / "control"
+              verify_copy(root, private, manifest)
+              need(
+                  sha256((private / "ci/pins.json").read_bytes())
+                  == authority["control"]["pins_sha256"],
+                  "mutated pins copy",
+              )
+              if loader is not None:
+                  return loader(private, work, authority, manifest, env)
+              # -I excludes script-directory imports. Install ONLY the verified private ci
+              # path explicitly, after verification; recorder then resolves from that path.
+              sys.path.insert(0, str(private / "ci"))
+              spec = importlib.util.spec_from_file_location(
+                  "gc286_verified_pilot", private / "ci/pilot.py"
+              )
+              module = importlib.util.module_from_spec(spec)
+              spec.loader.exec_module(module)
+              return module.bootstrap_verified(private, work, authority, manifest, env)
+          
+          
+          if __name__ == "__main__":
+              try:
+                  environment = dict(os.environ)
+                  for descriptor, key, limit in [
+                      (3, "GC286_OPERATOR_ENVELOPE", 49152),
+                      (4, "GC286_METADATA_TOKEN", 16384),
+                  ]:
+                      with os.fdopen(descriptor) as stream:
+                          value = stream.read(limit + 1)
+                      need(len(value) <= limit, "oversized bootstrap input")
+                      environment[key] = value
+                  raise SystemExit(verified_entry(environment))
+              except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+                  # Never echo the envelope or API credential in errors.
+                  print("GC286 trusted bootstrap refused", file=sys.stderr)
+                  raise SystemExit(4) from None
+          # GC286_INLINE_END
+          GC286_BOOTSTRAP
+      - name: Retain original complete or partial evidence
+        if: ${{ always() }}
+        timeout-minutes: 2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: gc286-${{ github.run_id }}-${{ github.run_attempt }}-serial
+          path: ${{ runner.temp }}/gc286-${{ github.run_id }}-1-serial/evidence-serial/
+          if-no-files-found: error
+          retention-days: 7
+  two_shards:
+    name: gc286-${{ matrix.shard }}
+    environment: gc286-bounded
+    needs: serial
+    if: ${{ needs.serial.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        shard: [A, B]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: grandcamel/confluence-as
+          ref: a653afea42956bc00369cf8a02bababd5fc03dbf
+          path: product
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: grandcamel/as-engine
+          ref: 1ec67cb4886f1ae1818f303b878a51fd7cc81f37
+          path: engine
+          persist-credentials: false
+      - name: Verified bootstrap for fixed benchmark
+        shell: bash
+        env:
+          GC286_OPERATOR_ENVELOPE: ${{ secrets.GC286_OPERATOR_ENVELOPE }}
+          GC286_METADATA_TOKEN: ${{ github.token }}
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -euo pipefail
+          # No checkout shell/module executes here. Environment originates in the
+          # trusted workflow/platform; the candidate cannot supply its own authority.
+          env -i PATH=/usr/bin:/bin LC_ALL=C.UTF-8 \
+            SHARD="$SHARD" \
+            GITHUB_WORKSPACE="$GITHUB_WORKSPACE" RUNNER_TEMP="$RUNNER_TEMP" \
+            GITHUB_REPOSITORY="$GITHUB_REPOSITORY" GITHUB_SHA="$GITHUB_SHA" \
+            GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" GITHUB_RUN_ID="$GITHUB_RUN_ID" \
+            GITHUB_RUN_ATTEMPT="$GITHUB_RUN_ATTEMPT" GITHUB_REF="$GITHUB_REF" \
+            GITHUB_WORKFLOW_SHA="$GITHUB_WORKFLOW_SHA" GITHUB_WORKFLOW_REF="$GITHUB_WORKFLOW_REF" \
+            RUNNER_ENVIRONMENT="$RUNNER_ENVIRONMENT" RUNNER_NAME="$RUNNER_NAME" \
+            ImageOS="$ImageOS" ImageVersion="$ImageVersion" \
+            /usr/bin/python3 -I -B - \
+              3< <(printf '%s' "$GC286_OPERATOR_ENVELOPE") \
+              4< <(printf '%s' "$GC286_METADATA_TOKEN") <<'GC286_BOOTSTRAP'
+          # GC286_INLINE_BEGIN
+          # Trust root: externally protected exact workflow tag + environment approval.
+          # This code cannot authenticate a candidate workflow that replaces this code.
+          import hashlib
+          import importlib.util
+          import json
+          import os
+          import re
+          import stat
+          import subprocess
+          import sys
+          import time
+          from datetime import datetime
+          from pathlib import Path
+          
+          FILES = {
+              ".github/workflows/confluence-pilot.yml",
+              "ci/pins.json",
+              "ci/pilot.py",
+              "ci/pytest_evidence.py",
+              "ci/locks/linux-py312.txt",
+              "ci/selections/confluence-offline-core-v1.json",
+              "tests/test_ci_evidence.py",
+          }
+          
+          
+          def need(ok, message):
+              if not ok:
+                  raise ValueError(message)
+          
+          
+          def unique(pairs):
+              value = {}
+              for key, item in pairs:
+                  need(key not in value, "duplicate JSON key")
+                  value[key] = item
+              return value
+          
+          
+          def read_json(raw):
+              need(len(raw) <= 1024 * 1024, "oversized JSON")
+              return json.loads(raw, object_pairs_hook=unique)
+          
+          
+          def sha256(raw):
+              return hashlib.sha256(raw).hexdigest()
+          
+          
+          def timestamp(value):
+              need(isinstance(value, str) and value.endswith("Z"), "missing UTC timestamp")
+              return datetime.fromisoformat(value[:-1] + "+00:00").timestamp()
+          
+          
+          def authorize(raw, env, now):
+              # Environment secret is supplied by the protected job, never a dispatch input
+              # or checkout file. Configuration provenance is an external enabling gate.
+              authority = read_json(raw)
+              need(
+                  set(authority)
+                  == {
+                      "schema",
+                      "control",
+                      "repository",
+                      "run_id",
+                      "attempt",
+                      "ref",
+                      "not_before",
+                      "expires_at",
+                      "platform",
+                      "sources",
+                      "shards",
+                  },
+                  "wrong authority fields",
+              )
+              need(authority["schema"] == "gc286-operator/v1", "wrong authority schema")
+              control = authority["control"]
+              need(set(control) == {"commit", "tree", "pins_sha256"}, "wrong control fields")
+              for name, length in [("commit", 40), ("tree", 40), ("pins_sha256", 64)]:
+                  need(
+                      isinstance(control[name], str)
+                      and re.fullmatch(f"[0-9a-f]{{{length}}}", control[name]),
+                      "bad control digest",
+                  )
+              need(
+                  authority["repository"]
+                  == env["GITHUB_REPOSITORY"]
+                  == "grandcamel/confluence-as",
+                  "wrong repository",
+              )
+              need(
+                  authority["run_id"] == env["GITHUB_RUN_ID"]
+                  and re.fullmatch("[1-9][0-9]*", authority["run_id"]),
+                  "wrong run",
+              )
+              need(
+                  authority["attempt"] == env["GITHUB_RUN_ATTEMPT"] == "1",
+                  "replay or wrong attempt",
+              )
+              need(env["GITHUB_EVENT_NAME"] == "workflow_dispatch", "wrong event")
+              need(
+                  authority["ref"] == env["GITHUB_REF"]
+                  and re.fullmatch(r"refs/tags/gc286-reviewed-[A-Za-z0-9._-]+", authority["ref"]),
+                  "wrong protected ref",
+              )
+              need(
+                  env["GITHUB_SHA"] == env["GITHUB_WORKFLOW_SHA"] == control["commit"],
+                  "wrong workflow revision",
+              )
+              need(
+                  env["GITHUB_WORKFLOW_REF"]
+                  == authority["repository"]
+                  + "/.github/workflows/confluence-pilot.yml@"
+                  + authority["ref"],
+                  "wrong workflow path",
+              )
+              start, end = timestamp(authority["not_before"]), timestamp(authority["expires_at"])
+              need(start <= now < end and 0 < end - start <= 3600, "missing or expired authority")
+              need(
+                  authority["shards"] == ["serial", "A", "B"]
+                  and env["SHARD"] in authority["shards"],
+                  "wrong bounded selection",
+              )
+              need(
+                  authority["platform"]
+                  == {
+                      "system": "Linux",
+                      "machine": "x86_64",
+                      "image_os": "ubuntu24",
+                      "runner": "github-hosted",
+                      "bootstrap": "/usr/bin/python3",
+                  },
+                  "wrong platform policy",
+              )
+              need(
+                  authority["sources"]
+                  == {
+                      "product": {
+                          "commit": "a653afea42956bc00369cf8a02bababd5fc03dbf",
+                          "tree": "1a4b15d0507ff693fa723a8f74dd656f324b3cd6",
+                      },
+                      "engine": {
+                          "commit": "1ec67cb4886f1ae1818f303b878a51fd7cc81f37",
+                          "tree": "17a795070f3ea73af9e5e6919831098f0ad931bd",
+                      },
+                  },
+                  "wrong fixed sources",
+              )
+              return authority
+          
+          
+          def regular(root, relative):
+              parts = Path(relative).parts
+              need(
+                  parts
+                  and not Path(relative).is_absolute()
+                  and all(p not in (".", "..", ".git") for p in parts),
+                  "unsafe input path",
+              )
+              path = root
+              need(root.is_dir() and not root.is_symlink(), "symlink root")
+              for index, part in enumerate(parts):
+                  path = path / part
+                  mode = path.lstat().st_mode
+                  need(
+                      stat.S_ISDIR(mode) if index < len(parts) - 1 else stat.S_ISREG(mode),
+                      "symlink or nonregular input",
+                  )
+              return path
+          
+          
+          def inventory(root):
+              names = set()
+              for folder, directories, files in os.walk(root, followlinks=False):
+                  if Path(folder) == root:
+                      directories[:] = [d for d in directories if d != ".git"]
+                      files = [f for f in files if f != ".git"]
+                  need(
+                      all(not (Path(folder) / d).is_symlink() for d in directories),
+                      "symlink directory",
+                  )
+                  names.update((Path(folder) / f).relative_to(root).as_posix() for f in files)
+              return names
+          
+          
+          def verified_tree(root, control, work):
+              # Only checkout's local object storage is data. Never read its config, index,
+              # hooks, filters, replace refs or remotes. Expected objects are rehashed.
+              gitdir = root / ".git"
+              need(gitdir.is_dir() and not gitdir.is_symlink(), "unsupported Git layout")
+              need(
+                  (gitdir / "HEAD").read_text().strip() == control["commit"],
+                  "wrong detached HEAD",
+              )
+              isolated = work / "object-reader"
+              isolated.mkdir()
+              (isolated / "refs").mkdir()
+              (isolated / "objects").mkdir()
+              (isolated / "HEAD").write_text("ref: refs/heads/unused\n")
+              (isolated / "config").write_text(
+                  "[core]\nrepositoryformatversion = 0\nbare = true\n"
+              )
+              clean = {
+                  "PATH": "/usr/bin:/bin",
+                  "LC_ALL": "C",
+                  "GIT_CONFIG_NOSYSTEM": "1",
+                  "GIT_CONFIG_GLOBAL": "/dev/null",
+                  "GIT_CONFIG_SYSTEM": "/dev/null",
+                  "GIT_NO_REPLACE_OBJECTS": "1",
+                  "GIT_NO_LAZY_FETCH": "1",
+                  "GIT_TERMINAL_PROMPT": "0",
+                  "GIT_OBJECT_DIRECTORY": str(gitdir / "objects"),
+              }
+          
+              def obj(kind, oid):
+                  raw = subprocess.check_output(
+                      [
+                          "/usr/bin/git",
+                          "--no-pager",
+                          "--no-replace-objects",
+                          "--git-dir=" + str(isolated),
+                          "cat-file",
+                          kind,
+                          oid,
+                      ],
+                      env=clean,
+                      cwd=isolated,
+                      timeout=10,
+                  )
+                  need(len(raw) <= 8 * 1024 * 1024, "oversized Git object")
+                  need(
+                      hashlib.sha1(
+                          kind.encode() + b" " + str(len(raw)).encode() + b"\0" + raw
+                      ).hexdigest()
+                      == oid,
+                      "wrong Git object",
+                  )
+                  return raw
+          
+              commit = obj("commit", control["commit"])
+              need(
+                  commit.split(b"\n", 1)[0] == b"tree " + control["tree"].encode(),
+                  "wrong control tree",
+              )
+              pending, manifest = [("", control["tree"])], {}
+              while pending:
+                  prefix, oid = pending.pop()
+                  data = obj("tree", oid)
+                  while data:
+                      header, separator, tail = data.partition(b"\0")
+                      need(separator and len(tail) >= 20, "malformed tree")
+                      mode, name = header.decode().split(" ", 1)
+                      need(
+                          name not in (".", "..", ".git") and "/" not in name, "unsafe tree entry"
+                      )
+                      oid, data = tail[:20].hex(), tail[20:]
+                      relative = prefix + name
+                      need(
+                          len(relative) <= 1024 and len(manifest) + len(pending) < 20000,
+                          "tree bound exceeded",
+                      )
+                      if mode == "40000":
+                          pending.append((relative + "/", oid))
+                          continue
+                      need(
+                          mode in ("100644", "100755") and relative not in manifest,
+                          "unsupported tree entry",
+                      )
+                      path = regular(root, relative)
+                      need(path.stat().st_size <= 64 * 1024 * 1024, "oversized source")
+                      raw = path.read_bytes()
+                      need(
+                          hashlib.sha1(
+                              b"blob " + str(len(raw)).encode() + b"\0" + raw
+                          ).hexdigest()
+                          == oid,
+                          "changed source bytes",
+                      )
+                      need(
+                          stat.S_IMODE(path.stat().st_mode) == int(mode[-3:], 8),
+                          "changed source mode",
+                      )
+                      manifest[relative] = {"sha256": sha256(raw), "mode": int(mode[-3:], 8)}
+              need(inventory(root) == set(manifest), "extra or missing control input")
+              return manifest
+          
+          
+          def verify_copy(root, private, manifest, copy_file=None):
+              # Read and verify again at copy time, then check the private inventory/bytes.
+              private.mkdir(mode=0o700)
+              for relative, record in manifest.items():
+                  source = regular(root, relative)
+                  target = private / relative
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  if copy_file is None:
+                      target.write_bytes(source.read_bytes())
+                  else:
+                      copy_file(source, target)
+                  target.chmod(record["mode"])
+              need(inventory(private) == set(manifest), "extra private input")
+              for relative, record in manifest.items():
+                  path = regular(private, relative)
+                  need(
+                      sha256(path.read_bytes()) == record["sha256"]
+                      and stat.S_IMODE(path.stat().st_mode) == record["mode"],
+                      "mutated private copy",
+                  )
+          
+          
+          def verified_entry(env, now=None, tree_reader=verified_tree, loader=None):
+              authority = authorize(
+                  env["GC286_OPERATOR_ENVELOPE"], env, time.time() if now is None else now
+              )
+              need(
+                  sys.platform == "linux"
+                  and os.uname().machine == "x86_64"
+                  and os.geteuid() != 0,
+                  "wrong bootstrap platform",
+              )
+              need(
+                  env["RUNNER_ENVIRONMENT"] == "github-hosted"
+                  and env["ImageOS"] == "ubuntu24"
+                  and bool(env["ImageVersion"]),
+                  "missing hosted image",
+              )
+              root = Path(env["GITHUB_WORKSPACE"]) / "control"
+              pins_raw = regular(root, "ci/pins.json").read_bytes()
+              need(sha256(pins_raw) == authority["control"]["pins_sha256"], "changed pins")
+              pins = read_json(pins_raw)
+              need(set(pins["content"]) == FILES - {"ci/pins.json"}, "wrong six-file inventory")
+              need(pins["sources"] == authority["sources"], "wrong source pins")
+              for relative, expected in pins["content"].items():
+                  path = regular(root, relative)
+                  need(
+                      sha256(path.read_bytes()) == expected
+                      and stat.S_IMODE(path.stat().st_mode) == 0o644,
+                      "changed controller/recorder/input",
+                  )
+              # Exclusive fixed per-run/attempt/shard marker. GitHub gives each job once per
+              # attempt; reruns advance attempt. Re-entry on this runner refuses, even failed.
+              work = Path(env["RUNNER_TEMP"]) / (
+                  "gc286-" + authority["run_id"] + "-1-" + env["SHARD"]
+              )
+              work.mkdir(mode=0o700)
+              manifest = tree_reader(root, authority["control"], work)
+              need(FILES <= set(manifest), "missing owned inputs")
+              private = work / "control"
+              verify_copy(root, private, manifest)
+              need(
+                  sha256((private / "ci/pins.json").read_bytes())
+                  == authority["control"]["pins_sha256"],
+                  "mutated pins copy",
+              )
+              if loader is not None:
+                  return loader(private, work, authority, manifest, env)
+              # -I excludes script-directory imports. Install ONLY the verified private ci
+              # path explicitly, after verification; recorder then resolves from that path.
+              sys.path.insert(0, str(private / "ci"))
+              spec = importlib.util.spec_from_file_location(
+                  "gc286_verified_pilot", private / "ci/pilot.py"
+              )
+              module = importlib.util.module_from_spec(spec)
+              spec.loader.exec_module(module)
+              return module.bootstrap_verified(private, work, authority, manifest, env)
+          
+          
+          if __name__ == "__main__":
+              try:
+                  environment = dict(os.environ)
+                  for descriptor, key, limit in [
+                      (3, "GC286_OPERATOR_ENVELOPE", 49152),
+                      (4, "GC286_METADATA_TOKEN", 16384),
+                  ]:
+                      with os.fdopen(descriptor) as stream:
+                          value = stream.read(limit + 1)
+                      need(len(value) <= limit, "oversized bootstrap input")
+                      environment[key] = value
+                  raise SystemExit(verified_entry(environment))
+              except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+                  # Never echo the envelope or API credential in errors.
+                  print("GC286 trusted bootstrap refused", file=sys.stderr)
+                  raise SystemExit(4) from None
+          # GC286_INLINE_END
+          GC286_BOOTSTRAP
+      - name: Retain original complete or partial evidence
+        if: ${{ always() }}
+        timeout-minutes: 2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: gc286-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.shard }}
+          path: ${{ runner.temp }}/gc286-${{ github.run_id }}-1-${{ matrix.shard }}/evidence-${{ matrix.shard }}/
+          if-no-files-found: error
+          retention-days: 7
