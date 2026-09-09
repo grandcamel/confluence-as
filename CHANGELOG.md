@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `jira create-from-page` sends Jira `createIssue` through the shared as-engine transport, preserving command flags and output without a jira-as dependency. (JAS-51)
+
 - JAS-58: Declare hatchling, build and the backend's editables requirement in
   the dev extra; document development prerequisites (no-isolation builds,
   oasdiff 1.31.0 install, `OASDIFF` override); build distributions and run

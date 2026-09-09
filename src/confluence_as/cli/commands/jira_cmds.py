@@ -485,6 +485,52 @@ def embed_jira_issues(
         print_success(f"Embedded JIRA issues in page {page_id}")
 
 
+def _jira_create_error(response: Any, operation: str) -> None:
+    """Keep the command's existing validation-error wording at the engine seam."""
+    raise ValidationError(
+        f"Failed to create JIRA issue: {response.status_code} - {response.text[:500]}"
+    )
+
+
+def _create_jira_issue(
+    config: dict[str, str], issue_data: dict[str, Any]
+) -> dict[str, Any]:
+    """Send Jira createIssue through the shared transport without a Jira dependency."""
+    from as_engine.index import Operation  # type: ignore[import-untyped]
+    from as_engine.transport import HTTPTransport  # type: ignore[import-untyped]
+
+    # Confluence has no Jira index. This one cross-product operation uses the
+    # Jira v3 route and the shared request/response seam (JAS-51).
+    operation = Operation(
+        operationId="createIssue",
+        method="POST",
+        path="/rest/api/3/issue",
+        tags=["Issues"],
+        summary="Create issue",
+        description=None,
+        parameters=[],
+        requestBody={"type": "object"},
+        response_200=None,
+        extensions={},
+        reachable_schemas=[],
+        request_body_required=True,
+        request_media_types=["application/json"],
+    )
+    with HTTPTransport(
+        config["url"],
+        auth=(config["email"], config["token"]),
+        timeout=30,
+        max_retries=0,
+        error_handler=_jira_create_error,
+    ) as transport:
+        response = transport.call(operation, {}, issue_data)
+    if response.status not in (200, 201):
+        raise ValidationError(
+            f"Failed to create JIRA issue: {response.status} - {str(response.body)[:500]}"
+        )
+    return response.body
+
+
 @jira.command(name="create-from-page")
 @click.argument("page_id")
 @click.option("--project", "-p", required=True, help="JIRA project key")
@@ -565,28 +611,7 @@ def create_jira_from_page(
     if assignee:
         issue_data["fields"]["assignee"] = {"accountId": assignee}
 
-    # Create issue via JIRA API
-    # Note: This requires requests library for direct JIRA API call
-    import requests
-    from requests.auth import HTTPBasicAuth
-
-    jira_api_url = f"{jira_config['url'].rstrip('/')}/rest/api/3/issue"
-
-    response = requests.post(
-        jira_api_url,
-        json=issue_data,
-        auth=HTTPBasicAuth(jira_config["email"], jira_config["token"]),
-        headers={"Content-Type": "application/json"},
-        timeout=30,
-    )
-
-    if response.status_code not in (200, 201):
-        error_msg = response.text[:500]
-        raise ValidationError(
-            f"Failed to create JIRA issue: {response.status_code} - {error_msg}"
-        )
-
-    result = response.json()
+    result = _create_jira_issue(jira_config, issue_data)
     issue_key = result.get("key", "")
     issue_id = result.get("id", "")
 
