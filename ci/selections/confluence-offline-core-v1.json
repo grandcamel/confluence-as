@@ -1,0 +1,92 @@
+{
+  "schema": "confluence-selection/v1",
+  "name": "confluence-offline-core-v1",
+  "count_basis": "static-uncollected",
+  "expected_count": 47,
+  "modules": [
+    {
+      "path": "tests/test_api_cmds.py",
+      "shard": "A",
+      "sha256": "44fc034306dc47d7f72564a31e9d420c8342492c7035ae03db604b0404e2652c",
+      "nodes": [
+        "tests/test_api_cmds.py::test_get_pages_alias_schema_and_alternate_formats",
+        "tests/test_api_cmds.py::test_invalid_parameters_never_reach_responder[flags0]",
+        "tests/test_api_cmds.py::test_invalid_parameters_never_reach_responder[flags1]",
+        "tests/test_api_cmds.py::test_invalid_parameters_never_reach_responder[flags2]",
+        "tests/test_api_cmds.py::test_invalid_parameters_never_reach_responder[flags3]",
+        "tests/test_api_cmds.py::test_invalid_parameters_never_reach_responder[flags4]",
+        "tests/test_api_cmds.py::test_invalid_parameters_never_reach_responder[flags5]",
+        "tests/test_api_cmds.py::test_invalid_parameters_never_reach_responder[flags6]",
+        "tests/test_api_cmds.py::test_invalid_parameters_never_reach_responder[flags7]",
+        "tests/test_api_cmds.py::test_invalid_parameters_never_reach_responder[flags8]",
+        "tests/test_api_cmds.py::test_parameters_arrays_boolean_required_and_spec_limit",
+        "tests/test_api_cmds.py::test_body_stdin_file_fields_and_validation",
+        "tests/test_api_cmds.py::test_forced_errors[400-2]",
+        "tests/test_api_cmds.py::test_forced_errors[401-3]",
+        "tests/test_api_cmds.py::test_forced_errors[403-4]",
+        "tests/test_api_cmds.py::test_forced_errors[404-5]",
+        "tests/test_api_cmds.py::test_forced_errors[409-7]",
+        "tests/test_api_cmds.py::test_forced_errors[429-6]",
+        "tests/test_api_cmds.py::test_forced_errors[500-6]",
+        "tests/test_api_cmds.py::test_400_triggers_body_check_but_normal_call_does_not",
+        "tests/test_api_cmds.py::test_discovery_search_describe_topics_and_dynamic_help",
+        "tests/test_api_cmds.py::test_lower_tier_and_standard_deprecation",
+        "tests/test_api_cmds.py::test_enrichment_note_topic_and_replacement_through_argv",
+        "tests/test_api_cmds.py::test_usage_failures_are_json[args0-5]",
+        "tests/test_api_cmds.py::test_usage_failures_are_json[args1-2]",
+        "tests/test_api_cmds.py::test_usage_failures_are_json[args2-2]",
+        "tests/test_api_cmds.py::test_usage_failures_are_json[args3-2]",
+        "tests/test_api_cmds.py::test_usage_failures_are_json[args4-2]",
+        "tests/test_api_cmds.py::test_product_http_routing_config_and_domain_mapping",
+        "tests/test_api_cmds.py::test_string_array_numeric_values_preserved"
+      ]
+    },
+    {
+      "path": "tests/test_wrapper_sequences.py",
+      "shard": "A",
+      "sha256": "a23a71eb9fa8e864c099ff6e4781778c26efbe72f090c43017fd0550c7872ddc",
+      "nodes": [
+        "tests/test_wrapper_sequences.py::test_tree_and_reorder_only_read_through_surface",
+        "tests/test_wrapper_sequences.py::test_copy_children_and_property_update_use_explicit_surface_operations",
+        "tests/test_wrapper_sequences.py::test_template_creation_copies_raw_storage_and_adds_v1_labels",
+        "tests/test_wrapper_sequences.py::test_copy_refuses_target_inside_source_hierarchy",
+        "tests/test_wrapper_sequences.py::test_copy_with_children_refuses_a_cyclic_source_before_writing",
+        "tests/test_wrapper_sequences.py::test_template_blueprint_refuses_without_creating_a_blank_page"
+      ]
+    },
+    {
+      "path": "tests/test_startup.py",
+      "shard": "B",
+      "sha256": "5d21c66c792f9b6c65eda12d5e48ae872ee2dcfbf1ea57e3261da1448ec338d4",
+      "nodes": [
+        "tests/test_startup.py::test_discovery_does_not_import_http_or_legacy_stack[arguments0]",
+        "tests/test_startup.py::test_discovery_does_not_import_http_or_legacy_stack[arguments1]",
+        "tests/test_startup.py::test_discovery_does_not_import_http_or_legacy_stack[arguments2]",
+        "tests/test_startup.py::test_discovery_does_not_import_http_or_legacy_stack[arguments3]",
+        "tests/test_startup.py::test_first_call_loads_scope_before_guard_and_transport",
+        "tests/test_startup.py::test_first_call_keeps_configuration_validation_error",
+        "tests/test_startup.py::test_scope_configuration_loads_once_and_preserves_consumer_overrides"
+      ]
+    },
+    {
+      "path": "tests/test_spec_build.py",
+      "shard": "B",
+      "sha256": "0c4bf86d99413a0a20c16e31ec77ae96baeb3c4d0d3a3c0b4e00046949323577",
+      "nodes": [
+        "tests/test_spec_build.py::test_wheel_ships_two_deterministic_indexes",
+        "tests/test_spec_build.py::test_editable_backend_persists_loadable_indexes",
+        "tests/test_spec_build.py::test_sdist_contains_sources_and_hook_not_compiled_indexes",
+        "tests/test_spec_build.py::test_v2_fresh_process_load_budget"
+      ]
+    }
+  ],
+  "config": {
+    "pyproject.toml": "f073a1bd9c7df7f61cd9a8fa3434707380038c0aff1745ca076d3ee8ea045f18",
+    "tests/conftest.py": "75696d456fb2bbd2b4003cacae56e4775e2d524fa575f41a6e9717dae7a436ac",
+    "hatch_build.py": "c8bf08164b85797bfe15dbbdb372489cf49229ec42fecd4a3292c9ecc83fcf56"
+  },
+  "plugins": [
+    "pytest_evidence"
+  ],
+  "cold_process_contract": "unchanged tests/test_spec_build.py; five real cold processes, median < 500ms; module-scoped wheel/editable/sdist fixture remains serial"
+}
