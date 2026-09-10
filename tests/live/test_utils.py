@@ -1,829 +1,866 @@
-"""
-Test Utilities for Confluence Live Integration Tests
+"""Run-owned SBX resources driven through the public CLI, with streaming receipts.
 
-Provides helper functions and fluent builders for creating test data,
-generating content, and making test assertions.
-
-Usage:
-    from test_utils import PageBuilder, generate_test_content, assert_page_exists
-
-    # Build page data
-    page_data = PageBuilder().with_title("Test").with_space_id("123").build()
-
-    # Generate test content
-    pages = generate_test_content(client, space_id="123", count=10)
-
-    # Assert page exists
-    page = assert_page_exists(client, page_id="12345")
+Importing this module does not initialize product configuration or a transport.
+The receipt stream is captured before CliRunner redirects stdout/stderr. Live
+pytest must use --capture=no and the supervisor must capture that outer stream.
 """
 
 from __future__ import annotations
 
 import json
-import random
-import time
+import re
+import sys
 import uuid
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from confluence_as import ConfluenceClient
-
-
-# =============================================================================
-# PageBuilder Fluent API
-# =============================================================================
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any, TextIO
 
 
-class PageBuilder:
+class LiveContractError(RuntimeError):
+    """A scrubbed live contract failure; never includes a raw server response."""
+
+
+def numeric_id(value: Any) -> str:
+    if isinstance(value, bool) or not isinstance(value, (str, int)):
+        raise LiveContractError("Missing or invalid resource ID")
+    value = str(value)
+    if not re.fullmatch(r"[1-9][0-9]*", value):
+        raise LiveContractError("Missing or invalid resource ID")
+    return value
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise LiveContractError(message)
+
+
+def validate_live_environment(environment, *, space_key: str, capture: str) -> None:
+    require(space_key == "SBX", "Only --space-key SBX is supported")
+    require(capture == "no", "Live receipts require --capture=no")
+    require(
+        environment.get("CONFLUENCE_ALLOWED_SPACES") == "SBX",
+        "Live scope must be exactly SBX",
+    )
+    require(
+        "CONFLUENCE_ALLOW_SITE_OPERATIONS" not in environment,
+        "Live site-operation override must be absent",
+    )
+    require(
+        environment.get("CONFLUENCE_AS_TRANSPORT", "http") == "http",
+        "Live transport must be HTTP",
+    )
+    for name in (
+        "CONFLUENCE_AS_CASSETTE",
+        "CONFLUENCE_AS_RECORD",
+        "CONFLUENCE_AS_SIMULATION_SEED",
+        "CONFLUENCE_MOCK_MODE",
+    ):
+        require(name not in environment, "Live transport override must be absent")
+    for name in ("CONFLUENCE_SITE_URL", "CONFLUENCE_EMAIL", "CONFLUENCE_API_TOKEN"):
+        require(bool(environment.get(name)), "Host wrapper configuration is incomplete")
+
+
+def invoke_cli(argv: list[str], stdin: str | None = None) -> Any:
+    from click.testing import CliRunner
+
+    from confluence_as.cli.main import cli
+
+    result = CliRunner().invoke(cli, argv, input=stdin)
+    if result.exit_code != 0:
+        raise LiveContractError("CLI operation failed")
+    try:
+        return json.loads(result.stdout)
+    except (TypeError, ValueError):
+        raise LiveContractError("CLI did not return JSON") from None
+
+
+@dataclass
+class Resource:
+    kind: str
+    id: str
+    parent: tuple[str, str] | None
+    name: str
+    state: str = "candidate"
+
+    @property
+    def token(self):
+        return self.kind, self.id
+
+
+class LiveRun:
+    """Additional fixture ownership checks; the product Surface still guards calls.
+
+    This helper is not arbitrary-code containment or an auth provenance check.
+    Unknown writes remain pending and block dependent cleanup; no inferred cascade.
     """
-    Fluent builder for creating page data structures.
 
-    Usage:
-        page_data = (PageBuilder()
-            .with_title("My Page")
-            .with_space_id("123")
-            .with_body("Content here")
-            .build())
-    """
-
-    def __init__(self):
-        self._title: str | None = None
-        self._space_id: str | None = None
-        self._parent_id: str | None = None
-        self._body: str | None = None
-        self._body_format: str = "storage"
-        self._status: str = "current"
-        self._labels: list[str] = []
-
-    def with_title(self, title: str) -> PageBuilder:
-        """Set page title."""
-        self._title = title
-        return self
-
-    def with_random_title(self, prefix: str = "Test Page") -> PageBuilder:
-        """Set random unique title."""
-        self._title = f"{prefix} {uuid.uuid4().hex[:8]}"
-        return self
-
-    def with_space_id(self, space_id: str) -> PageBuilder:
-        """Set space ID."""
-        self._space_id = space_id
-        return self
-
-    def with_parent_id(self, parent_id: str) -> PageBuilder:
-        """Set parent page ID."""
-        self._parent_id = parent_id
-        return self
-
-    def with_body(self, body: str) -> PageBuilder:
-        """Set body content (converts markdown to storage if needed)."""
-        self._body = body
-        return self
-
-    def with_storage_body(self, storage: str) -> PageBuilder:
-        """Set body as XHTML storage format."""
-        self._body = storage
-        self._body_format = "storage"
-        return self
-
-    def with_adf_body(self, adf: dict[str, Any]) -> PageBuilder:
-        """Set body as Atlassian Document Format."""
-        self._body = json.dumps(adf)
-        self._body_format = "atlas_doc_format"
-        return self
-
-    def with_status(self, status: str) -> PageBuilder:
-        """Set page status (current or draft)."""
-        self._status = status
-        return self
-
-    def with_labels(self, labels: list[str]) -> PageBuilder:
-        """Set labels to add after creation."""
-        self._labels = labels
-        return self
-
-    def build(self) -> dict[str, Any]:
-        """Build the page creation payload."""
-        if not self._title:
-            raise ValueError("Title is required")
-        if not self._space_id:
-            raise ValueError("Space ID is required")
-
-        data: dict[str, Any] = {
-            "spaceId": self._space_id,
-            "status": self._status,
-            "title": self._title,
+    OPERATIONS = frozenset(
+        {
+            "createPage",
+            "getPageById",
+            "getSpaceById",
+            "getPages",
+            "getChildPages",
+            "getPageVersions",
+            "page copy",
+            "hierarchy tree",
+            "updatePage",
+            "deletePage",
+            "getPageContentProperties",
+            "createPageProperty",
+            "getPageContentPropertiesById",
+            "updatePagePropertyById",
+            "deletePagePropertyById",
+            "property set",
         }
+    )
 
-        if self._parent_id:
-            data["parentId"] = self._parent_id
+    def __init__(
+        self,
+        *,
+        stream: TextIO | None = None,
+        invoke: Callable[[list[str], str | None], Any] = invoke_cli,
+    ):
+        self.run_id = uuid.uuid4().hex
+        self.prefix = "jas43-" + self.run_id + "-"
+        self.stream = sys.stdout if stream is None else stream
+        self.invoke = invoke
+        self.resources: dict[tuple[str, str], Resource] = {}
+        self.pending: dict[int, tuple[str, str] | None] = {}
+        self.blocked_parents: set[tuple[str, str]] = set()
+        self.sequence = 0
+        self.space_id: str | None = None
+        self.root: Resource | None = None
+        self.emit("start")
 
-        if self._body:
-            data["body"] = {
-                "representation": self._body_format,
-                "value": self._body,
-            }
-        else:
-            # Default empty content
-            data["body"] = {
-                "representation": "storage",
-                "value": "<p>Test page content.</p>",
-            }
-
-        return data
-
-    def build_and_create(self, client: ConfluenceClient) -> dict[str, Any]:
-        """Build and create the page via API."""
-        data = self.build()
-        page = client.post(
-            "/api/v2/pages", json_data=data, operation="create test page"
-        )
-
-        # Add labels if specified
-        if self._labels:
-            for label in self._labels:
-                client.post(
-                    f"/api/v2/pages/{page['id']}/labels",
-                    json_data={"name": label},
-                    operation=f"add label '{label}'",
+    def emit(self, event: str, *, operation=None, resource=None, intent=None):
+        self.sequence += 1
+        row = {"jas43": 1, "run": self.run_id, "seq": self.sequence, "event": event}
+        if operation is not None:
+            require(operation in self.OPERATIONS, "Unsupported receipt operation")
+            row["operation"] = operation
+        if resource is not None:
+            require(
+                resource.kind in {"page", "property"}, "Unknown receipt resource kind"
+            )
+            require(
+                resource.state in {"candidate", "owned", "uncertain", "deleted"},
+                "Unknown receipt resource state",
+            )
+            row.update(
+                kind=resource.kind, id=numeric_id(resource.id), state=resource.state
+            )
+            if resource.parent is not None:
+                require(
+                    resource.parent[0] in {"page", "property"},
+                    "Unknown receipt parent kind",
                 )
+                row["parent_kind"] = resource.parent[0]
+                row["parent_id"] = numeric_id(resource.parent[1])
+        if intent is not None:
+            row["intent"] = intent
+        self.stream.write(json.dumps(row, sort_keys=True) + "\n")
+        self.stream.flush()
+        return self.sequence
 
-        return page
+    def name(self, purpose: str) -> str:
+        require(bool(re.fullmatch(r"[a-z0-9-]+", purpose)), "Invalid run name purpose")
+        return self.prefix + purpose + "-" + uuid.uuid4().hex[:8]
 
-
-# =============================================================================
-# BlogPostBuilder Fluent API
-# =============================================================================
-
-
-class BlogPostBuilder:
-    """
-    Fluent builder for creating blog post data structures.
-
-    Usage:
-        post_data = (BlogPostBuilder()
-            .with_title("My Blog Post")
-            .with_space_id("123")
-            .with_body("Content here")
-            .build())
-    """
-
-    def __init__(self):
-        self._title: str | None = None
-        self._space_id: str | None = None
-        self._body: str | None = None
-        self._body_format: str = "storage"
-        self._status: str = "current"
-
-    def with_title(self, title: str) -> BlogPostBuilder:
-        """Set blog post title."""
-        self._title = title
-        return self
-
-    def with_random_title(self, prefix: str = "Test Blog Post") -> BlogPostBuilder:
-        """Set random unique title."""
-        self._title = f"{prefix} {uuid.uuid4().hex[:8]}"
-        return self
-
-    def with_space_id(self, space_id: str) -> BlogPostBuilder:
-        """Set space ID."""
-        self._space_id = space_id
-        return self
-
-    def with_body(self, body: str) -> BlogPostBuilder:
-        """Set body content."""
-        self._body = body
-        return self
-
-    def with_status(self, status: str) -> BlogPostBuilder:
-        """Set blog post status."""
-        self._status = status
-        return self
-
-    def build(self) -> dict[str, Any]:
-        """Build the blog post creation payload."""
-        if not self._title:
-            raise ValueError("Title is required")
-        if not self._space_id:
-            raise ValueError("Space ID is required")
-
-        data: dict[str, Any] = {
-            "spaceId": self._space_id,
-            "status": self._status,
-            "title": self._title,
-        }
-
-        if self._body:
-            data["body"] = {
-                "representation": self._body_format,
-                "value": self._body,
-            }
+    def call(
+        self,
+        operation: str,
+        parameters=None,
+        body=None,
+        *,
+        mutation=False,
+        dependency: Resource | None = None,
+        candidate: tuple[str, str] | None = None,
+        wrapper=False,
+    ) -> Any:
+        require(operation in self.OPERATIONS, "Operation is outside the live tranche")
+        parameters = dict(parameters or {})
+        stdin = None
+        if wrapper:
+            if operation == "page copy":
+                require(
+                    set(parameters) == {"id", "title", "parent"},
+                    "Invalid copy arguments",
+                )
+                argv = [
+                    "page",
+                    "copy",
+                    parameters["id"],
+                    "--title",
+                    parameters["title"],
+                    "--space",
+                    "SBX",
+                    "--parent",
+                    parameters["parent"],
+                    "--output",
+                    "json",
+                ]
+            elif operation == "hierarchy tree":
+                require(set(parameters) == {"id"}, "Invalid tree arguments")
+                argv = [
+                    "hierarchy",
+                    "tree",
+                    parameters["id"],
+                    "--max-depth",
+                    "2",
+                    "--stats",
+                    "--output",
+                    "json",
+                ]
+            else:
+                require(operation == "property set", "Unsupported wrapper")
+                argv = [
+                    "property",
+                    "set",
+                    parameters["page-id"],
+                    parameters["key"],
+                    "--value",
+                    json.dumps(body),
+                    "--output",
+                    "json",
+                ]
         else:
-            data["body"] = {
-                "representation": "storage",
-                "value": "<p>Test blog post content.</p>",
-            }
-
-        return data
-
-    def build_and_create(self, client: ConfluenceClient) -> dict[str, Any]:
-        """Build and create the blog post via API."""
-        data = self.build()
-        return client.post(
-            "/api/v2/blogposts", json_data=data, operation="create test blog post"
-        )
-
-
-# =============================================================================
-# SpaceBuilder Fluent API
-# =============================================================================
-
-
-class SpaceBuilder:
-    """
-    Fluent builder for creating space data structures.
-
-    Usage:
-        space_data = (SpaceBuilder()
-            .with_key("TEST")
-            .with_name("Test Space")
-            .build())
-    """
-
-    def __init__(self):
-        self._key: str | None = None
-        self._name: str | None = None
-        self._description: str | None = None
-
-    def with_key(self, key: str) -> SpaceBuilder:
-        """Set space key."""
-        self._key = key
-        return self
-
-    def with_random_key(self, prefix: str = "CAS") -> SpaceBuilder:
-        """Set random unique key."""
-        self._key = f"{prefix}{uuid.uuid4().hex[:6].upper()}"
-        return self
-
-    def with_name(self, name: str) -> SpaceBuilder:
-        """Set space name."""
-        self._name = name
-        return self
-
-    def with_description(self, description: str) -> SpaceBuilder:
-        """Set space description."""
-        self._description = description
-        return self
-
-    def build(self) -> dict[str, Any]:
-        """Build the space creation payload."""
-        if not self._key:
-            raise ValueError("Key is required")
-        if not self._name:
-            self._name = f"Test Space {self._key}"
-
-        data: dict[str, Any] = {
-            "key": self._key,
-            "name": self._name,
-        }
-
-        if self._description:
-            data["description"] = {
-                "plain": {
-                    "value": self._description,
-                    "representation": "plain",
-                }
-            }
-
-        return data
-
-    def build_and_create(self, client: ConfluenceClient) -> dict[str, Any]:
-        """Build and create the space via API."""
-        data = self.build()
-        return client.post(
-            "/api/v2/spaces", json_data=data, operation="create test space"
-        )
-
-
-# =============================================================================
-# Content Generation
-# =============================================================================
-
-
-def generate_random_text(length: int = 100) -> str:
-    """Generate random text content."""
-    words = [
-        "confluence",
-        "page",
-        "content",
-        "test",
-        "documentation",
-        "wiki",
-        "knowledge",
-        "base",
-        "article",
-        "information",
-        "share",
-        "collaborate",
-        "team",
-        "project",
-        "data",
-    ]
-    result = []
-    while len(" ".join(result)) < length:
-        result.append(random.choice(words))
-    return " ".join(result)[:length]
-
-
-def generate_xhtml_content(paragraphs: int = 3, include_heading: bool = True) -> str:
-    """Generate random XHTML storage format content."""
-    parts = []
-
-    if include_heading:
-        parts.append(f"<h1>Test Page {uuid.uuid4().hex[:8]}</h1>")
-
-    for _ in range(paragraphs):
-        text = generate_random_text(random.randint(50, 200))
-        parts.append(f"<p>{text}</p>")
-
-    return "\n".join(parts)
-
-
-def generate_test_content(
-    client: ConfluenceClient,
-    space_id: str,
-    count: int = 10,
-    content_type: str = "page",
-    with_labels: list[str] | None = None,
-    title_prefix: str = "Generated Test",
-) -> list[dict[str, Any]]:
-    """
-    Generate multiple test pages or blog posts.
-
-    Args:
-        client: Confluence client
-        space_id: Space ID to create content in
-        count: Number of items to create
-        content_type: "page" or "blogpost"
-        with_labels: Labels to add to each item
-        title_prefix: Prefix for titles
-
-    Returns:
-        List of created content items
-    """
-    created = []
-
-    for i in range(count):
-        title = f"{title_prefix} {i + 1} {uuid.uuid4().hex[:6]}"
-        body = generate_xhtml_content(paragraphs=random.randint(1, 5))
-
-        if content_type == "page":
-            builder = (
-                PageBuilder()
-                .with_title(title)
-                .with_space_id(space_id)
-                .with_storage_body(body)
-            )
-            if with_labels:
-                builder.with_labels(with_labels)
-            item = builder.build_and_create(client)
-        else:
-            builder = (
-                BlogPostBuilder()
-                .with_title(title)
-                .with_space_id(space_id)
-                .with_body(body)
-            )
-            item = builder.build_and_create(client)
-            # Add labels separately for blog posts
-            if with_labels:
-                for label in with_labels:
-                    client.post(
-                        f"/api/v2/blogposts/{item['id']}/labels",
-                        json_data={"name": label},
-                        operation=f"add label '{label}'",
+            argv = ["api", "call", operation, "--format", "json", "--confirm"]
+            if operation in {
+                "createPage",
+                "getPageById",
+                "updatePage",
+                "getPages",
+                "getPageVersions",
+            }:
+                argv.append("--raw")
+            for key, value in parameters.items():
+                if key == "all":
+                    require(value is True, "Invalid aggregate flag")
+                    argv.append("--all")
+                    continue
+                encoded = (
+                    json.dumps(value) if isinstance(value, (list, bool)) else str(value)
+                )
+                argv.extend(["--" + key, encoded])
+            if body is not None:
+                # The public parser accepts @file or stdin, never inline JSON.
+                argv.extend(["--body", "-"])
+                stdin = json.dumps(body)
+        intent = self.emit("intent", operation=operation, resource=dependency)
+        if mutation:
+            self.pending[intent] = dependency.token if dependency else None
+        try:
+            result = self.invoke(argv, stdin)
+            if candidate is not None:
+                kind, name = candidate
+                payload = (
+                    result.get("property") if operation == "property set" else result
+                )
+                resource_id = numeric_id(payload.get("id"))
+                resource = Resource(
+                    kind, resource_id, dependency.token if dependency else None, name
+                )
+                # Emit before validating title/space/key or issuing any read-back.
+                self.emit(
+                    "candidate", operation=operation, resource=resource, intent=intent
+                )
+                if (
+                    resource.token in self.resources
+                    and kind == "page"
+                    and "parentId" in payload
+                ):
+                    self._observe_relationship(payload)
+                require(
+                    resource.token not in self.resources, "Duplicate candidate identity"
+                )
+                self.resources[resource.token] = resource
+            elif mutation and operation in {
+                "updatePage",
+                "updatePagePropertyById",
+                "property set",
+            }:
+                payload = result.get("property") if wrapper else result
+                returned_id = numeric_id(payload.get("id"))
+                if dependency is not None and returned_id != dependency.id:
+                    # An upsert can race a remote delete. Preserve any newly returned
+                    # identity before rejecting it; never adopt or sweep it.
+                    resource = Resource(
+                        dependency.kind, returned_id, dependency.parent, dependency.name
                     )
+                    self.emit(
+                        "candidate",
+                        operation=operation,
+                        resource=resource,
+                        intent=intent,
+                    )
+                    require(
+                        resource.token not in self.resources,
+                        "Duplicate returned identity",
+                    )
+                    self.resources[resource.token] = resource
+            self.emit(
+                "mutation" if mutation else "response",
+                operation=operation,
+                resource=dependency,
+                intent=intent,
+            )
+        except BaseException:
+            self.emit(
+                "unknown-outcome" if mutation else "failed",
+                operation=operation,
+                resource=dependency,
+                intent=intent,
+            )
+            raise LiveContractError(
+                "Operation outcome is unresolved; inspect receipt"
+            ) from None
+        self.pending.pop(intent, None)
+        return result
 
-        created.append(item)
+    def _owned(self, resource: Resource, kind: str) -> Resource:
+        require(
+            resource.kind == kind
+            and self.resources.get(resource.token) is resource
+            and resource.state == "owned"
+            and resource.name.startswith(self.prefix),
+            "Resource is not owned by this run",
+        )
+        require(
+            resource.token not in self.pending.values(),
+            "Resource has an unresolved mutation",
+        )
+        return resource
 
-    return created
+    def _page_data(self, resource: Resource) -> dict:
+        row = self.call("getPageById", {"id": resource.id, "body-format": "storage"})
+        require(isinstance(row, dict), "Page read-back shape is invalid")
+        self._observe_relationship(row)
+        require(numeric_id(row.get("id")) == resource.id, "Page identity changed")
+        require(row.get("title") == resource.name, "Page run title changed")
+        space_id = numeric_id(row.get("spaceId"))
+        require(
+            self.space_id is None or space_id == self.space_id, "Page space changed"
+        )
+        expected_parent = resource.parent[1] if resource.parent else None
+        if expected_parent is not None:
+            require(str(row.get("parentId")) == expected_parent, "Page parent changed")
+        return row
 
+    def read_page(self, resource: Resource) -> dict:
+        self._owned(resource, "page")
+        return self._page_data(resource)
 
-# =============================================================================
-# Wait Utilities
-# =============================================================================
+    def create_page(self, purpose="page", *, parent: Resource | None = None, body=None):
+        if parent is not None:
+            self.read_page(parent)
+        else:
+            require(
+                not self.resources and not self.pending,
+                "Only bootstrap may be parentless",
+            )
+        title = self.name(purpose)
+        payload = {
+            "title": title,
+            "status": "current",
+            "body": body
+            or {
+                "representation": "storage",
+                "value": "<p>JAS-43 owned content.</p>",
+            },
+        }
+        if parent is not None:
+            payload["parentId"] = parent.id
+        created = self.call(
+            "createPage",
+            {"space": "SBX", "space-key": "SBX"},
+            payload,
+            mutation=True,
+            dependency=parent,
+            candidate=("page", title),
+        )
+        resource = self.resources[("page", numeric_id(created.get("id")))]
+        # The candidate remains journaled if any subsequent assertion fails.
+        require(created.get("title") == title, "Created page title mismatch")
+        page = self._page_data(resource)
+        if self.space_id is None:
+            space_id = numeric_id(page.get("spaceId"))
+            space = self.call("getSpaceById", {"id": space_id})
+            require(
+                isinstance(space, dict)
+                and numeric_id(space.get("id")) == space_id
+                and space.get("key") == "SBX"
+                and space.get("type") == "global",
+                "Bootstrap did not verify global SBX",
+            )
+            self.space_id = space_id
+            self.root = resource
+        require(
+            str(created.get("spaceId")) == self.space_id, "Created page space mismatch"
+        )
+        resource.state = "owned"
+        self.emit("owned", resource=resource)
+        return resource
 
+    def update_page(self, resource: Resource, *, title=None, body=None):
+        before = self.read_page(resource)
+        if title is None:
+            title = resource.name
+        require(title.startswith(self.prefix), "Update title is not run scoped")
+        payload = {
+            "id": resource.id,
+            "title": title,
+            "status": "current",
+            "body": body or before["body"]["storage"],
+        }
+        result = self.call(
+            "updatePage",
+            {"id": resource.id},
+            payload,
+            mutation=True,
+            dependency=resource,
+        )
+        # Only a matching success response changes expected title. A malformed
+        # response leaves the resource uncertain, so cleanup cannot guess its state.
+        resource.state = "uncertain"
+        require(numeric_id(result.get("id")) == resource.id, "Updated page ID mismatch")
+        require(result.get("title") == title, "Updated page title mismatch")
+        resource.name = title
+        readback = self._page_data(resource)
+        require(
+            readback["version"]["number"] == before["version"]["number"] + 1,
+            "Page version did not increment",
+        )
+        resource.state = "owned"
+        self.emit("owned", resource=resource)
+        return readback
 
-def wait_for_indexing(
-    client: ConfluenceClient,
-    space_id: str,
-    min_pages: int = 1,
-    timeout: int = 60,
-    poll_interval: float = 2.0,
-) -> bool:
-    """
-    Wait for search indexing to complete.
+    def list_owned_page(self, resource: Resource):
+        require(self.resources.get(resource.token) is resource, "Unknown page identity")
+        result = self.call(
+            "getPages",
+            {
+                "space-id": [self.space_id],
+                "id": [resource.id],
+                "status": ["current"],
+                "limit": 2,
+            },
+        )
+        require(
+            isinstance(result, dict) and isinstance(result.get("results"), list),
+            "Page listing shape is invalid",
+        )
+        for row in result["results"]:
+            self._observe_relationship(row)
+        require(not result.get("_links", {}).get("next"), "Page listing is incomplete")
+        for row in result["results"]:
+            require(
+                numeric_id(row.get("id")) == resource.id,
+                "Unexpected page in filtered list",
+            )
+            require(
+                str(row.get("spaceId")) == self.space_id, "Listed page is outside SBX"
+            )
+        return result["results"]
 
-    Args:
-        client: Confluence client
-        space_id: Space ID to check
-        min_pages: Minimum number of pages expected
-        timeout: Maximum wait time in seconds
-        poll_interval: Time between checks
+    def _dependencies_removed(self, resource: Resource):
+        require(
+            resource.token not in self.blocked_parents,
+            "Observed child relationship blocks parent deletion",
+        )
+        require(
+            not any(
+                r.parent == resource.token and r.state != "deleted"
+                for r in self.resources.values()
+            ),
+            "Owned dependencies remain",
+        )
+        require(
+            not any(
+                parent is None or parent == resource.token
+                for parent in self.pending.values()
+            ),
+            "Unresolved creation or mutation remains",
+        )
 
-    Returns:
-        True if indexing completed within timeout
-    """
-    start_time = time.time()
+    def _block_parent(self, parent: Resource):
+        if parent.token not in self.blocked_parents:
+            self.blocked_parents.add(parent.token)
+            self.emit("child-relationship-unresolved", resource=parent)
 
-    while time.time() - start_time < timeout:
+    def _observe_relationship(self, row):
+        """Record an observed unowned dependency without adopting its identity."""
+        if not isinstance(row, dict) or "parentId" not in row:
+            return
+        parent = self.resources.get(("page", str(row.get("parentId"))))
+        child = self.resources.get(("page", str(row.get("id"))))
+        if parent is not None and (
+            child is None or child.parent != parent.token or child.state == "deleted"
+        ):
+            self._block_parent(parent)
+        if child is not None and child.parent is not None:
+            if str(row.get("parentId")) != child.parent[1]:
+                self._block_parent(self.resources[child.parent])
+
+    @staticmethod
+    def _complete_rows(result, limit):
+        require(
+            isinstance(result, dict) and isinstance(result.get("results"), list),
+            "Listing shape is invalid",
+        )
+        links = result.get("_links", {})
+        require(
+            isinstance(links, dict) and not links.get("next"), "Listing is incomplete"
+        )
+        require(len(result["results"]) < limit, "Listing reached its bound")
+        require(
+            all(isinstance(row, dict) for row in result["results"]),
+            "Invalid listing row",
+        )
+        return result["results"]
+
+    def children_match(self, parent: Resource, children=()):
+        self._owned(parent, "page")
+        require(len(children) <= 1, "Only a tiny owned hierarchy is supported")
+        for child in children:
+            self._owned(child, "page")
+            require(child.parent == parent.token, "Unexpected owned parent")
+        self.read_page(parent)
+        result = self.call("getChildPages", {"id": parent.id, "limit": 2})
         try:
-            # Search for pages in the space
-            response = client.get(
-                "/rest/api/search",
-                params={
-                    "cql": f"space.id = {space_id} AND type = page",
-                    "limit": 1,
-                },
-                operation="check indexing",
+            if isinstance(result, dict) and isinstance(result.get("results"), list):
+                for row in result["results"]:
+                    if isinstance(row, dict) and "parentId" in row:
+                        self._observe_relationship(row)
+            rows = self._complete_rows(result, 2)
+            expected = {child.id: child for child in children}
+            ids = [numeric_id(row.get("id")) for row in rows]
+            require(
+                len(ids) == len(set(ids)) and set(ids) == set(expected),
+                "Unexpected immediate children",
             )
-
-            total = response.get("totalSize", 0)
-            if total >= min_pages:
-                return True
-
-        except Exception:
-            pass
-
-        time.sleep(poll_interval)
-
-    return False
-
-
-def wait_for_condition(
-    condition_fn,
-    timeout: int = 30,
-    poll_interval: float = 1.0,
-    message: str = "Condition not met",
-) -> Any:
-    """
-    Wait for a condition to be true.
-
-    Args:
-        condition_fn: Function that returns truthy value when condition is met
-        timeout: Maximum wait time in seconds
-        poll_interval: Time between checks
-        message: Error message if timeout
-
-    Returns:
-        The result of condition_fn when it returns truthy
-
-    Raises:
-        TimeoutError: If condition not met within timeout
-    """
-    start_time = time.time()
-
-    while time.time() - start_time < timeout:
-        result = condition_fn()
-        if result:
-            return result
-        time.sleep(poll_interval)
-
-    raise TimeoutError(f"{message} (timeout={timeout}s)")
-
-
-# =============================================================================
-# Assertion Helpers
-# =============================================================================
-
-
-def assert_page_exists(
-    client: ConfluenceClient,
-    page_id: str,
-    expected_title: str | None = None,
-) -> dict[str, Any]:
-    """
-    Assert that a page exists and optionally verify its title.
-
-    Args:
-        client: Confluence client
-        page_id: Page ID to check
-        expected_title: Expected page title (optional)
-
-    Returns:
-        Page data if it exists
-
-    Raises:
-        AssertionError: If page doesn't exist or title doesn't match
-    """
-    try:
-        page = client.get(f"/api/v2/pages/{page_id}", operation="get page")
-    except Exception as e:
-        raise AssertionError(f"Page {page_id} does not exist: {e}") from e
-
-    if expected_title and page.get("title") != expected_title:
-        raise AssertionError(
-            f"Page title mismatch: expected '{expected_title}', got '{page.get('title')}'"
-        )
-
-    return page
-
-
-def assert_page_not_exists(client: ConfluenceClient, page_id: str) -> None:
-    """
-    Assert that a page does not exist.
-
-    Args:
-        client: Confluence client
-        page_id: Page ID to check
-
-    Raises:
-        AssertionError: If page exists
-    """
-    try:
-        client.get(f"/api/v2/pages/{page_id}", operation="get page")
-        raise AssertionError(f"Page {page_id} should not exist but does")
-    except Exception as e:
-        if "404" not in str(e):
-            raise
-
-
-def assert_search_returns_results(
-    client: ConfluenceClient,
-    cql: str,
-    min_count: int = 1,
-    timeout: int = 30,
-) -> list[dict[str, Any]]:
-    """
-    Assert that a CQL search returns at least min_count results.
-
-    Waits for search indexing with retry.
-
-    Args:
-        client: Confluence client
-        cql: CQL query string
-        min_count: Minimum expected results
-        timeout: Maximum wait time
-
-    Returns:
-        Search results
-
-    Raises:
-        AssertionError: If not enough results found
-    """
-    start_time = time.time()
-
-    while time.time() - start_time < timeout:
-        try:
-            response = client.get(
-                "/rest/api/search",
-                params={"cql": cql, "limit": 100},
-                operation="search",
-            )
-
-            results = response.get("results", [])
-            if len(results) >= min_count:
-                return results
-
-        except Exception:
-            pass
-
-        time.sleep(2)
-
-    raise AssertionError(
-        f"Search '{cql}' returned fewer than {min_count} results (timeout={timeout}s)"
-    )
-
-
-def assert_search_returns_empty(
-    client: ConfluenceClient,
-    cql: str,
-) -> None:
-    """
-    Assert that a CQL search returns no results.
-
-    Args:
-        client: Confluence client
-        cql: CQL query string
-
-    Raises:
-        AssertionError: If results found
-    """
-    response = client.get(
-        "/rest/api/search",
-        params={"cql": cql, "limit": 1},
-        operation="search",
-    )
-
-    results = response.get("results", [])
-    if results:
-        raise AssertionError(
-            f"Search '{cql}' should be empty but returned {len(results)} results"
-        )
-
-
-def assert_label_exists(
-    client: ConfluenceClient,
-    page_id: str,
-    label_name: str,
-) -> dict[str, Any]:
-    """
-    Assert that a label exists on a page.
-
-    Args:
-        client: Confluence client
-        page_id: Page ID
-        label_name: Label name to check
-
-    Returns:
-        Label data
-
-    Raises:
-        AssertionError: If label not found
-    """
-    labels = list(
-        client.paginate(
-            f"/api/v2/pages/{page_id}/labels",
-            operation="get labels",
-        )
-    )
-
-    for label in labels:
-        if label.get("name") == label_name:
-            return label
-
-    raise AssertionError(f"Label '{label_name}' not found on page {page_id}")
-
-
-def assert_label_not_exists(
-    client: ConfluenceClient,
-    page_id: str,
-    label_name: str,
-) -> None:
-    """
-    Assert that a label does not exist on a page.
-
-    Args:
-        client: Confluence client
-        page_id: Page ID
-        label_name: Label name to check
-
-    Raises:
-        AssertionError: If label found
-    """
-    labels = list(
-        client.paginate(
-            f"/api/v2/pages/{page_id}/labels",
-            operation="get labels",
-        )
-    )
-
-    for label in labels:
-        if label.get("name") == label_name:
-            raise AssertionError(
-                f"Label '{label_name}' should not exist on page {page_id}"
-            )
-
-
-# =============================================================================
-# Cleanup Utilities
-# =============================================================================
-
-
-def cleanup_test_pages(
-    client: ConfluenceClient,
-    space_id: str,
-    title_prefix: str = "Test",
-) -> int:
-    """
-    Delete all pages with a specific title prefix in a space.
-
-    Args:
-        client: Confluence client
-        space_id: Space ID
-        title_prefix: Only delete pages with this title prefix
-
-    Returns:
-        Number of pages deleted
-    """
-    deleted = 0
-
-    pages = list(
-        client.paginate(
-            "/api/v2/pages",
-            params={"space-id": space_id, "limit": 100},
-            operation="list pages for cleanup",
-        )
-    )
-
-    for page in pages:
-        if page.get("title", "").startswith(title_prefix):
-            try:
-                client.delete(f"/api/v2/pages/{page['id']}", operation="cleanup page")
-                deleted += 1
-            except Exception:
-                pass
-
-    return deleted
-
-
-def cleanup_test_labels(
-    client: ConfluenceClient,
-    page_id: str,
-    label_prefix: str = "test-",
-) -> int:
-    """
-    Remove all labels with a specific prefix from a page.
-
-    Args:
-        client: Confluence client
-        page_id: Page ID
-        label_prefix: Only remove labels with this prefix
-
-    Returns:
-        Number of labels removed
-    """
-    removed = 0
-
-    labels = list(
-        client.paginate(
-            f"/api/v2/pages/{page_id}/labels",
-            operation="get labels for cleanup",
-        )
-    )
-
-    for label in labels:
-        if label.get("name", "").startswith(label_prefix):
-            try:
-                client.delete(
-                    f"/api/v2/pages/{page_id}/labels/{label['id']}",
-                    operation="cleanup label",
+            for row in rows:
+                require(
+                    row.get("title") == expected[str(row["id"])].name,
+                    "Child title changed",
                 )
-                removed += 1
+                require(
+                    "parentId" not in row or str(row["parentId"]) == parent.id,
+                    "Child parent changed",
+                )
+        except LiveContractError:
+            self._block_parent(parent)
+            raise
+        return rows
+
+    def copy_leaf(self, source: Resource, parent: Resource):
+        # Validate every input before making any argv call.
+        self._owned(source, "page")
+        self._owned(parent, "page")
+        require(
+            parent is self.root and source.parent == parent.token,
+            "Copy requires an owned leaf beneath the run root",
+        )
+        before = self.read_page(source)
+        require(before.get("status") == "current", "Copy source is not current")
+        storage = before.get("body", {}).get("storage", {})
+        require(
+            isinstance(storage, dict) and isinstance(storage.get("value"), str),
+            "Copy source storage is missing",
+        )
+        self.read_page(parent)
+        self.children_match(source)
+        title = self.name("copy")
+        result = self.call(
+            "page copy",
+            {"id": source.id, "title": title, "parent": parent.id},
+            wrapper=True,
+            mutation=True,
+            dependency=parent,
+            candidate=("page", title),
+        )
+        resource = self.resources[("page", numeric_id(result.get("id")))]
+        # call() journals and rejects duplicate/source/parent IDs before reaching here.
+        self._observe_relationship(result)
+        require(result.get("title") == title, "Copied title mismatch")
+        require(str(result.get("spaceId")) == self.space_id, "Copied space mismatch")
+        require(
+            str(result.get("parentId")) == parent.id
+            and result.get("status") == "current",
+            "Copied parent/status mismatch",
+        )
+        page = self._page_data(resource)
+        require(page.get("status") == "current", "Copied page is not current")
+        require(
+            page.get("body", {}).get("storage", {}).get("value") == storage["value"],
+            "Copied body mismatch",
+        )
+        resource.state = "owned"
+        self.emit("owned", resource=resource)
+        return resource
+
+    def tree_matches(self, root: Resource, child: Resource, grandchild: Resource):
+        for page in (root, child, grandchild):
+            self._owned(page, "page")
+        require(
+            child.parent == root.token and grandchild.parent == child.token,
+            "Unexpected owned tree relationships",
+        )
+        self.children_match(root, (child,))
+        self.children_match(child, (grandchild,))
+        self.children_match(grandchild)
+        try:
+            result = self.call("hierarchy tree", {"id": root.id}, wrapper=True)
+        except LiveContractError:
+            for page in (root, child, grandchild):
+                self._block_parent(page)
+            raise
+        expected = {
+            "root": {"id": root.id, "title": root.name},
+            "tree": [
+                {
+                    "id": child.id,
+                    "title": child.name,
+                    "depth": 1,
+                    "children": [
+                        {
+                            "id": grandchild.id,
+                            "title": grandchild.name,
+                            "depth": 2,
+                            "children": [],
+                        }
+                    ],
+                }
+            ],
+            "stats": {"totalPages": 2, "maxDepth": 2, "rootChildren": 1},
+        }
+        if result != expected:
+            # The wrapper output is never an ownership source. Preserve all three
+            # affected parents on any ambiguous/mismatched tree, including extras.
+            for page in (root, child, grandchild):
+                self._block_parent(page)
+            raise LiveContractError(
+                "Tree differs from exact owned identities/depth/stats"
+            )
+        return result
+
+    def versions_match(self, page: Resource, versions):
+        self._owned(page, "page")
+        require(
+            len(versions) == 3
+            and all(type(v) is int and v > 0 for v in versions)
+            and len(set(versions)) == 3,
+            "Expected three recorded unique versions",
+        )
+        current = self.read_page(page)
+        require(
+            current["version"]["number"] == max(versions), "Current version changed"
+        )
+        result = self.call(
+            "getPageVersions", {"id": page.id, "body-format": "storage", "limit": 4}
+        )
+        rows = self._complete_rows(result, 4)
+        numbers = [row.get("number") for row in rows]
+        require(
+            all(type(v) is int for v in numbers)
+            and len(numbers) == 3
+            and len(set(numbers)) == 3
+            and set(numbers) == set(versions),
+            "Versions differ from exact recorded updates",
+        )
+        for row in rows:
+            if "page" in row:
+                require(
+                    isinstance(row["page"], dict)
+                    and numeric_id(row["page"].get("id")) == page.id,
+                    "Version embedded page mismatch",
+                )
+        return rows
+
+    def pages_match(self, pages):
+        require(
+            len(pages) == 2 and len({page.id for page in pages}) == 2,
+            "Expected two distinct owned pages",
+        )
+        for page in pages:
+            self._owned(page, "page")
+        for page in pages:
+            self.read_page(page)
+        result = self.call(
+            "getPages",
+            {
+                "space-id": [self.space_id],
+                "id": [page.id for page in pages],
+                "status": ["current"],
+                "limit": 3,
+            },
+        )
+        # Observe relationships even when completeness/identity checks will fail.
+        if isinstance(result, dict) and isinstance(result.get("results"), list):
+            for row in result["results"]:
+                self._observe_relationship(row)
+        rows = self._complete_rows(result, 3)
+        expected = {page.id: page for page in pages}
+        ids = [numeric_id(row.get("id")) for row in rows]
+        require(
+            len(ids) == 2 and len(set(ids)) == 2 and set(ids) == set(expected),
+            "Listing differs from exact owned IDs",
+        )
+        for row in rows:
+            page = expected[str(row["id"])]
+            require(
+                str(row.get("spaceId")) == self.space_id
+                and row.get("status") == "current"
+                and row.get("title") == page.name
+                and page.parent is not None
+                and str(row.get("parentId")) == page.parent[1],
+                "Listed page identity changed",
+            )
+        return rows
+
+    def delete_page(self, resource: Resource):
+        self._owned(resource, "page")
+        # Check before even reading the parent: explicit deletion shares cleanup's rule.
+        self._dependencies_removed(resource)
+        self.read_page(resource)
+        self.call("deletePage", {"id": resource.id}, mutation=True, dependency=resource)
+        resource.state = "uncertain"
+        require(self.list_owned_page(resource) == [], "Page deletion is unproven")
+        resource.state = "deleted"
+        self.emit("cleanup", resource=resource)
+
+    def _property_data(self, resource: Resource):
+        require(resource.parent in self.resources, "Property has no known parent")
+        page = self.resources[resource.parent]
+        self.read_page(page)
+        row = self.call(
+            "getPageContentPropertiesById",
+            {
+                "page-id": page.id,
+                "property-id": resource.id,
+            },
+        )
+        require(isinstance(row, dict), "Property read-back shape is invalid")
+        require(numeric_id(row.get("id")) == resource.id, "Property ID changed")
+        require(row.get("key") == resource.name, "Property run key changed")
+        return row
+
+    def read_property(self, resource: Resource):
+        self._owned(resource, "property")
+        return self._property_data(resource)
+
+    def properties(self, page: Resource):
+        self.read_page(page)
+        # A bounded aggregate cap; hitting it is not proof of absence.
+        rows = self.call(
+            "getPageContentProperties", {"page-id": page.id, "all": True, "limit": 100}
+        )
+        require(
+            isinstance(rows, list) and len(rows) < 100, "Property list is incomplete"
+        )
+        return rows
+
+    def create_property(self, page: Resource, value, *, wrapper=False):
+        self.read_page(page)
+        key = self.name("property")
+        require(
+            not any(row.get("key") == key for row in self.properties(page)),
+            "Property key already exists",
+        )
+        op = "property set" if wrapper else "createPageProperty"
+        parameters = {"page-id": page.id}
+        if wrapper:
+            parameters["key"] = key
+        result = self.call(
+            op,
+            parameters,
+            value if wrapper else {"key": key, "value": value},
+            mutation=True,
+            dependency=page,
+            candidate=("property", key),
+            wrapper=wrapper,
+        )
+        row = result["property"] if wrapper else result
+        resource = self.resources[("property", numeric_id(row.get("id")))]
+        require(row.get("key") == key, "Created property key mismatch")
+        readback = self._property_data(resource)
+        require(readback.get("value") == value, "Created property value mismatch")
+        resource.state = "owned"
+        self.emit("owned", resource=resource)
+        return resource
+
+    def update_property(self, resource: Resource, value, *, wrapper=False):
+        before = self.read_property(resource)
+        page = self.resources[resource.parent]
+        op = "property set" if wrapper else "updatePagePropertyById"
+        parameters = {"page-id": page.id}
+        if wrapper:
+            parameters["key"] = resource.name
+        else:
+            parameters["property-id"] = resource.id
+        result = self.call(
+            op,
+            parameters,
+            value if wrapper else {"key": resource.name, "value": value},
+            mutation=True,
+            dependency=resource,
+            wrapper=wrapper,
+        )
+        resource.state = "uncertain"
+        row = result["property"] if wrapper else result
+        require(
+            numeric_id(row.get("id")) == resource.id, "Updated property ID mismatch"
+        )
+        after = self._property_data(resource)
+        require(after.get("value") == value, "Updated property value mismatch")
+        require(
+            after["version"]["number"] == before["version"]["number"] + 1,
+            "Property version did not increment",
+        )
+        resource.state = "owned"
+        self.emit("owned", resource=resource)
+        return after
+
+    def delete_property(self, resource: Resource):
+        self.read_property(resource)
+        page = self.resources[resource.parent]
+        self.call(
+            "deletePagePropertyById",
+            {"page-id": page.id, "property-id": resource.id},
+            mutation=True,
+            dependency=resource,
+        )
+        resource.state = "uncertain"
+        rows = self.properties(page)
+        require(
+            not any(
+                str(row.get("id")) == resource.id or row.get("key") == resource.name
+                for row in rows
+            ),
+            "Property deletion is unproven",
+        )
+        resource.state = "deleted"
+        self.emit("cleanup", resource=resource)
+
+    def cleanup(self):
+        for resource in reversed(list(self.resources.values())):
+            if resource.state != "owned":
+                continue
+            try:
+                if resource.kind == "property":
+                    self.delete_property(resource)
+                elif resource.kind == "page":
+                    self.delete_page(resource)
+                else:
+                    raise LiveContractError("Unknown cleanup kind")
             except Exception:
-                pass
-
-    return removed
-
-
-# =============================================================================
-# Version Detection
-# =============================================================================
-
-
-def get_confluence_version(client: ConfluenceClient) -> tuple[int, int, int]:
-    """
-    Get Confluence version as tuple.
-
-    Returns:
-        Tuple of (major, minor, patch) version numbers
-    """
-    try:
-        info = client.get("/rest/api/settings/systemInfo", operation="get version")
-        version_str = info.get("version", "0.0.0")
-        parts = version_str.split(".")[:3]
-        return tuple(int(p) for p in parts)  # type: ignore[return-value]
-    except Exception:
-        return (0, 0, 0)
-
-
-def skip_if_version_below(
-    client: ConfluenceClient,
-    min_version: tuple[int, int, int],
-    reason: str = "",
-) -> None:
-    """
-    Skip test if Confluence version is below minimum.
-
-    Args:
-        client: Confluence client
-        min_version: Minimum version tuple (major, minor, patch)
-        reason: Skip reason message
-
-    Raises:
-        pytest.skip: If version is below minimum
-    """
-    import pytest
-
-    current = get_confluence_version(client)
-
-    if current < min_version:
-        version_str = ".".join(str(v) for v in min_version)
-        current_str = ".".join(str(v) for v in current)
-        msg = reason or f"Requires Confluence {version_str}+ (current: {current_str})"
-        pytest.skip(msg)
-
-
-def is_confluence_cloud(client: ConfluenceClient) -> bool:
-    """
-    Check if connected to Confluence Cloud (vs Server/Data Center).
-
-    Returns:
-        True if Confluence Cloud
-    """
-    try:
-        info = client.get("/rest/api/settings/systemInfo", operation="check cloud")
-        # Cloud typically has different deployment type or no on-prem indicators
-        return "Cloud" in info.get("deploymentType", "") or not info.get("buildNumber")
-    except Exception:
-        return False
+                self.emit("cleanup-failed", resource=resource)
+        residual = [r for r in self.resources.values() if r.state != "deleted"]
+        for resource in residual:
+            self.emit("residual", resource=resource)
+        for intent in self.pending:
+            self.emit("unresolved-intent", intent=intent)
+        if residual or self.pending:
+            self.emit("incomplete")
+            raise LiveContractError("Run cleanup incomplete; inspect streamed receipt")
+        self.emit("complete")
