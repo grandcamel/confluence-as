@@ -714,6 +714,7 @@ def entrypoint(tmp_path):
         encoding="utf-8",
     )
     root_plugin = root / "tests/conftest.py"
+    private_poison_plugin_path = str(private_site / "jas43_poison.py")
     root_plugin.write_text(
         root_plugin.read_text()
         + textwrap.dedent(f"""
@@ -738,9 +739,7 @@ def entrypoint(tmp_path):
             assert not config.pluginmanager.hasplugin('jas43_poison')
             assert any(ep.name == 'jas43_poison' for ep in
                        importlib.metadata.entry_points(group='pytest11'))
-            assert importlib.util.find_spec('jas43_poison').origin == {
-            str(private_site / "jas43_poison.py")!r
-        }
+            assert importlib.util.find_spec('jas43_poison').origin == {private_poison_plugin_path!r}
             assert config.getoption('noconftest') is True
             assert config.getoption('importmode') == 'importlib'
             assert str(config.inipath) == '/dev/null'
