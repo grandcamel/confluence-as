@@ -124,6 +124,72 @@
       "x-as-test": "scope_v2_createBlogPost"
     },
     {
+      "target": "$.paths[\"/blogposts/{id}\"].get",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getBlogPostById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for getBlogPostById.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-10"
+      },
+      "x-as-origin": "JAS-80",
+      "x-as-test": "scope_v2_getBlogPostById"
+    },
+    {
+      "target": "$.paths[\"/blogposts/{id}\"].delete",
+      "update": {
+        "x-as-scope": {
+          "in": "path",
+          "name": "id",
+          "resolve": [
+            {
+              "operationId": "getBlogPostById",
+              "parameter": "id",
+              "matchPath": "/id",
+              "valuePath": "/spaceId"
+            },
+            {
+              "operationId": "getSpaces",
+              "parameter": "ids",
+              "array": true,
+              "resultsPath": "/results",
+              "matchPath": "/id",
+              "valuePath": "/key"
+            }
+          ]
+        }
+      },
+      "description": "Declare scope for deleteBlogPost.",
+      "x-as-reason": "Scope membership must be verified before this operation; IDs require bounded metadata resolution against the configured space keys.",
+      "x-as-evidence": {
+        "url": "https://dac-static.atlassian.com/cloud/confluence/openapi-v2.json",
+        "date": "2026-09-10"
+      },
+      "x-as-origin": "JAS-80",
+      "x-as-test": "scope_v2_deleteBlogPost"
+    },
+    {
       "target": "$.paths[\"/custom-content\"].get",
       "update": {
         "x-as-scope": {

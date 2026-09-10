@@ -160,6 +160,7 @@ def create_surface(
         indexes,
         factory,
         scope_resolution_rules={
+            "v2:getBlogPostById": (("id",),),
             "v2:getPageById": (("id",),),
             "v2:getSpaceById": (("id",),),
             "v2:getSpaces": (("ids",), ("keys",)),
