@@ -97,7 +97,9 @@ def test_first_call_keeps_configuration_validation_error(monkeypatch):
     monkeypatch.delenv("CONFLUENCE_ALLOWED_SPACES", raising=False)
     monkeypatch.setenv("CONFLUENCE_AS_TRANSPORT", "responder")
     monkeypatch.setattr(
-        ConfigManager, "_load_config", lambda self: {"confluence": {"allowed_spaces": []}}
+        ConfigManager,
+        "_load_config",
+        lambda self: {"confluence": {"allowed_spaces": []}},
     )
     ConfigManager.reset_instance()
     try:

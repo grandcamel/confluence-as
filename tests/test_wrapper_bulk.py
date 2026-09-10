@@ -65,6 +65,34 @@ def test_label_alias_applies_without_interactive_prompt(simulated_surface):
     assert all("reviewed" in page.get("labels", []) for page in store.pages)
 
 
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        ("--add", "reviewed"),
+        ("--remove", "reviewed"),
+        ("--cql", "space=DOCS", "--add", "reviewed", "--remove", "old"),
+        ("--cql", "space=DOCS"),
+    ],
+)
+def test_label_alias_refuses_missing_or_ambiguous_inputs(monkeypatch, arguments):
+    attempts = {"surface": 0, "send": 0}
+
+    def forbidden_surface():
+        attempts["surface"] += 1
+        raise AssertionError("invalid alias created a surface")
+
+    def forbidden_send(*args, **kwargs):
+        attempts["send"] += 1
+        raise AssertionError("invalid alias sent a request")
+
+    monkeypatch.setattr(bulk_cmds, "_surface", forbidden_surface)
+    monkeypatch.setattr(requests.Session, "send", forbidden_send)
+    result = invoke("label", *arguments)
+    assert result.exit_code == 2, result.output
+    assert "Supply exactly one of --add and --remove with --cql" in result.stderr
+    assert attempts == {"surface": 0, "send": 0}
+
+
 def test_checkpoint_records_failure_and_resume_retries_only_failed(
     simulated_surface, tmp_path
 ):
@@ -158,7 +186,9 @@ def test_delete_resume_accepts_disappeared_done_target(monkeypatch, tmp_path):
         "--resume",
     )
     assert resumed.exit_code == 0, resumed.output
-    deletes = [params["id"] for name, params, _body in store.calls if name == "deletePage"]
+    deletes = [
+        params["id"] for name, params, _body in store.calls if name == "deletePage"
+    ]
     assert deletes == [2]
     assert store.pages == []
 

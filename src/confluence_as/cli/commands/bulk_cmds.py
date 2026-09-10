@@ -6,7 +6,7 @@ import json
 import os
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn
 
 import click
 from as_engine.surface import Surface
@@ -24,7 +24,7 @@ def _json(value: Any) -> None:
     click.echo(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True))
 
 
-def _fail(message: str) -> None:
+def _fail(message: str) -> NoReturn:
     raise click.UsageError(message)
 
 
@@ -118,7 +118,7 @@ def _run(
     arguments: dict[str, Any],
     operations: list[str],
     details: dict[str, Any],
-    mutate: Callable[[Surface, dict[str, Any]], None],
+    mutate: Callable[[Surface, dict[str, Any]], object],
 ) -> None:
     surface = _surface()
     pages = _search(surface, cql, maximum)
@@ -167,11 +167,11 @@ def _run(
             failures.append(
                 {"id": page_id, "title": str(page.get("title", "")), "error": str(exc)}
             )
-            if record is not None:
+            if record is not None and checkpoint is not None:
                 record["failures"][page_id] = str(exc)
                 _write_checkpoint(checkpoint, record)
             continue
-        if record is not None:
+        if record is not None and checkpoint is not None:
             record["done"].append(page_id)
             record["failures"].pop(page_id, None)
             _write_checkpoint(checkpoint, record)

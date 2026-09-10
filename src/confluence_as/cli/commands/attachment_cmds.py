@@ -46,10 +46,6 @@ def attachment() -> None:
     pass
 
 
-
-
-
-
 @attachment.command(name="download")
 @click.argument("attachment_id")
 @click.option(
@@ -121,7 +117,9 @@ def download_attachment(
         title = _attachment_filename(att_info.get("title"))
         page_id = att_info.get("pageId") or att_info.get("blogPostId")
         if not page_id:
-            raise ValidationError("Attachment metadata does not include a containing content ID")
+            raise ValidationError(
+                "Attachment metadata does not include a containing content ID"
+            )
 
         if output_dir.is_dir():
             file_path = output_dir / title

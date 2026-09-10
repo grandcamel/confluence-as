@@ -147,7 +147,9 @@ def link_to_jira(
     if skip_if_exists:
         # Check remote links on page
         try:
-            links = client.call("getPageContentProperties", {"page-id": page_id}, all_pages=True).body
+            links = client.call(
+                "getPageContentProperties", {"page-id": page_id}, all_pages=True
+            ).body
             # Check if JIRA link exists
             properties = {item["key"]: item.get("value") for item in links}
             for _key, value in properties.items():
@@ -180,7 +182,9 @@ def link_to_jira(
 
     # Create remote link by adding a JIRA macro to the page
     # First, get current content
-    page_content = client.call("getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True).body
+    page_content = client.call(
+        "getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True
+    ).body
 
     current_body = page_content.get("body", {}).get("storage", {}).get("value", "")
 
@@ -253,7 +257,9 @@ def get_linked_issues(
     client = engine.create_surface()
 
     # Get page info with content
-    page = client.call("getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True).body
+    page = client.call(
+        "getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True
+    ).body
 
     page_title = page.get("title", "Unknown")
     body = page.get("body", {}).get("storage", {}).get("value", "")
@@ -413,11 +419,12 @@ def embed_jira_issues(
     client = engine.create_surface()
 
     # Get page info
-    page = client.call("getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True).body
+    page = client.call(
+        "getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True
+    ).body
 
     page_title = page.get("title", "Unknown")
     current_body = page.get("body", {}).get("storage", {}).get("value", "")
-
 
     # Parse issues list
     issue_list = None
@@ -707,11 +714,12 @@ def sync_jira_macro(
     client = engine.create_surface()
 
     # Get page info
-    page = client.call("getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True).body
+    page = client.call(
+        "getPageById", {"id": page_id, **{"body-format": "storage"}}, raw=True
+    ).body
 
     page_title = page.get("title", "Unknown")
     current_body = page.get("body", {}).get("storage", {}).get("value", "")
-
 
     # Find JIRA macros
     macro_pattern = (

@@ -83,7 +83,8 @@ def help_command(
             },
         )
         root = ctx.find_root().command
-        assert isinstance(root, click.Group)
+        if not isinstance(root, click.Group):
+            raise click.UsageError("Help requires a root command group")
         try:
             if subject == "topics":
                 value = topics_document(index)

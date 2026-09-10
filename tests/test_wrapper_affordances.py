@@ -138,6 +138,79 @@ def test_admin_grant_derivation_matches_legacy_helper(
     assert actual["read"] is expected
 
 
+@pytest.mark.parametrize(
+    ("groups", "expected_read", "read_text"),
+    [(None, None, "Unknown"), ({"results": []}, False, "No")],
+)
+@pytest.mark.parametrize(
+    ("space_fields", "space_name"),
+    [({"name": "Docs"}, "Docs"), ({"name": None}, None), ({}, "DOCS")],
+)
+def test_admin_membership_failure_preserves_partial_grants_and_space_name(
+    monkeypatch, groups, expected_read, read_text, space_fields, space_name
+):
+    transport = GrantTransport(
+        identity={"accountId": "me", "displayName": "Me"},
+        groups=groups,
+        grants={
+            "results": [
+                {
+                    "operation": {"key": "read", "targetType": "space"},
+                    "principal": {"type": "group", "id": "unknown"},
+                },
+                {
+                    "operation": {"key": "create", "targetType": "page"},
+                    "principal": {"type": "user", "id": "me"},
+                },
+                {
+                    "operation": {"key": "update", "targetType": "page"},
+                    "principal": {"type": "user", "id": "other"},
+                },
+            ]
+        },
+    )
+    original = transport.response
+
+    def response(name):
+        if name == "getSpaces":
+            return Response(
+                200, {"results": [{"id": "55", "key": "DOCS", **space_fields}]}
+            )
+        return original(name)
+
+    monkeypatch.setattr(transport, "response", response)
+    indexes = ProductIndexes(Path(__file__).parents[1] / "src/confluence_as/_generated")
+    surface = Surface(
+        indexes,
+        lambda _document, _index: transport,
+        scope_allowlist=("DOCS",),
+        scope_allow_site=True,
+        scope_resolution_rules={
+            "v2:getSpacePermissionsAssignments": (("id",),),
+            "v2:getSpaces": (("keys",), ("ids",)),
+        },
+    )
+    monkeypatch.setattr(admin_cmds, "_surface", lambda: surface)
+    runner = CliRunner()
+    arguments = ["admin", "permissions", "check", "--space", "DOCS", "--output"]
+    result = runner.invoke(cli, [*arguments, "json"])
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    permissions = {
+        item["operation"]: item["has_permission"] for item in payload["permissions"]
+    }
+    assert payload["space"] == {"key": "DOCS", "name": space_name}
+    assert permissions["read"] is expected_read
+    assert permissions["create"] is True
+    assert permissions["edit"] is False
+    text = runner.invoke(cli, [*arguments, "text"])
+    assert text.exit_code == 0, text.output
+    assert text.stdout.splitlines()[0] == f"Permission Check: {space_name} (DOCS)"
+    assert {f"  read: {read_text}", "  create: Yes", "  edit: No"} <= set(
+        text.stdout.splitlines()
+    )
+
+
 def test_affordances_use_surface_and_local_cache(monkeypatch, tmp_path):
     monkeypatch.setenv("CONFLUENCE_ALLOWED_SPACES", "DOCS")
     monkeypatch.setenv("CONFLUENCE_ALLOW_SITE_OPERATIONS", "true")

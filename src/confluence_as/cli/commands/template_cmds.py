@@ -190,7 +190,7 @@ def create_from_template(
     surface = engine.create_surface()
 
     # Get template content if not overriding
-    body_content = content
+    body_content: str | dict[str, object] | None = content
     stored_body = False
     if content_file:
         body_content = content_file.read_text(encoding="utf-8")

@@ -22,7 +22,10 @@ def responder_surface(monkeypatch):
     indexes = ProductIndexes(Path(__file__).parents[1] / "src/confluence_as/_generated")
     responder = Responder(indexes.get("v2"))
     # Valid success defaults; explicit queues in each case replace these seeds.
-    body = {"id": "9", "body": {"storage": {"representation": "storage", "value": "<p>Fixture</p>"}}}
+    body = {
+        "id": "9",
+        "body": {"storage": {"representation": "storage", "value": "<p>Fixture</p>"}},
+    }
     responder.seed("getPages", [{"results": [body]}])
     responder.seed("createPage", [body, body])
     responder.seed("updatePage", [body, body])
@@ -120,7 +123,14 @@ def test_all_pages_caps_aggregate_and_reports_count(responder_surface):
         ],
     )
     result = invoke(
-        "getPages", "--space-id", "55", "--all", "--parameter-limit", "100", "--limit", "120"
+        "getPages",
+        "--space-id",
+        "55",
+        "--all",
+        "--parameter-limit",
+        "100",
+        "--limit",
+        "120",
     )
     assert result.exit_code == 0, result.output
     assert len(json.loads(result.stdout)) == 120
@@ -158,10 +168,13 @@ def test_alias_and_explicit_id_conflict_before_transport(responder_surface):
 
 def test_current_and_draft_versions_avoid_unnecessary_reads(responder_surface):
     responder_surface.seed(
-        "getPageById", [page_scope_metadata(), page_scope_metadata(), {"version": {"number": 7}}]
+        "getPageById",
+        [page_scope_metadata(), page_scope_metadata(), {"version": {"number": 7}}],
     )
     responder_surface.seed("getSpaces", [space_by_id(), space_by_id()])
-    result = invoke("updatePage", "--confirm", "--id", "9", "--field", 'title="Current"')
+    result = invoke(
+        "updatePage", "--confirm", "--id", "9", "--field", 'title="Current"'
+    )
     assert result.exit_code == 0, result.output
     assert responder_surface.requests[0] == ("getPageById", {"id": 9}, None)
     assert responder_surface.requests[1] == ("getSpaces", {"ids": [55]}, None)
@@ -175,31 +188,67 @@ def test_current_and_draft_versions_avoid_unnecessary_reads(responder_surface):
     responder_surface.seed("getPageById", [page_scope_metadata()])
     responder_surface.seed("getSpaces", [space_by_id()])
     result = invoke(
-        "updatePage", "--confirm", "--id", "9", "--field", 'title="Draft"', "--field", "status=draft"
+        "updatePage",
+        "--confirm",
+        "--id",
+        "9",
+        "--field",
+        'title="Draft"',
+        "--field",
+        "status=draft",
     )
     assert result.exit_code == 0, result.output
-    assert [request[0] for request in responder_surface.requests] == ["getPageById", "getSpaces", "updatePage"]
+    assert [request[0] for request in responder_surface.requests] == [
+        "getPageById",
+        "getSpaces",
+        "updatePage",
+    ]
     assert responder_surface.requests[2][2]["version"]["number"] == 1
 
 
 def test_explicit_version_avoids_read_and_conflict_is_not_retried(responder_surface):
     responder_surface.seed("getPageById", [page_scope_metadata()])
     responder_surface.seed("getSpaces", [space_by_id()])
-    result = invoke("updatePage", "--confirm", "--id", "9", "--field", 'title="Explicit"', "--version", "12")
+    result = invoke(
+        "updatePage",
+        "--confirm",
+        "--id",
+        "9",
+        "--field",
+        'title="Explicit"',
+        "--version",
+        "12",
+    )
     assert result.exit_code == 0, result.output
-    assert [request[0] for request in responder_surface.requests] == ["getPageById", "getSpaces", "updatePage"]
+    assert [request[0] for request in responder_surface.requests] == [
+        "getPageById",
+        "getSpaces",
+        "updatePage",
+    ]
     assert responder_surface.requests[2][2]["version"]["number"] == 12
 
     responder_surface.requests.clear()
     responder_surface.seed(
-        "getPageById", [page_scope_metadata(), page_scope_metadata(), {"version": {"number": 7}}]
+        "getPageById",
+        [page_scope_metadata(), page_scope_metadata(), {"version": {"number": 7}}],
     )
     responder_surface.seed("getSpaces", [space_by_id(), space_by_id()])
-    responder_surface.seed("updatePage", [Response(status=409, body={"code": 7, "message": "conflict"})])
-    result = invoke("updatePage", "--confirm", "--id", "9", "--field", 'title="Conflict"')
+    responder_surface.seed(
+        "updatePage", [Response(status=409, body={"code": 7, "message": "conflict"})]
+    )
+    result = invoke(
+        "updatePage", "--confirm", "--id", "9", "--field", 'title="Conflict"'
+    )
     assert result.exit_code == 7, result.output
     assert json.loads(result.stderr)["status"] == 409
     assert [request[0] for request in responder_surface.requests] == [
-        "getPageById", "getSpaces", "getPageById", "getSpaces", "getPageById", "updatePage"
+        "getPageById",
+        "getSpaces",
+        "getPageById",
+        "getSpaces",
+        "getPageById",
+        "updatePage",
     ]
-    assert [request[0] for request in responder_surface.requests].count("updatePage") == 1
+    assert [request[0] for request in responder_surface.requests].count(
+        "updatePage"
+    ) == 1

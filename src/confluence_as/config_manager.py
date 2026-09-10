@@ -60,14 +60,19 @@ class ConfigManager(BaseConfigManager):
         )
         if not isinstance(raw, str):
             raise ValueError("allowed_spaces must be comma-separated space keys")
-        allowed = tuple(dict.fromkeys(key.strip() for key in raw.split(",") if key.strip()))
+        allowed = tuple(
+            dict.fromkeys(key.strip() for key in raw.split(",") if key.strip())
+        )
         site = os.environ.get(
-            "CONFLUENCE_ALLOW_SITE_OPERATIONS", settings.get("allow_site_operations", False)
+            "CONFLUENCE_ALLOW_SITE_OPERATIONS",
+            settings.get("allow_site_operations", False),
         )
         return {
             "scope_allowlist": allowed,
-            "scope_allow_site": site is True or (
-                isinstance(site, str) and site.strip().lower() in {"1", "true", "yes", "on"}
+            "scope_allow_site": site is True
+            or (
+                isinstance(site, str)
+                and site.strip().lower() in {"1", "true", "yes", "on"}
             ),
         }
 

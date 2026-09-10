@@ -13,6 +13,7 @@ from as_engine.responder import Responder
 from as_engine.transport import Response
 from click.testing import CliRunner
 
+from confluence_as.cli.commands.help_cmds import help_command
 from confluence_as.cli.main import cli
 
 
@@ -58,6 +59,15 @@ def test_bare_help_and_json_have_the_same_content():
     assert bare.stdout == help_result.stdout
     value = json.loads(runner.invoke(cli, ["help", "--format", "json"]).stdout)
     assert render_help(value) + "\n" == bare.stdout
+
+
+def test_standalone_help_rejects_a_non_group_root():
+    result = CliRunner().invoke(help_command, ["api"])
+    assert result.exit_code == 2, result.output
+    assert result.stdout == ""
+    assert "Error: Help requires a root command group" in result.stderr
+    # The supervisor's separate normal/-O probe must check these outcomes with
+    # if/raise control flow: Python -O strips test assertions too.
 
 
 @pytest.mark.parametrize("name", ["group", "topic", "level2", "level3", "wrapper"])

@@ -88,7 +88,8 @@ def check_permissions(space_key: str, only_missing: bool, output: str) -> None:
                 )
             )
         except Exception:
-            pass
+            # Failed or incomplete membership cannot establish group absence.
+            groups_known = False
     try:
         grants = _rows(
             surface.call(
@@ -127,16 +128,17 @@ def check_permissions(space_key: str, only_missing: bool, output: str) -> None:
             elif value is False:
                 value = None
         result.append({"operation": name, "has_permission": value})
+    space_name = space.get("name", space_key)
     payload = {
         "user": user.get("displayName") if isinstance(user, dict) else "Unknown",
-        "space": {"key": space_key, "name": space.get("name", space_key)},
+        "space": {"key": space_key, "name": space_name},
         "groups": [x.get("name", x.get("id")) for x in groups],
         "permissions": result,
     }
     if output == "json":
         click.echo(__import__("json").dumps(payload, sort_keys=True))
     else:
-        click.echo(f"Permission Check: {payload['space']['name']} ({space_key})")
+        click.echo(f"Permission Check: {space_name} ({space_key})")
         for item in result:
             if not only_missing or item["has_permission"] is not True:
                 click.echo(

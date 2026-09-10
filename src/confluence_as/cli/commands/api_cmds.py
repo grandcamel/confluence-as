@@ -4,14 +4,16 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import replace
-from typing import Any
+from typing import Any, NoReturn
 from urllib.parse import quote
 
 import click
 from as_engine.errors import SurfaceError
 from as_engine.help import describe_document, examples_document, render_help
+from as_engine.index import Operation, OperationIndex
 from as_engine.output import render_output
 from as_engine.params import alias_flags, body_errors, build_body, validate_parameters
 from as_engine.surface import Surface, parse_call_flags
@@ -105,22 +107,40 @@ def _call_help(operation: Any) -> str:
             + ", ".join(
                 [representation["default"], *representation.get("alternatives", [])]
             )
-            + "; default " + representation["default"] + "."
+            + "; default "
+            + representation["default"]
+            + "."
         )
     return "\n".join(lines)
 
 
 def _preview(
-    operation: Any,
-    index: Any,
+    document: str,
+    operation: Operation,
+    index: OperationIndex,
     parameters: dict[str, Any],
     body: Any,
     options: dict[str, Any],
 ) -> dict[str, Any]:
     """Validate local inputs without running lookups, guards or creating a transport."""
-    from types import SimpleNamespace
-
+    from as_engine.transforms import Context
     from as_engine.transforms.values import MISSING, set_target, target_value
+
+    def preview_invoke(
+        name: str,
+        parameters: Mapping[str, Any],
+        body: Any = None,
+        /,
+        *,
+        all_pages: bool = False,
+    ) -> NoReturn:
+        raise ValueError("Preview cannot invoke operations")
+
+    def preview_send(parameters: Mapping[str, Any], body: Any) -> NoReturn:
+        raise ValueError("Preview cannot send requests")
+
+    def preview_origin() -> str | None:
+        return None
 
     if options["all_pages"] and "x-as-paging" not in operation.extensions:
         raise ValueError("operation has no declared paging contract")
@@ -138,17 +158,32 @@ def _preview(
             for p in operation.parameters
         ],
     )
-    checked = validate_parameters(partial, parameters, index.schemas, defer_formats=True)
+    checked = validate_parameters(
+        partial, parameters, index.schemas, defer_formats=True
+    )
     payload = deepcopy(body)
-    context = SimpleNamespace(
-        body=payload, parameters=checked, operation=operation, index=index,
-        representation=options["representation"], raw=options["raw"],
+    context = Context(
+        document=document,
+        body=payload,
+        parameters=checked,
+        operation=operation,
+        index=index,
+        aliases=aliases,
+        all_pages=options["all_pages"],
+        limit=options["limit"],
+        invoke=preview_invoke,
+        send=preview_send,
+        origin=preview_origin,
+        representation=options["representation"],
+        raw=options["raw"],
     )
     for alias in aliases:
         if target_value(context, rules[alias]["target"]) is not MISSING:
             raise ValueError(f"conflicting id and --{alias}")
     version_tag = operation.extensions.get("x-as-version")
     if options["version"] is not None:
+        if version_tag is None:
+            raise ValueError("operation has no declared version contract")
         # Apply only the supplied local value; never read the current version.
         if target_value(context, version_tag["target"]) is not MISSING:
             raise ValueError("conflicting --version and body version")
@@ -212,7 +247,7 @@ def call(
         return
     name = arguments[0]
     surface = _surface(ctx)
-    _, index, operation = surface.resolve(name)
+    document, index, operation = surface.resolve(name)
     try:
         parameters, options = parse_call_flags(operation, arguments[1:])
         if options["help"] or options["examples"]:
@@ -231,16 +266,23 @@ def call(
                 value["sections"].append({"text": _call_help(operation)})
             click.echo(render_help(value, help_format))
             return
-        body = build_body(options["body"], options["field"], sys.stdin, operation=operation)
+        body = build_body(
+            options["body"], options["field"], sys.stdin, operation=operation
+        )
         validate_options(
-            operation, body, representation=options["representation"], raw=options["raw"]
+            operation,
+            body,
+            representation=options["representation"],
+            raw=options["raw"],
         )
         risk = operation.extensions.get("x-as-risk", "safe")
         if risk not in ("safe", "destructive", "irreversible"):
             raise ValueError("x-as-risk must be safe, destructive or irreversible")
         if risk != "safe" and not options["confirm"]:
             click.echo(
-                render_output(_preview(operation, index, parameters, body, options))
+                render_output(
+                    _preview(document, operation, index, parameters, body, options)
+                )
             )
             return
         response = surface.call(

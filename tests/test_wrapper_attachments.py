@@ -56,9 +56,13 @@ def attachments(monkeypatch):
     return store
 
 
-def test_attachment_download_uses_metadata_then_binary_surface_call(attachments, tmp_path):
+def test_attachment_download_uses_metadata_then_binary_surface_call(
+    attachments, tmp_path
+):
     target = tmp_path / "named.bin"
-    result = CliRunner().invoke(cli, ["attachment", "download", "att1", "-o", str(target)])
+    result = CliRunner().invoke(
+        cli, ["attachment", "download", "att1", "-o", str(target)]
+    )
     assert result.exit_code == 0, result.output
     assert target.read_bytes() == b"first bytes"
     assert [name for name, _, _ in attachments.calls] == [
@@ -67,7 +71,9 @@ def test_attachment_download_uses_metadata_then_binary_surface_call(attachments,
     ]
 
 
-def test_attachment_download_all_uses_paged_metadata_and_sanitizes_names(attachments, tmp_path):
+def test_attachment_download_all_uses_paged_metadata_and_sanitizes_names(
+    attachments, tmp_path
+):
     target = tmp_path / "downloads"
     result = CliRunner().invoke(
         cli,
@@ -87,9 +93,13 @@ def test_attachment_download_all_uses_paged_metadata_and_sanitizes_names(attachm
 
 
 @pytest.mark.parametrize("title", ["", ".", "..", "\x00..", "\x7f."])
-def test_attachment_download_sanitizes_empty_dot_and_control_names(attachments, tmp_path, title):
+def test_attachment_download_sanitizes_empty_dot_and_control_names(
+    attachments, tmp_path, title
+):
     attachments.attachments[0]["title"] = title
-    result = CliRunner().invoke(cli, ["attachment", "download", "att1", "-o", str(tmp_path)])
+    result = CliRunner().invoke(
+        cli, ["attachment", "download", "att1", "-o", str(tmp_path)]
+    )
     assert result.exit_code == 0, result.output
     assert (tmp_path / "attachment").read_bytes() == b"first bytes"
 
@@ -98,7 +108,14 @@ def test_attachment_download_all_reports_empty_collection(attachments, tmp_path)
     attachments.attachments.clear()
     result = CliRunner().invoke(
         cli,
-        ["attachment", "download", "1", "--all", "--output-dir", str(tmp_path / "downloads")],
+        [
+            "attachment",
+            "download",
+            "1",
+            "--all",
+            "--output-dir",
+            str(tmp_path / "downloads"),
+        ],
     )
     assert result.exit_code == 0, result.output
     assert "No attachments found on page." in result.output
@@ -111,18 +128,29 @@ def test_attachment_download_all_refuses_metadata_without_an_id(attachments, tmp
     )
     result = CliRunner().invoke(
         cli,
-        ["attachment", "download", "1", "--all", "--output-dir", str(tmp_path / "downloads")],
+        [
+            "attachment",
+            "download",
+            "1",
+            "--all",
+            "--output-dir",
+            str(tmp_path / "downloads"),
+        ],
     )
     assert result.exit_code != 0
     assert "Attachment metadata is missing an ID" in result.output
 
 
-def test_attachment_download_accepts_blog_post_container_metadata(attachments, tmp_path):
+def test_attachment_download_accepts_blog_post_container_metadata(
+    attachments, tmp_path
+):
     metadata = attachments.attachments[0]
     del metadata["pageId"]
     metadata["blogPostId"] = "10"
     target = tmp_path / "blog.bin"
-    result = CliRunner().invoke(cli, ["attachment", "download", "att1", "-o", str(target)])
+    result = CliRunner().invoke(
+        cli, ["attachment", "download", "att1", "-o", str(target)]
+    )
     assert result.exit_code == 0, result.output
     assert target.read_bytes() == b"first bytes"
     assert attachments.calls[-1][1] == {"id": "10", "attachmentId": "att1"}

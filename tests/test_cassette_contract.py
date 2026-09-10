@@ -114,11 +114,16 @@ def record_local_fixture(path, monkeypatch):
             headers=headers,
         )
         assert (
-            surface.call("getPages", {"space-id": [5], "limit": 5}).body["results"][0]["id"]
+            surface.call("getPages", {"space-id": [5], "limit": 5}).body["results"][0][
+                "id"
+            ]
             == "10"
         )
         assert surface.call("getPageById", {"id": 10}).body["id"] == "10"
-        assert surface.call("createPage", {}, PAGE_BODY, scope_argv_identity="DOCS").status == 201
+        assert (
+            surface.call("createPage", {}, PAGE_BODY, scope_argv_identity="DOCS").status
+            == 201
+        )
         assert (
             surface.call("updatePage", {"id": 10}, UPDATE_BODY).body["version"][
                 "number"
@@ -143,6 +148,7 @@ def record_local_fixture(path, monkeypatch):
 @pytest.fixture(autouse=True)
 def no_network(monkeypatch):
     """Scope settings are safe for playback; credential reads are never allowed."""
+
     def denied(*args, **kwargs):
         raise AssertionError("cassette contract attempted network or credential access")
 
@@ -217,7 +223,9 @@ def test_cassette_binary_attachment_download_writes_exact_bytes(monkeypatch, tmp
     assert response.body["path"] == str(target)
     assert target.read_bytes() == b"cassette attachment bytes\x00"
     monkeypatch.chdir(tmp_path)
-    result = invoke("call", "downloadAttatchment", "--id", "1", "--attachment-id", "att1")
+    result = invoke(
+        "call", "downloadAttatchment", "--id", "1", "--attachment-id", "att1"
+    )
     assert result.exit_code == 0 and result.stderr == "", result.output
     assert json.loads(result.stdout) == {
         "path": "cassette.bin",
@@ -284,7 +292,24 @@ def test_responder_still_works_without_credentials(monkeypatch):
     def seeded_responder(index, *, status=200):
         responder = Responder(index, status=status)
         responder.seed("getSpaces", [{"results": [{"id": "5", "key": "DOCS"}]}])
-        responder.seed("getPages", [{"results": [{"id": "10", "body": {"storage": {"representation": "storage", "value": "<p>Offline contract</p>"}}}]}])
+        responder.seed(
+            "getPages",
+            [
+                {
+                    "results": [
+                        {
+                            "id": "10",
+                            "body": {
+                                "storage": {
+                                    "representation": "storage",
+                                    "value": "<p>Offline contract</p>",
+                                }
+                            },
+                        }
+                    ]
+                }
+            ],
+        )
         return responder
 
     monkeypatch.setattr("confluence_as.engine.Responder", seeded_responder)

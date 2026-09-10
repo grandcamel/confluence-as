@@ -10,10 +10,16 @@ import pytest
 import requests
 import responses
 from as_engine.responder import Responder
+from as_engine.surface import Surface
+from as_engine.transforms import Context
+from as_engine.transforms.formats import Formats
+from as_engine.transforms.richtext import RichText
 from as_engine.transport import Response
 from click.testing import CliRunner
 
+from confluence_as.cli.commands import api_cmds
 from confluence_as.cli.main import cli
+from confluence_as.config_manager import ConfigManager
 from confluence_as.engine import create_surface
 
 
@@ -29,10 +35,14 @@ def offline(monkeypatch):
             # Explicit fixture-space records served only for metadata reads.
             spaces = [{"id": str(i), "key": f"S{i}"} for i in (1, 4, 5)]
             if operation.operationId == "getSpaces":
-                rows = [row for row in spaces if (
-                    row["key"] in parameters.get("keys", [])
-                    or int(row["id"]) in parameters.get("ids", [])
-                )]
+                rows = [
+                    row
+                    for row in spaces
+                    if (
+                        row["key"] in parameters.get("keys", [])
+                        or int(row["id"]) in parameters.get("ids", [])
+                    )
+                ]
                 return Response(200, {"results": rows})
             if operation.operationId == "getPageById" and parameters == {"id": 1}:
                 return Response(200, {"id": "1", "spaceId": "5"})
@@ -46,8 +56,15 @@ def offline(monkeypatch):
     def richtext_responder(index, *, status=200):
         responder = Responder(index, status=status)
         if 200 <= status < 300:
-            page = {"id": "1", "spaceId": "5", "status": "current", "version": {"number": 1},
-                    "body": {"storage": {"representation": "storage", "value": "<p>Fixture</p>"}}}
+            page = {
+                "id": "1",
+                "spaceId": "5",
+                "status": "current",
+                "version": {"number": 1},
+                "body": {
+                    "storage": {"representation": "storage", "value": "<p>Fixture</p>"}
+                },
+            }
             responder.seed("getPages", [{"results": [page]}])
             responder.seed("createPage", [page])
             responder.seed("updatePage", [page])
@@ -224,9 +241,18 @@ def test_forced_errors(status, code):
 
 
 def test_400_triggers_body_check_but_normal_call_does_not():
-    assert invoke("call", "createPage", "--body", "-", input='{"spaceId":5}').exit_code == 0
+    assert (
+        invoke("call", "createPage", "--body", "-", input='{"spaceId":5}').exit_code
+        == 0
+    )
     failure = invoke(
-        "--respond-with", "400", "call", "createPage", "--body", "-", input='{"spaceId":5}'
+        "--respond-with",
+        "400",
+        "call",
+        "createPage",
+        "--body",
+        "-",
+        input='{"spaceId":5}',
     )
     assert failure.exit_code == 2
     assert "body.spaceId: must be string" in json.loads(failure.stderr)["messages"]
@@ -254,8 +280,13 @@ def test_discovery_search_describe_topics_and_dynamic_help():
         and "--space-id" in result.stdout
         and "--limit" in result.stdout
     )
-    assert {"adf", "paging", "risk", "scope"} <= set(invoke("topics").stdout.splitlines())
-    assert json.loads(invoke("topics", "--format", "json").stdout) == invoke("topics").stdout.splitlines()
+    assert {"adf", "paging", "risk", "scope"} <= set(
+        invoke("topics").stdout.splitlines()
+    )
+    assert (
+        json.loads(invoke("topics", "--format", "json").stdout)
+        == invoke("topics").stdout.splitlines()
+    )
 
 
 def test_lower_tier_and_standard_deprecation():
@@ -349,7 +380,10 @@ def test_product_http_routing_config_and_domain_mapping(monkeypatch):
         "api_token": "test-only",
     }
     config.get_api_config.return_value = {"timeout": 9, "max_retries": 0}
-    config.get_scope_config.return_value = {"scope_allowlist": ("S5",), "scope_allow_site": True}
+    config.get_scope_config.return_value = {
+        "scope_allowlist": ("S5",),
+        "scope_allow_site": True,
+    }
     monkeypatch.setattr(ConfigManager, "get_instance", lambda: config)
     surface = create_surface(transport="http")
     with responses.RequestsMock() as wire:
@@ -389,3 +423,271 @@ def test_string_array_numeric_values_preserved():
     assert result.exit_code == 0, result.output
     result = invoke("call", "getPages", "--id", "[broken")
     assert result.exit_code == 2 and "Invalid JSON array" in result.stderr
+
+
+@pytest.fixture
+def guarded_preview(monkeypatch):
+    surface = create_surface(transport="responder")
+    attempts = dict.fromkeys(("call", "transport", "config", "credentials", "send"), 0)
+
+    def forbid(kind):
+        def denied(*args, **kwargs):
+            attempts[kind] += 1
+            raise AssertionError(f"preview attempted {kind}")
+
+        return denied
+
+    monkeypatch.setattr(surface, "call", forbid("call"))
+    monkeypatch.setattr(Surface, "call", forbid("call"))
+    monkeypatch.setattr(surface, "transport_factory", forbid("transport"))
+    monkeypatch.setattr(ConfigManager, "get_instance", forbid("config"))
+    monkeypatch.setattr(ConfigManager, "get_scope_config", forbid("config"))
+    monkeypatch.setattr(ConfigManager, "get_api_config", forbid("config"))
+    monkeypatch.setattr(ConfigManager, "get_credentials", forbid("credentials"))
+    monkeypatch.setattr(Responder, "call", forbid("send"))
+    monkeypatch.setattr(requests.Session, "send", forbid("send"))
+    monkeypatch.setattr(api_cmds, "create_surface", lambda **kwargs: surface)
+    yield surface, attempts
+    assert attempts == dict.fromkeys(attempts, 0), attempts
+
+
+@pytest.mark.parametrize(
+    ("representation", "raw"),
+    [("storage", False), ("storage", True), ("atlas_doc_format", True)],
+)
+def test_preview_converts_markdown_with_local_version_and_inert_origin(
+    guarded_preview, monkeypatch, representation, raw
+):
+    surface, _attempts = guarded_preview
+    observed = []
+    original = RichText.request
+    inputs = []
+    original_build = api_cmds.build_body
+
+    def record_body(*args, **kwargs):
+        body = original_build(*args, **kwargs)
+        inputs.append(body)
+        return body
+
+    def observe(self, context, tag):
+        observed.append((context, context.origin()))
+        return original(self, context, tag)
+
+    monkeypatch.setattr(RichText, "request", observe)
+    monkeypatch.setattr(api_cmds, "build_body", record_body)
+    result = invoke(
+        "call",
+        "updatePage",
+        "--id",
+        "123",
+        "--version",
+        "7",
+        "--field",
+        "title=Preview",
+        "--field",
+        "body=**Preview**",
+        "--representation",
+        representation,
+        *(["--raw"] if raw else []),
+    )
+    assert result.exit_code == 0 and result.stderr == "", result.output
+    preview = json.loads(result.stdout)
+    assert preview["dry_run"] is True
+    assert preview["operationId"] == "updatePage"
+    assert (preview["method"], preview["path"], preview["parameters"]) == (
+        "PUT",
+        "/pages/123",
+        {"id": 123},
+    )
+    assert preview["body"]["title"] == "Preview"
+    assert preview["body"]["version"] == {"number": 7}
+    assert inputs == [{"title": "Preview", "body": "**Preview**"}]
+    assert "version_requirement" not in preview
+    envelope = preview["body"]["body"]
+    assert envelope["representation"] == representation
+    if representation == "storage":
+        assert "<strong>Preview</strong>" in envelope["value"]
+    else:
+        adf = json.loads(envelope["value"])
+        assert adf["type"] == "doc"
+        assert adf["content"][0]["content"][0] == {
+            "type": "text",
+            "text": "Preview",
+            "marks": [{"type": "strong"}],
+        }
+    assert len(observed) == 1
+    context, origin = observed[0]
+    document, index, operation = surface.resolve("updatePage")
+    assert isinstance(context, Context)
+    assert context.document == document == "v2"
+    assert context.index is index and context.operation is operation
+    assert context.representation == representation and context.raw is raw
+    assert origin is None
+    assert context.scope_allowlist == () and context.scope_allow_site is False
+    assert context.scope_send is None and context.scope_argv_identity is None
+    assert context.scope_resolution_rules == {}
+
+
+def test_preview_keeps_explicit_storage_body_with_raw(guarded_preview):
+    body = {
+        "title": "Preview",
+        "body": {"representation": "storage", "value": "<p>Stored</p>"},
+        "version": {"number": 7},
+    }
+    result = invoke(
+        "call",
+        "updatePage",
+        "--id",
+        "123",
+        "--body",
+        "-",
+        "--raw",
+        "--representation",
+        "storage",
+        input=json.dumps(body),
+    )
+    assert result.exit_code == 0 and result.stderr == "", result.output
+    assert json.loads(result.stdout)["body"] == body
+
+
+@pytest.mark.parametrize(
+    ("name", "document", "arguments", "path"),
+    [
+        ("getPages", "v2", ("--space-id", "5"), "/pages"),
+        ("searchByCQL", "v1", ("--cql", "type=page"), "/wiki/rest/api/search"),
+    ],
+)
+def test_preview_scalar_conversion_preserves_resolved_document_and_paging(
+    guarded_preview, monkeypatch, name, document, arguments, path
+):
+    surface, _attempts = guarded_preview
+    resolved_document, index, operation = surface.resolve(name)
+    # Neither product index currently declares scalar formats. Enrich only this
+    # in-memory operation to exercise the real hook and the existing CLI schema.
+    tagged = replace(
+        operation,
+        extensions={
+            **operation.extensions,
+            "x-as-risk": "destructive",
+            "x-as-format": [
+                {"target": {"in": "query", "name": "limit"}, "format": "duration"}
+            ],
+        },
+    )
+    index.operations[name] = tagged
+    observed = []
+    original = Formats.request
+
+    def observe(self, context, tag):
+        observed.append(context)
+        return original(self, context, tag)
+
+    monkeypatch.setattr(Formats, "request", observe)
+    result = invoke(
+        "call", name, *arguments, "--all", "--limit", "5", "--parameter-limit", "1m"
+    )
+    assert result.exit_code == 0 and result.stderr == "", result.output
+    preview = json.loads(result.stdout)
+    assert preview["dry_run"] is True and preview["path"] == path
+    assert preview["parameters"]["limit"] == 60
+    assert len(observed) == 1
+    context = observed[0]
+    assert isinstance(context, Context)
+    assert context.document == resolved_document == document
+    assert context.index is index and context.operation is tagged
+    assert context.all_pages is True and context.limit == 5
+    assert context.origin() is None
+    invalid = invoke("call", name, *arguments, "--limit", "1m1h")
+    assert invalid.exit_code == 2 and invalid.stdout == "", invalid.output
+    error = json.loads(invalid.stderr)
+    assert error["operation"] == name and error["status"] is None
+    assert "duration requires ordered, nonrepeated" in " ".join(error["messages"])
+    assert len(observed) == 1  # Invalid parameters fail before the request hook.
+
+
+@pytest.mark.parametrize(
+    ("arguments", "message"),
+    [
+        (("--id", "bad"), "invalid parameter id"),
+        ((), "missing required parameter: id"),
+        (
+            ("--id", "123", "--version", "7", "--field", "version.number=8"),
+            "conflicting --version and body version",
+        ),
+        (
+            ("--id", "123", "--representation", "wrong"),
+            "unsupported rich-text representation",
+        ),
+        (
+            (
+                "--id",
+                "123",
+                "--raw",
+                "--field",
+                "body.representation=storage",
+                "--field",
+                "body.value=42",
+            ),
+            "rich-text value must be a string",
+        ),
+    ],
+)
+def test_preview_invalid_inputs_have_usage_envelope_without_io(
+    guarded_preview, arguments, message
+):
+    result = invoke("call", "updatePage", *arguments)
+    assert result.exit_code == 2 and result.stdout == "", result.output
+    error = json.loads(result.stderr)
+    assert set(error) == {"status", "messages", "operation", "note"}
+    assert error["status"] is None and error["operation"] == "updatePage"
+    assert message in " ".join(error["messages"])
+
+
+def test_preview_alias_remains_unresolved_and_conflicting_id_is_refused(
+    guarded_preview,
+):
+    surface, _attempts = guarded_preview
+    _, index, operation = surface.resolve("createPage")
+    index.operations["createPage"] = replace(
+        operation, extensions={**operation.extensions, "x-as-risk": "destructive"}
+    )
+    args = ("call", "createPage", "--space-key", "S5", "--field", "title=Preview")
+    result = invoke(*args)
+    assert result.exit_code == 0 and result.stderr == "", result.output
+    preview = json.loads(result.stdout)
+    assert preview["dry_run"] is True
+    assert preview["unresolved_aliases"] == {"space-key": "S5"}
+    assert preview["body"] == {"title": "Preview"}
+    conflict = invoke(*args, "--field", 'spaceId="5"')
+    assert conflict.exit_code == 2 and conflict.stdout == "", conflict.output
+    error = json.loads(conflict.stderr)
+    assert error["status"] is None and error["operation"] == "createPage"
+    assert error["messages"] == ["conflicting id and --space-key"]
+
+
+@pytest.mark.parametrize(
+    ("capability", "message"),
+    [
+        ("invoke", "Preview cannot invoke operations"),
+        ("send", "Preview cannot send requests"),
+    ],
+)
+def test_preview_denies_hook_io_with_the_specific_usage_error(
+    guarded_preview, monkeypatch, capability, message
+):
+    attempted = []
+
+    def attempt(self, context, tag):
+        attempted.append(capability)
+        if capability == "invoke":
+            context.invoke("getPageById", {"id": 123}, None, all_pages=False)
+        else:
+            context.send({"id": 123}, None)
+
+    monkeypatch.setattr(RichText, "request", attempt)
+    result = invoke("call", "updatePage", "--id", "123", "--field", "title=Preview")
+    assert result.exit_code == 2 and result.stdout == "", result.output
+    error = json.loads(result.stderr)
+    assert error["status"] is None and error["operation"] == "updatePage"
+    assert error["messages"] == [message]
+    assert attempted == [capability]

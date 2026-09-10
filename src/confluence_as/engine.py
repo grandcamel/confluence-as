@@ -61,7 +61,9 @@ def create_surface(
     """Keep discovery and responder mode credential-free; configure HTTP at call time."""
     mode = transport or os.environ.get("CONFLUENCE_AS_TRANSPORT", "http")
     if mode not in ("http", "responder", "cassette", "simulation"):
-        raise ValueError("CONFLUENCE_AS_TRANSPORT must be http, responder, cassette or simulation")
+        raise ValueError(
+            "CONFLUENCE_AS_TRANSPORT must be http, responder, cassette or simulation"
+        )
     cassette_path = os.environ.get("CONFLUENCE_AS_CASSETTE")
     record_path = os.environ.get("CONFLUENCE_AS_RECORD")
     if mode == "cassette" and not cassette_path:
@@ -88,7 +90,9 @@ def create_surface(
             try:
                 seed = json.loads(Path(seed_path).read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError) as exc:
-                raise ValueError("unable to load CONFLUENCE_AS_SIMULATION_SEED") from exc
+                raise ValueError(
+                    "unable to load CONFLUENCE_AS_SIMULATION_SEED"
+                ) from exc
             simulation_store = SimulationStore(seed)
         else:
             simulation_store = SimulationStore()
