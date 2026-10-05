@@ -564,7 +564,7 @@ def test_property_cleanup_precedes_page_and_proves_both_absent():
     "operation",
     [
         "deleteSpace",
-        "createBlogPost",
+        "updateBlogPost",
         "searchByCQL",
         "createAttachment",
         "addLabelsToContent",
@@ -591,6 +591,7 @@ def clean_subprocess_environment():
 
 
 INERT_CASES = {
+    "test_blogpost_live.py": ("test_owned_blog_create_read_delete",),
     "test_page_copy_live.py": ("test_copy_owned_leaf_same_sbx_nonrecursive",),
     "test_hierarchy_live.py": ("test_tree_matches_owned_root_child_grandchild",),
     "test_page_versions_live.py": ("test_versions_match_owned_page_updates",),
@@ -857,11 +858,14 @@ def assert_entrypoint_refused(entrypoint, result, *, before_import=True):
         ("--help", "-p", "jas43_poison"),
     ],
 )
-def test_entrypoint_rejects_raw_selectors_and_overrides_before_import(entrypoint, args):
+@pytest.mark.parametrize("case", ["all", "blog"])
+def test_entrypoint_rejects_raw_selectors_and_overrides_before_import(
+    entrypoint, args, case
+):
     (entrypoint["cwd"] / "options.txt").write_text(
         "-p jas43_poison\n", encoding="utf-8"
     )
-    result = run_entrypoint(entrypoint, *args)
+    result = run_entrypoint(entrypoint, "--case", case, *args)
     assert_entrypoint_refused(entrypoint, result)
     assert "error:" in result.stderr
 
@@ -877,39 +881,59 @@ def test_entrypoint_rejects_raw_selectors_and_overrides_before_import(entrypoint
         "outside_alias.py",
     ],
 )
-def test_entrypoint_rejects_absolute_existing_poison_selectors(entrypoint, selector):
+@pytest.mark.parametrize("case", ["all", "blog"])
+def test_entrypoint_rejects_absolute_existing_poison_selectors(
+    entrypoint, selector, case
+):
     path, separator, node = selector.partition("::")
     selection = str(entrypoint["root"] / path) + separator + node
-    result = run_entrypoint(entrypoint, selection)
+    result = run_entrypoint(entrypoint, "--case", case, selection)
     assert_entrypoint_refused(entrypoint, result)
     assert "error:" in result.stderr
 
 
 @pytest.mark.parametrize("name", ["PYTEST_ADDOPTS", "PYTEST_PLUGINS"])
-def test_entrypoint_rejects_ambient_pytest_injection_before_import(entrypoint, name):
+@pytest.mark.parametrize("case", ["all", "blog"])
+def test_entrypoint_rejects_ambient_pytest_injection_before_import(
+    entrypoint, name, case
+):
     entrypoint["env"][name] = (
         "-p jas43_poison" if name == "PYTEST_ADDOPTS" else "jas43_poison"
     )
-    result = run_entrypoint(entrypoint)
+    result = run_entrypoint(entrypoint, "--case", case)
     assert_entrypoint_refused(entrypoint, result)
     assert f"Ambient {name}" in result.stderr
 
 
 @pytest.mark.parametrize(
-    "relative",
+    "case,relative",
     [
-        "tests/__init__.py",
-        "tests/conftest.py",
-        "tests/live/__init__.py",
-        "tests/live/conftest.py",
-        "tests/live/test_utils.py",
-        "tests/live/test_page_live.py",
-        "tests/live/test_property_live.py",
+        ("all", relative)
+        for relative in (
+            "tests/__init__.py",
+            "tests/conftest.py",
+            "tests/live/__init__.py",
+            "tests/live/conftest.py",
+            "tests/live/test_utils.py",
+            "tests/live/test_page_live.py",
+            "tests/live/test_property_live.py",
+        )
+    ]
+    + [
+        ("blog", relative)
+        for relative in (
+            "tests/__init__.py",
+            "tests/conftest.py",
+            "tests/live/__init__.py",
+            "tests/live/conftest.py",
+            "tests/live/test_utils.py",
+            "tests/live/test_blogpost_live.py",
+        )
     ],
 )
 @pytest.mark.parametrize("change", ["missing", "symlink", "directory"])
 def test_entrypoint_validates_all_selected_and_support_files(
-    entrypoint, relative, change
+    entrypoint, relative, change, case
 ):
     path = entrypoint["root"] / relative
     path.unlink()
@@ -917,20 +941,21 @@ def test_entrypoint_validates_all_selected_and_support_files(
         path.symlink_to(entrypoint["root"] / "outside.py")
     elif change == "directory":
         path.mkdir()
-    result = run_entrypoint(entrypoint)
+    result = run_entrypoint(entrypoint, "--case", case)
     assert_entrypoint_refused(entrypoint, result)
     assert "error:" in result.stderr
     assert "Use the exact lane interpreter" not in result.stderr
     assert str(path) in result.stderr or relative in result.stderr
 
 
+@pytest.mark.parametrize("case", ["all", "blog"])
 @pytest.mark.parametrize("component", ["tests", "tests/live"])
-def test_entrypoint_rejects_symlink_directory_escape(entrypoint, component):
+def test_entrypoint_rejects_symlink_directory_escape(entrypoint, component, case):
     original = entrypoint["root"] / component
     moved = entrypoint["root"].parent / "outside-tree"
     original.rename(moved)
     original.symlink_to(moved, target_is_directory=True)
-    result = run_entrypoint(entrypoint)
+    result = run_entrypoint(entrypoint, "--case", case)
     assert_entrypoint_refused(entrypoint, result)
     assert "symlink source refused" in result.stderr
 
@@ -938,7 +963,8 @@ def test_entrypoint_rejects_symlink_directory_escape(entrypoint, component):
 @pytest.mark.parametrize(
     "mode", ["symlink", "relative", "no-isolation", "wrong-python"]
 )
-def test_entrypoint_requires_canonical_launcher_and_lane_python(entrypoint, mode):
+@pytest.mark.parametrize("case", ["all", "blog"])
+def test_entrypoint_requires_canonical_launcher_and_lane_python(entrypoint, mode, case):
     launcher = entrypoint["launcher"]
     if mode == "symlink":
         alias = entrypoint["live"] / "alias.py"
@@ -949,7 +975,7 @@ def test_entrypoint_requires_canonical_launcher_and_lane_python(entrypoint, mode
     elif mode == "wrong-python":
         entrypoint["python"] = Path(sys.executable)
     result = run_entrypoint(
-        entrypoint, launcher=launcher, isolated=mode != "no-isolation"
+        entrypoint, "--case", case, launcher=launcher, isolated=mode != "no-isolation"
     )
     assert_entrypoint_refused(entrypoint, result)
     expected = (
@@ -971,6 +997,7 @@ def test_entrypoint_requires_canonical_launcher_and_lane_python(entrypoint, mode
         ("versions", 1),
         ("space-content", 1),
         ("tranche2", 4),
+        ("blog", 1),
     ],
 )
 @pytest.mark.parametrize("collect_only", [False, True])
@@ -998,6 +1025,7 @@ def test_entrypoint_exact_admission_ignores_poison_config_and_autoload(
             "tree": {"test_hierarchy_live.py"},
             "versions": {"test_page_versions_live.py"},
             "space-content": {"test_space_content_live.py"},
+            "blog": {"test_blogpost_live.py"},
             "tranche2": {
                 "test_page_copy_live.py",
                 "test_hierarchy_live.py",
@@ -1016,6 +1044,7 @@ def test_entrypoint_default_is_all(entrypoint):
     result = run_entrypoint(entrypoint)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "9 passed" in result.stdout
+    assert "test_owned_blog_create_read_delete" not in result.stdout
     assert not entrypoint["poison"].exists()
 
 
@@ -1028,14 +1057,21 @@ def test_entrypoint_help_exits_without_loading_repository(entrypoint):
     assert not entrypoint["setup"].exists()
 
 
+@pytest.mark.parametrize(
+    "case,filename", [("pages", "test_page_live.py"), ("blog", "test_blogpost_live.py")]
+)
 @pytest.mark.parametrize("change", ["extra", "empty", "missing", "duplicate"])
-def test_entrypoint_refuses_inexact_collection_before_fixture_setup(entrypoint, change):
-    page_file = entrypoint["live"] / "test_page_live.py"
+def test_entrypoint_refuses_inexact_collection_before_fixture_setup(
+    entrypoint, change, case, filename
+):
+    page_file = entrypoint["live"] / filename
     if change == "empty":
         page_file.write_text("", encoding="utf-8")
     elif change == "missing":
         page_file.write_text(
-            page_file.read_text().replace("def test_create_read_page", "def held_case"),
+            page_file.read_text().replace(
+                "def " + INERT_CASES[filename][0], "def held_case"
+            ),
             encoding="utf-8",
         )
     elif change == "extra":
@@ -1050,7 +1086,7 @@ def test_entrypoint_refuses_inexact_collection_before_fixture_setup(entrypoint, 
             "    items.append(items[0])\n",
             encoding="utf-8",
         )
-    result = run_entrypoint(entrypoint, "--case", "pages")
+    result = run_entrypoint(entrypoint, "--case", case)
     assert_entrypoint_refused(entrypoint, result, before_import=False)
     assert "exactly the approved nonempty nodes" in result.stdout + result.stderr
 
@@ -1277,7 +1313,13 @@ def test_failed_assertion_after_owned_create_keeps_cleanup_obligation():
     assert not driver.steps
 
 
-def test_real_fixture_finalizer_survives_bootstrap_setup_failure(entrypoint):
+@pytest.mark.parametrize(
+    "case,filename,count",
+    [("pages", "test_page_live.py", 6), ("blog", "test_blogpost_live.py", 1)],
+)
+def test_real_fixture_finalizer_survives_bootstrap_setup_failure(
+    entrypoint, case, filename, count
+):
     """Exercise pytest's actual setup/finalizer lifecycle using the shipped fixture."""
     live = entrypoint["live"]
     # No product or HTTP double here: the fake run isolates pytest's lifecycle
@@ -1293,12 +1335,12 @@ class SetupFailureRun:
 LiveRun = SetupFailureRun
 """
     (live / "conftest.py").write_text(fixture_source, encoding="utf-8")
-    (live / "test_page_live.py").write_text(
+    (live / filename).write_text(
         "\n".join(
             f"def {name}(live_run):\n"
             "    print('TEST-BODY-EXECUTED', flush=True)\n"
             "    raise AssertionError('test body executed')\n"
-            for name in INERT_CASES["test_page_live.py"]
+            for name in INERT_CASES[filename]
         ),
         encoding="utf-8",
     )
@@ -1308,9 +1350,9 @@ LiveRun = SetupFailureRun
         CONFLUENCE_EMAIL="offline@example.invalid",
         CONFLUENCE_SITE_URL="https://example.invalid",
     )
-    result = run_entrypoint(entrypoint, "--case", "pages")
+    result = run_entrypoint(entrypoint, "--case", case)
     assert result.returncode == 1, result.stdout + result.stderr
-    assert "collected 6 items" in result.stdout
+    assert f"collected {count} item" in result.stdout
     assert result.stdout.count("SETUP-CANDIDATE-123") == 1
     assert result.stdout.count("REGISTERED-CLEANUP-123") == 1
     assert result.stdout.index("SETUP-CANDIDATE-123") < result.stdout.index(
@@ -1905,7 +1947,15 @@ TRANCHE_SELECTIONS = [
 ]
 
 
-@pytest.mark.parametrize("case,filename", TRANCHE_SELECTIONS)
+@pytest.mark.parametrize(
+    "case,filename,combined",
+    [
+        (case, filename, combined)
+        for case, filename in TRANCHE_SELECTIONS
+        for combined in (False, True)
+    ]
+    + [("blog", "test_blogpost_live.py", False)],
+)
 @pytest.mark.parametrize(
     "change",
     [
@@ -1917,7 +1967,6 @@ TRANCHE_SELECTIONS = [
         "duplicate-node",
     ],
 )
-@pytest.mark.parametrize("combined", [False, True])
 def test_tranche_entrypoint_new_source_and_exact_node_refusals(
     entrypoint, case, filename, change, combined
 ):
@@ -1952,7 +2001,9 @@ def test_tranche_entrypoint_new_source_and_exact_node_refusals(
     ) in result.stdout + result.stderr
 
 
-@pytest.mark.parametrize("case,filename", TRANCHE_SELECTIONS)
+@pytest.mark.parametrize(
+    "case,filename", TRANCHE_SELECTIONS + [("blog", "test_blogpost_live.py")]
+)
 def test_tranche_entrypoint_rechecks_new_selected_path_after_plugins(
     entrypoint, case, filename
 ):
@@ -2048,3 +2099,1131 @@ def test_duplicate_copy_result_cannot_hide_changed_parent(tranche):
     assert any(
         row["event"] == "candidate" and row["id"] == leaf.id for row in rows(stream)
     )
+
+
+@pytest.fixture
+def blog_run(recorded):
+    """Actual root bootstrap; explicit responses through the real CLI and Scope."""
+    stream = io.StringIO()
+    run = LiveRun(stream=stream)
+    data = {}
+    answers = {
+        "getSpaces": {"results": [{"id": "55", "key": "SBX"}]},
+        "getSpaceById": {"id": "55", "key": "SBX", "type": "global"},
+        "getPageById": lambda parameters, body: data[str(parameters["id"])],
+        "getBlogPostById": lambda parameters, body: data[str(parameters["id"])],
+        "getBlogPosts": {"results": []},
+        "getPages": {"results": []},
+        "deleteBlogPost": Response(204, None),
+        "deletePage": Response(204, None),
+    }
+
+    def create_page(parameters, body):
+        assert parameters == {}
+        row = {"id": "123", **body, "body": {"storage": body["body"]}}
+        data["123"] = row
+        return row
+
+    def create_blog(parameters, body):
+        assert parameters == {}
+        assert set(body) == {"spaceId", "status", "title", "body"}
+        assert body["spaceId"] == "55" and body["status"] == "current"
+        assert body["title"].startswith(run.prefix + "blog-")
+        assert body["body"] == {
+            "representation": "storage",
+            "value": f"<p>JAS-43 owned blog {body['title']}.</p>",
+        }
+        row = {"id": "456", **body, "body": {"storage": body["body"]}}
+        data["456"] = row
+        return row
+
+    answers.update(createPage=create_page, createBlogPost=create_blog)
+
+    def answer(operation, parameters, body):
+        role = (
+            "resolution"
+            if operation.extensions.get("x-as-resolution-read")
+            else "operation"
+        )
+        key = (operation.operationId, role)
+        response = answers[key] if key in answers else answers[operation.operationId]
+        return response(parameters, body) if callable(response) else response
+
+    recorded.answer = answer
+    run.create_page("root")
+    return run, data, answers, recorded, stream
+
+
+def assert_blog_residual(run, stream, *, state):
+    blog = run.resources[("blog", "456")]
+    assert blog.state == state and blog.parent is None
+    events = rows(stream)
+    assert any(
+        row["event"] == "residual" and row.get("kind") == "blog" and row["id"] == "456"
+        for row in events
+    )
+    assert events[-1]["event"] == "incomplete"
+    return blog
+
+
+def test_blog_real_cli_bootstrap_semantic_case_and_two_verified_removals(blog_run):
+    from tests.live.test_blogpost_live import test_owned_blog_create_read_delete
+
+    run, data, answers, recorded, stream = blog_run
+    original_read = answers["getBlogPostById"]
+
+    def read(parameters, body):
+        candidate = next(
+            row
+            for row in rows(stream)
+            if row["event"] == "candidate" and row.get("kind") == "blog"
+        )
+        assert candidate["id"] == "456" and "parent_id" not in candidate
+        assert ("blog", "456") in run.resources
+        return original_read(parameters, body)
+
+    answers["getBlogPostById"] = read
+    test_owned_blog_create_read_delete(run)
+    run.cleanup()
+    expected = [
+        ("resolution", "getSpaces", {"keys": ["SBX"]}, None),
+        (
+            "operation",
+            "createPage",
+            {},
+            {
+                "title": data["123"]["title"],
+                "status": "current",
+                "spaceId": "55",
+                "body": {
+                    "representation": "storage",
+                    "value": "<p>JAS-43 owned content.</p>",
+                },
+            },
+        ),
+    ]
+
+    def page_read():
+        return [
+            ("resolution", "getPageById", {"id": 123}, None),
+            ("resolution", "getSpaces", {"ids": [55]}, None),
+            ("operation", "getPageById", {"id": 123, "body-format": "storage"}, None),
+        ]
+
+    expected += page_read()
+    expected += [
+        ("resolution", "getSpaces", {"ids": [55]}, None),
+        ("operation", "getSpaceById", {"id": 55}, None),
+    ]
+    expected += page_read()
+    expected += [
+        ("resolution", "getSpaces", {"keys": ["SBX"]}, None),
+        (
+            "operation",
+            "createBlogPost",
+            {},
+            {
+                "spaceId": "55",
+                "status": "current",
+                "title": data["456"]["title"],
+                "body": data["456"]["body"]["storage"],
+            },
+        ),
+    ]
+    for _ in range(3):
+        expected += [
+            ("resolution", "getBlogPostById", {"id": 456}, None),
+            ("resolution", "getSpaces", {"ids": [55]}, None),
+            (
+                "operation",
+                "getBlogPostById",
+                {"id": 456, "body-format": "storage", "status": ["current"]},
+                None,
+            ),
+        ]
+    expected += [
+        ("resolution", "getBlogPostById", {"id": 456}, None),
+        ("resolution", "getSpaces", {"ids": [55]}, None),
+        ("operation", "deleteBlogPost", {"id": 456}, None),
+        ("resolution", "getSpaces", {"ids": [55]}, None),
+        (
+            "operation",
+            "getBlogPosts",
+            {"space-id": [55], "id": [456], "status": ["current"], "limit": 2},
+            None,
+        ),
+    ]
+    expected += page_read()
+    expected += [
+        ("resolution", "getPageById", {"id": 123}, None),
+        ("resolution", "getSpaces", {"ids": [55]}, None),
+        ("operation", "deletePage", {"id": 123}, None),
+        ("resolution", "getSpaces", {"ids": [55]}, None),
+        (
+            "operation",
+            "getPages",
+            {"space-id": [55], "id": [123], "status": ["current"], "limit": 2},
+            None,
+        ),
+    ]
+    assert [
+        (role, *request) for role, request in zip(recorded.roles, recorded.requests)
+    ] == expected
+    events = rows(stream)
+    assert [row["seq"] for row in events] == list(range(1, len(events) + 1))
+    assert {row["run"] for row in events} == {run.run_id}
+    assert [
+        (row["kind"], row["id"]) for row in events if row["event"] == "candidate"
+    ] == [("page", "123"), ("blog", "456")]
+    assert [
+        (row["kind"], row["id"]) for row in events if row["event"] == "cleanup"
+    ] == [("blog", "456"), ("page", "123")]
+    assert all(
+        "parent_id" not in row and "parent_kind" not in row
+        for row in events
+        if row.get("kind") == "blog"
+    )
+    assert not any(
+        row["event"]
+        in {"unknown-outcome", "residual", "unresolved-intent", "incomplete"}
+        for row in events
+    )
+    assert not run.pending and events[-1]["event"] == "complete"
+    assert run.prefix not in stream.getvalue() and "<p>" not in stream.getvalue()
+
+
+@pytest.mark.parametrize("operation", ["read", "delete", "list", "candidate-read"])
+@pytest.mark.parametrize(
+    "change",
+    [
+        "unregistered",
+        "foreign-run",
+        "clone",
+        "kind",
+        "state",
+        "parent",
+        "id",
+        "space",
+        "pending",
+        "unsafe-name",
+    ],
+)
+def test_blog_helpers_refuse_invalid_local_identity_before_argv(operation, change):
+    run, root, driver, stream = owned_run()
+    state = {"list": "uncertain", "candidate-read": "candidate"}.get(operation, "owned")
+    blog = Resource("blog", "456", None, run.name("blog"), state)
+    run.resources[blog.token] = blog
+    if change == "unregistered":
+        del run.resources[blog.token]
+    elif change == "foreign-run":
+        blog.name = "jas43-foreign-blog"
+    elif change == "clone":
+        blog = Resource(blog.kind, blog.id, blog.parent, blog.name, blog.state)
+    elif change == "kind":
+        blog.kind = "page"
+    elif change == "state":
+        blog.state = "deleted"
+    elif change == "parent":
+        blog.parent = root.token
+    elif change == "id":
+        del run.resources[blog.token]
+        blog.id = "0"
+        run.resources[blog.token] = blog
+    elif change == "space":
+        run.space_id = None
+    elif change == "pending":
+        run.pending[999] = blog.token
+    else:
+        blog.name += "<script>"
+    method = {
+        "read": run.read_blog,
+        "delete": run.delete_blog,
+        "list": run.list_owned_blog,
+        "candidate-read": run._blog_data,
+    }[operation]
+    with pytest.raises(LiveContractError):
+        method(blog)
+    assert driver.calls == []
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        "missing-root",
+        "unregistered",
+        "clone",
+        "kind",
+        "state",
+        "parent",
+        "id",
+        "space",
+        "foreign-run",
+        "pending",
+        "previous-deleted-blog",
+        "unsafe-name",
+    ],
+)
+def test_blog_create_local_preconditions_precede_every_argv(change):
+    run, root, driver, stream = owned_run()
+    if change == "missing-root":
+        run.root = None
+    elif change == "unregistered":
+        run.resources.clear()
+    elif change == "clone":
+        run.root = Resource(root.kind, root.id, None, root.name, "owned")
+    elif change == "kind":
+        root.kind = "blog"
+    elif change == "state":
+        root.state = "candidate"
+    elif change == "parent":
+        root.parent = ("page", "789")
+    elif change == "id":
+        del run.resources[root.token]
+        root.id = "0"
+        run.resources[root.token] = root
+    elif change == "space":
+        run.space_id = None
+    elif change == "foreign-run":
+        root.name = "jas43-foreign-root"
+    elif change == "pending":
+        run.pending[999] = None
+    elif change == "previous-deleted-blog":
+        blog = Resource("blog", "456", None, run.name("blog"), "deleted")
+        run.resources[blog.token] = blog
+    else:
+        run.name = lambda purpose: run.prefix + "<unsafe>"
+    with pytest.raises(LiveContractError):
+        run.create_blog()
+    assert driver.calls == []
+
+
+BLOG_IDENTITY_CHANGES = [
+    ("id", None),
+    ("id", "999"),
+    ("id", True),
+    ("id", "0"),
+    ("title", None),
+    ("title", "jas43-foreign-run-blog"),
+    ("spaceId", None),
+    ("spaceId", "66"),
+    ("spaceId", True),
+    ("status", None),
+    ("status", "draft"),
+]
+BLOG_BODY_CHANGES = [
+    ("body", None),
+    ("body", []),
+    ("body", {}),
+    ("body", {"storage": None}),
+    ("body", {"storage": []}),
+    ("body", {"storage": {"representation": "view", "value": "PRIVATE"}}),
+    ("body", {"storage": {"representation": "storage"}}),
+    ("body", {"storage": {"representation": "storage", "value": 42}}),
+    ("body", {"storage": {"representation": "storage", "value": "<p>foreign run</p>"}}),
+]
+
+
+@pytest.mark.parametrize(
+    "phase,change",
+    [("create", change) for change in BLOG_IDENTITY_CHANGES]
+    + [("read", change) for change in BLOG_IDENTITY_CHANGES + BLOG_BODY_CHANGES],
+)
+def test_blog_real_cli_changed_create_or_ownership_read_never_deletes_candidate(
+    blog_run, phase, change
+):
+    run, data, answers, recorded, stream = blog_run
+    key, value = change
+    original = answers["createBlogPost"]
+
+    def create(parameters, body):
+        row = original(parameters, body)
+        changed = dict(row)
+        if value is None:
+            changed.pop(key, None)
+        else:
+            changed[key] = value
+        if phase == "read":
+            answers[("getBlogPostById", "operation")] = changed
+            return row
+        return changed
+
+    answers["createBlogPost"] = create
+    with pytest.raises(LiveContractError):
+        run.create_blog()
+    with pytest.raises(LiveContractError):
+        run.cleanup()
+    assert not any(op == "deleteBlogPost" for op, _, _ in operations(recorded))
+    assert not any(
+        row["event"] == "owned" and row.get("kind") == "blog" for row in rows(stream)
+    )
+    invalid_create_id = phase == "create" and key == "id" and value in (None, True, "0")
+    if invalid_create_id:
+        assert None in run.pending.values() and run.root.state == "owned"
+        assert not any(
+            row.get("kind") == "blog" and row["event"] == "candidate"
+            for row in rows(stream)
+        )
+    else:
+        assert not run.pending and run.root.state == "deleted"
+        candidates = [r for r in run.resources.values() if r.kind == "blog"]
+        assert len(candidates) == 1 and candidates[0].state == "candidate"
+    assert rows(stream)[-1]["event"] == "incomplete"
+    assert "PRIVATE" not in stream.getvalue()
+
+
+@pytest.mark.parametrize("phase", ["create", "read"])
+@pytest.mark.parametrize("payload", [None, [], "PRIVATE", 42])
+def test_blog_real_cli_bad_envelopes_preserve_unknown_or_candidate(
+    blog_run, phase, payload
+):
+    run, data, answers, recorded, stream = blog_run
+    answers[
+        "createBlogPost" if phase == "create" else ("getBlogPostById", "operation")
+    ] = payload
+    with pytest.raises(LiveContractError):
+        run.create_blog()
+    with pytest.raises(LiveContractError):
+        run.cleanup()
+    assert not any(op == "deleteBlogPost" for op, _, _ in operations(recorded))
+    assert (None in run.pending.values()) == (phase == "create")
+    assert run.root.state == ("owned" if phase == "create" else "deleted")
+    assert "PRIVATE" not in stream.getvalue()
+
+
+@pytest.mark.parametrize(
+    "phase",
+    ["ownership-metadata", "ownership-read", "predelete-metadata", "predelete-read"],
+)
+@pytest.mark.parametrize("status", [404, 503])
+def test_blog_real_cli_read_errors_do_not_establish_ownership_or_delete(
+    blog_run, phase, status
+):
+    run, data, answers, recorded, stream = blog_run
+    blog = run.create_blog() if phase.startswith("predelete") else None
+    role = "resolution" if phase.endswith("metadata") else "operation"
+    answers[("getBlogPostById", role)] = Response(status, {"message": "PRIVATE"})
+    with pytest.raises(LiveContractError):
+        run.delete_blog(blog) if blog else run.create_blog()
+    with pytest.raises(LiveContractError):
+        run.cleanup()
+    assert_blog_residual(run, stream, state="owned" if blog else "candidate")
+    assert not any(op == "deleteBlogPost" for op, _, _ in operations(recorded))
+    assert run.root.state == "deleted" and not run.pending
+    assert "PRIVATE" not in stream.getvalue()
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"results": [{"id": "456"}]},
+        {"results": [None]},
+        {"results": [], "_links": {"next": "more"}},
+        {"results": [], "_links": None},
+        {"results": [], "_links": []},
+        {"results": [], "_links": {"next": False}},
+        {"results": [], "_links": {"next": None}},
+        {"results": [], "cursor": "more"},
+        {"results": [], "cursor": []},
+        {"results": [], "cursor": None},
+        {"results": [], "next": "more"},
+        {"results": [], "next": 0},
+        {"results": [], "_links": {"cursor": {}}},
+        {},
+        {"results": None},
+        {"results": {}},
+        [],
+    ],
+)
+def test_blog_real_cli_incomplete_or_malformed_absence_never_repeats_delete(
+    blog_run, payload
+):
+    run, data, answers, recorded, stream = blog_run
+    blog = run.create_blog()
+    answers["getBlogPosts"] = payload
+    with pytest.raises(LiveContractError):
+        run.delete_blog(blog)
+    before = len(recorded.requests)
+    with pytest.raises(LiveContractError):
+        run.delete_blog(blog)
+    assert len(recorded.requests) == before
+    with pytest.raises(LiveContractError):
+        run.cleanup()
+    assert_blog_residual(run, stream, state="uncertain")
+    assert run.root.state == "deleted" and not run.pending
+    assert len([op for op, _, _ in operations(recorded) if op == "deleteBlogPost"]) == 1
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        "present",
+        "foreign-id",
+        "foreign-space",
+        "foreign-title",
+        "draft",
+        "duplicate",
+        "bound",
+    ],
+)
+def test_blog_real_cli_present_filtered_rows_never_prove_absence(blog_run, change):
+    run, data, answers, recorded, stream = blog_run
+    blog = run.create_blog()
+    row = dict(data["456"])
+    if change == "foreign-id":
+        row["id"] = "999"
+    elif change == "foreign-space":
+        row["spaceId"] = "66"
+    elif change == "foreign-title":
+        row["title"] = "foreign"
+    elif change == "draft":
+        row["status"] = "draft"
+    listing = (
+        [row, row]
+        if change == "duplicate"
+        else [row, {"id": "789"}]
+        if change == "bound"
+        else [row]
+    )
+    answers["getBlogPosts"] = {"results": listing}
+    with pytest.raises(LiveContractError):
+        run.delete_blog(blog)
+    with pytest.raises(LiveContractError):
+        run.cleanup()
+    assert_blog_residual(run, stream, state="uncertain")
+    assert run.root.state == "deleted" and not run.pending
+
+
+@pytest.mark.parametrize("continuation", [False, True])
+def test_blog_real_cli_documented_body_mirror_controls_absence(blog_run, continuation):
+    # Historical eight-case jas43-link-diagnostic-result.json covers contradictory
+    # header-only responses. This seam cannot claim their rejection or safety.
+    run, data, answers, recorded, stream = blog_run
+    blog = run.create_blog()
+    next_url = "/wiki/api/v2/blogposts?cursor=more"
+    answers["getBlogPosts"] = Response(
+        200,
+        {"results": [], "_links": {"next": next_url} if continuation else {}},
+        {"Link": f'<{next_url}>; rel="next"'} if continuation else {},
+    )
+    if continuation:
+        with pytest.raises(LiveContractError):
+            run.delete_blog(blog)
+        with pytest.raises(LiveContractError):
+            run.cleanup()
+        assert_blog_residual(run, stream, state="uncertain")
+    else:
+        run.delete_blog(blog)
+        run.cleanup()
+        assert blog.state == "deleted" and rows(stream)[-1]["event"] == "complete"
+
+
+@pytest.mark.parametrize(
+    "outcome", ["timeout", "interrupt", "malformed-json", "missing-id"]
+)
+def test_blog_unknown_create_has_one_attempt_and_pending_none_blocks_page_and_blog(
+    blog_run, monkeypatch, outcome
+):
+    run, data, answers, recorded, stream = blog_run
+    if outcome == "malformed-json":
+        original_invoke = CliRunner.invoke
+
+        def malformed(self, command, args, **kwargs):
+            result = original_invoke(self, command, args, **kwargs)
+            if args[:3] == ["api", "call", "createBlogPost"]:
+                assert result.exit_code == 0
+                result.stdout_bytes = b"PRIVATE not JSON"
+            return result
+
+        monkeypatch.setattr(CliRunner, "invoke", malformed)
+    elif outcome == "missing-id":
+        answers["createBlogPost"] = {}
+    else:
+
+        def interrupted(parameters, body):
+            raise (
+                TimeoutError("PRIVATE")
+                if outcome == "timeout"
+                else KeyboardInterrupt("PRIVATE")
+            )
+
+        answers["createBlogPost"] = interrupted
+    with pytest.raises(LiveContractError):
+        run.create_blog()
+    assert list(run.pending.values()) == [None]
+    before = len(recorded.requests)
+    # A known independent blog cannot be deleted while a rootless create is unknown.
+    known = Resource("blog", "789", None, run.name("blog"), "owned")
+    run.resources[known.token] = known
+    for attempt in (
+        run.create_blog,
+        lambda: run.delete_page(run.root),
+        lambda: run.delete_blog(known),
+    ):
+        with pytest.raises(LiveContractError):
+            attempt()
+    assert len(recorded.requests) == before
+    with pytest.raises(LiveContractError):
+        run.cleanup()
+    assert len(recorded.requests) == before
+    events = rows(stream)
+    assert (
+        sum(
+            row["event"] == "intent" and row.get("operation") == "createBlogPost"
+            for row in events
+        )
+        == 1
+    )
+    assert any(
+        row["event"] == "unknown-outcome" and row.get("operation") == "createBlogPost"
+        for row in events
+    )
+    assert any(row["event"] == "unresolved-intent" for row in events)
+    assert events[-1]["event"] == "incomplete" and "PRIVATE" not in stream.getvalue()
+
+
+@pytest.mark.parametrize("outcome", ["timeout", "interrupt", "http-error"])
+def test_blog_unknown_delete_is_uncertain_pending_and_root_independent(
+    blog_run, outcome
+):
+    run, data, answers, recorded, stream = blog_run
+    blog = run.create_blog()
+
+    def delete(parameters, body):
+        assert blog.state == "uncertain"
+        assert list(run.pending.values()) == [blog.token]
+        if outcome == "http-error":
+            return Response(503, {"message": "PRIVATE"})
+        raise (
+            TimeoutError("PRIVATE")
+            if outcome == "timeout"
+            else KeyboardInterrupt("PRIVATE")
+        )
+
+    answers["deleteBlogPost"] = delete
+    with pytest.raises(LiveContractError):
+        run.delete_blog(blog)
+    assert blog.state == "uncertain" and list(run.pending.values()) == [blog.token]
+    before = len(recorded.requests)
+    for method in (run.delete_blog, run.list_owned_blog):
+        with pytest.raises(LiveContractError):
+            method(blog)
+    assert len(recorded.requests) == before
+    with pytest.raises(LiveContractError):
+        run.cleanup()
+    assert_blog_residual(run, stream, state="uncertain")
+    assert run.root.state == "deleted" and list(run.pending.values()) == [blog.token]
+    assert not any(op == "getBlogPosts" for op, _, _ in operations(recorded))
+    events = rows(stream)
+    assert (
+        sum(
+            row["event"] == "intent" and row.get("operation") == "deleteBlogPost"
+            for row in events
+        )
+        == 1
+    )
+    assert "PRIVATE" not in stream.getvalue()
+
+
+@pytest.mark.parametrize("phase", ["candidate", "owned"])
+def test_blog_exception_preserves_resource_and_cleanup_obligation(
+    blog_run, monkeypatch, phase
+):
+    run, data, answers, recorded, stream = blog_run
+    if phase == "candidate":
+
+        def interrupted_read(resource):
+            assert (
+                resource.state == "candidate"
+                and run.resources[resource.token] is resource
+            )
+            assert any(
+                row["event"] == "candidate" and row.get("kind") == "blog"
+                for row in rows(stream)
+            )
+            raise AssertionError("injected after candidate")
+
+        monkeypatch.setattr(run, "_blog_data", interrupted_read)
+        with pytest.raises(AssertionError):
+            run.create_blog()
+        with pytest.raises(LiveContractError):
+            run.cleanup()
+        assert_blog_residual(run, stream, state="candidate")
+        assert not any(op == "deleteBlogPost" for op, _, _ in operations(recorded))
+    else:
+        with pytest.raises(AssertionError):
+            run.create_blog()
+            raise AssertionError("semantic assertion after ownership")
+        run.cleanup()
+        assert [
+            (row["kind"], row["id"])
+            for row in rows(stream)
+            if row["event"] == "cleanup"
+        ] == [("blog", "456"), ("page", "123")]
+        assert rows(stream)[-1]["event"] == "complete"
+    assert run.root.state == "deleted" and not run.pending
+
+
+@pytest.mark.parametrize(
+    "existing_kind,new_kind", [("blog", "blog"), ("page", "blog"), ("blog", "page")]
+)
+@pytest.mark.parametrize("state", ["candidate", "owned", "uncertain", "deleted"])
+def test_blog_content_collision_both_directions_retains_original_and_candidate_receipt(
+    blog_run, existing_kind, new_kind, state
+):
+    run, data, answers, recorded, stream = blog_run
+    existing = Resource(existing_kind, "789", None, run.name("previous"), state)
+    run.resources[existing.token] = existing
+    operation = "createBlogPost" if new_kind == "blog" else "createPage"
+    name = run.name("collision")
+    answers[operation] = {
+        "id": "789",
+        "title": name,
+        "spaceId": "55",
+        "status": "current",
+        "parentId": run.root.id,
+    }
+    # Exercise common candidate insertion directly: public create_blog correctly
+    # refuses a second known blog before argv. No identity is adopted here.
+    with pytest.raises(LiveContractError):
+        run.call(
+            operation,
+            {"space": "SBX"},
+            {
+                "title": name,
+                "status": "current",
+                "spaceId": "55",
+                "body": {"representation": "storage", "value": "<p>T</p>"},
+            },
+            mutation=True,
+            candidate=(new_kind, name),
+        )
+    assert run.resources[existing.token] is existing and existing.state == state
+    assert len(run.resources) == 2 and list(run.pending.values()) == [None]
+    events = rows(stream)
+    candidate = next(
+        i
+        for i, row in enumerate(events)
+        if row["event"] == "candidate" and row.get("id") == "789"
+    )
+    block = next(
+        i
+        for i, row in enumerate(events)
+        if row["event"] == "child-relationship-unresolved"
+    )
+    unknown = next(
+        i for i, row in enumerate(events) if row["event"] == "unknown-outcome"
+    )
+    assert candidate < block < unknown
+    assert run.root.token in run.blocked_parents
+
+
+@pytest.mark.parametrize("target", ["root", "other-page"])
+def test_blog_public_create_returning_existing_page_id_never_adopts(blog_run, target):
+    run, data, answers, recorded, stream = blog_run
+    page = run.root
+    if target == "other-page":
+        page = Resource("page", "789", None, run.name("other"), "deleted")
+        run.resources[page.token] = page
+    original = answers["createBlogPost"]
+    answers["createBlogPost"] = lambda parameters, body: {
+        **original(parameters, body),
+        "id": page.id,
+    }
+    with pytest.raises(LiveContractError):
+        run.create_blog()
+    assert run.resources[page.token] is page and ("blog", page.id) not in run.resources
+    assert list(run.pending.values()) == [None]
+    before = len(recorded.requests)
+    with pytest.raises(LiveContractError):
+        run.create_blog()
+    assert len(recorded.requests) == before
+
+
+@pytest.mark.parametrize("content_kind", ["blog", "page"])
+@pytest.mark.parametrize("property_first", [False, True])
+def test_blog_property_numbers_keep_separate_namespace_and_parent_checks(
+    blog_run, content_kind, property_first
+):
+    run, data, answers, recorded, stream = blog_run
+    answers["getPageContentProperties"] = {"results": []}
+    property_data = {}
+
+    def create_property(parameters, body):
+        assert parameters == {"page-id": 123}
+        property_data.update(id="456", **body)
+        return property_data
+
+    answers["createPageProperty"] = create_property
+    answers["getPageContentPropertiesById"] = lambda parameters, body: property_data
+    if property_first:
+        prop = run.create_property(run.root, {"owned": True})
+    if content_kind == "blog":
+        content = run.create_blog()
+    else:
+
+        def create_page(parameters, body):
+            data["456"] = {"id": "456", **body, "body": {"storage": body["body"]}}
+            return data["456"]
+
+        answers["createPage"] = create_page
+        content = run.create_page("child", parent=run.root)
+    if not property_first:
+        prop = run.create_property(run.root, {"owned": True})
+    assert prop.id == content.id == "456"
+    assert run.resources[prop.token] is prop and run.resources[content.token] is content
+    assert prop.parent == run.root.token and prop.state == content.state == "owned"
+    assert run.read_property(prop)["value"] == {"owned": True}
+    assert not run.pending
+    # Equal numbers do not relax property key/parent identity requirements.
+    property_data["key"] = "foreign"
+    before = len([op for op, _, _ in operations(recorded) if op.startswith("delete")])
+    with pytest.raises(LiveContractError):
+        run.delete_property(prop)
+    assert (
+        len([op for op, _, _ in operations(recorded) if op.startswith("delete")])
+        == before
+    )
+
+
+def add_blog_test_page(run, data, answers, resource_id, purpose):
+    def create(parameters, body):
+        data[resource_id] = {
+            "id": resource_id,
+            **body,
+            "body": {"storage": body["body"]},
+        }
+        return data[resource_id]
+
+    answers["createPage"] = create
+    return run.create_page(purpose, parent=run.root)
+
+
+@pytest.mark.parametrize("target", ["root", "other"])
+@pytest.mark.parametrize(
+    "phase,change",
+    [
+        ("create", "parent"),
+        ("create", "wrong-title"),
+        ("create", "duplicate-id"),
+        ("create", "invalid-id"),
+        ("read", "parent"),
+        ("read", "wrong-title"),
+        ("read", "invalid-id"),
+        ("list", "parent"),
+        ("list", "wrong-title"),
+        ("list", "incomplete"),
+    ],
+)
+def test_blog_observed_parent_retained_before_identity_or_completeness_refusal(
+    blog_run, target, phase, change
+):
+    run, data, answers, recorded, stream = blog_run
+    other = add_blog_test_page(run, data, answers, "789", "other")
+    independent = add_blog_test_page(run, data, answers, "987", "independent")
+    parent = run.root if target == "root" else other
+    blog = run.create_blog() if phase == "list" else None
+    original = answers["createBlogPost"]
+
+    def changed(row):
+        row = {**row, "parentId": parent.id}
+        if change == "wrong-title":
+            row["title"] = "foreign"
+        elif change == "duplicate-id":
+            row["id"] = run.root.id
+        elif change == "invalid-id":
+            row["id"] = "0"
+        return row
+
+    if phase == "create":
+        answers["createBlogPost"] = lambda parameters, body: changed(
+            original(parameters, body)
+        )
+    elif phase == "read":
+        answers[("getBlogPostById", "operation")] = lambda parameters, body: changed(
+            data["456"]
+        )
+    else:
+        answers["getBlogPosts"] = {
+            "results": [changed(data["456"])],
+            "_links": {"next": "more"} if change == "incomplete" else {},
+        }
+    with pytest.raises(LiveContractError):
+        run.delete_blog(blog) if blog else run.create_blog()
+    assert parent.token in run.blocked_parents
+    # Re-observation cannot emit duplicate block events or adopt a relationship.
+    before = len(recorded.requests)
+    run._observe_blog_parent({"parentId": parent.id})
+    assert len(recorded.requests) == before
+    events = rows(stream)
+    blocks = [
+        i
+        for i, row in enumerate(events)
+        if row["event"] == "child-relationship-unresolved" and row["id"] == parent.id
+    ]
+    assert len(blocks) == 1
+    candidates = [
+        i
+        for i, row in enumerate(events)
+        if row["event"] == "candidate" and row.get("kind") == "blog"
+    ]
+    if phase != "create" or change != "invalid-id":
+        assert len(candidates) == 1 and candidates[0] < blocks[0]
+    else:
+        assert candidates == []
+    assert all(
+        resource.parent is None
+        for resource in run.resources.values()
+        if resource.kind == "blog"
+    )
+    with pytest.raises(LiveContractError):
+        run.cleanup()
+    deletes = [
+        parameters["id"]
+        for op, parameters, _ in operations(recorded)
+        if op == "deletePage"
+    ]
+    assert int(parent.id) not in deletes
+    unknown = phase == "create" and change in {"duplicate-id", "invalid-id"}
+    assert independent.state == ("owned" if unknown else "deleted")
+    assert bool(run.pending) == unknown
+    assert any(
+        row["event"] == "residual" and row.get("id") == parent.id
+        for row in rows(stream)
+    )
+    assert rows(stream)[-1]["event"] == "incomplete"
+
+
+@pytest.mark.parametrize("parent_id", ["999", "0", True, {}, [], "not-an-id"])
+@pytest.mark.parametrize("phase", ["create", "read", "list"])
+def test_blog_unknown_or_malformed_parent_is_rejected_without_lookup_or_adoption(
+    blog_run, parent_id, phase
+):
+    run, data, answers, recorded, stream = blog_run
+    blog = run.create_blog() if phase == "list" else None
+    original = answers["createBlogPost"]
+    if phase == "create":
+        answers["createBlogPost"] = lambda parameters, body: {
+            **original(parameters, body),
+            "parentId": parent_id,
+        }
+    elif phase == "read":
+        answers[("getBlogPostById", "operation")] = lambda parameters, body: {
+            **data["456"],
+            "parentId": parent_id,
+        }
+    else:
+        answers["getBlogPosts"] = {"results": [{**data["456"], "parentId": parent_id}]}
+    with pytest.raises(LiveContractError):
+        run.delete_blog(blog) if blog else run.create_blog()
+    with pytest.raises(LiveContractError):
+        run.cleanup()
+    assert not run.blocked_parents and not run.pending
+    assert set(run.resources) == {("page", "123"), ("blog", "456")}
+    assert run.root.state == "deleted" and run.resources[("blog", "456")].parent is None
+    assert all(
+        parameters["id"] == 123
+        for op, parameters, _ in recorded.requests
+        if op == "getPageById"
+    )
+    assert rows(stream)[-1]["event"] == "incomplete"
+
+
+@pytest.mark.parametrize("phase", ["create", "read"])
+def test_blog_root_current_space_is_rechecked_before_creation(blog_run, phase):
+    run, data, answers, recorded, stream = blog_run
+    data["123"].update(
+        status="draft" if phase == "create" else "current",
+        spaceId="66" if phase == "read" else "55",
+    )
+    with pytest.raises(LiveContractError):
+        run.create_blog()
+    assert not any(op == "createBlogPost" for op, _, _ in operations(recorded))
+    assert not run.pending and set(run.resources) == {("page", "123")}
+
+
+def test_blog_explicit_null_parent_and_empty_continuation_markers_are_rootless(
+    blog_run,
+):
+    run, data, answers, recorded, stream = blog_run
+    original = answers["createBlogPost"]
+
+    def create(parameters, body):
+        row = original(parameters, body)
+        row["parentId"] = None
+        return row
+
+    answers["createBlogPost"] = create
+    answers["getBlogPosts"] = {
+        "results": [],
+        "cursor": "",
+        "next": "",
+        "_links": {"next": "", "cursor": ""},
+    }
+    blog = run.create_blog()
+    assert blog.parent is None and not run.blocked_parents
+    run.cleanup()
+    assert blog.state == "deleted" and rows(stream)[-1]["event"] == "complete"
+
+
+def test_blog_abrupt_stop_keeps_candidate_and_read_intent_outside_capture(tmp_path):
+    helper = Path(__file__).parent / "live/test_utils.py"
+    script = tmp_path / "abrupt-blog.py"
+    script.write_text(
+        "import json, os, runpy\nfrom click.testing import CliRunner\nimport click\n"
+        f"LiveRun = runpy.run_path({str(helper)!r})['LiveRun']\n"
+        "data = {}\n"
+        "@click.command()\ndef abrupt():\n"
+        "    click.echo('PRIVATE CAPTURED BODY')\n    os._exit(23)\n"
+        "def invoke(argv, stdin=None):\n"
+        "    op = argv[2]\n"
+        "    if op in ('createPage', 'createBlogPost'):\n"
+        "        body = json.loads(stdin)\n"
+        "        rid = '123' if op == 'createPage' else '456'\n"
+        "        data[rid] = dict(body, id=rid, spaceId='55')\n"
+        "        return data[rid]\n"
+        "    if op == 'getPageById':\n        return data['123']\n"
+        "    if op == 'getSpaceById':\n"
+        "        return {'id': '55', 'key': 'SBX', 'type': 'global'}\n"
+        "    assert op == 'getBlogPostById'\n"
+        "    CliRunner().invoke(abrupt, [])\n"
+        "run = LiveRun(invoke=invoke)\nrun.create_page('root')\nrun.create_blog()\n",
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=tmp_path,
+        env=clean_subprocess_environment(),
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 23
+    events = [json.loads(line) for line in result.stdout.splitlines()]
+    candidate = next(
+        i
+        for i, row in enumerate(events)
+        if row["event"] == "candidate" and row.get("kind") == "blog"
+    )
+    assert events[candidate]["id"] == "456" and "parent_id" not in events[candidate]
+    assert [row["event"] for row in events[candidate:]] == [
+        "candidate",
+        "mutation",
+        "intent",
+    ]
+    assert events[-1]["operation"] == "getBlogPostById"
+    assert [row["seq"] for row in events] == list(range(1, len(events) + 1))
+    assert "PRIVATE CAPTURED BODY" not in result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("phase", ["semantic-read", "predelete-read"])
+@pytest.mark.parametrize(
+    "change",
+    [
+        ("id", "999"),
+        ("title", "foreign"),
+        ("spaceId", "66"),
+        ("status", "draft"),
+        ("body", {"storage": {"representation": "storage", "value": "foreign"}}),
+    ],
+)
+def test_blog_owned_changed_identity_or_body_withholds_delete(blog_run, phase, change):
+    run, data, answers, recorded, stream = blog_run
+    blog = run.create_blog()
+    key, value = change
+    answers[("getBlogPostById", "operation")] = {**data["456"], key: value}
+    with pytest.raises(LiveContractError):
+        run.read_blog(blog) if phase == "semantic-read" else run.delete_blog(blog)
+    assert blog.state == "owned" and not run.pending
+    with pytest.raises(LiveContractError):
+        run.cleanup()
+    assert_blog_residual(run, stream, state="owned")
+    assert run.root.state == "deleted"
+    assert not any(op == "deleteBlogPost" for op, _, _ in operations(recorded))
+
+
+def test_blog_helper_public_argv_is_exact_and_raw_only_where_required(blog_run):
+    from tests.live.test_blogpost_live import test_owned_blog_create_read_delete
+
+    run, data, answers, recorded, stream = blog_run
+    original = run.invoke
+    calls = []
+
+    def observe(argv, stdin=None):
+        calls.append((list(argv), stdin))
+        return original(argv, stdin)
+
+    run.invoke = observe
+    test_owned_blog_create_read_delete(run)
+    blog_calls = [(argv, stdin) for argv, stdin in calls if "Blog" in argv[2]]
+    base = ["api", "call"]
+    flags = ["--format", "json", "--confirm"]
+    read = (
+        base
+        + ["getBlogPostById"]
+        + flags
+        + [
+            "--raw",
+            "--id",
+            "456",
+            "--body-format",
+            "storage",
+            "--status",
+            '["current"]',
+        ]
+    )
+    assert [argv for argv, _ in blog_calls] == [
+        base + ["createBlogPost"] + flags + ["--raw", "--space", "SBX", "--body", "-"],
+        read,
+        read,
+        read,
+        base + ["deleteBlogPost"] + flags + ["--id", "456"],
+        base
+        + ["getBlogPosts"]
+        + flags
+        + [
+            "--raw",
+            "--space-id",
+            '["55"]',
+            "--id",
+            '["456"]',
+            "--status",
+            '["current"]',
+            "--limit",
+            "2",
+        ],
+    ]
+    assert json.loads(blog_calls[0][1]) == {
+        "spaceId": "55",
+        "status": "current",
+        "title": data["456"]["title"],
+        "body": data["456"]["body"]["storage"],
+    }
+    assert all(stdin is None for _, stdin in blog_calls[1:])
+    run.cleanup()
+    assert rows(stream)[-1]["event"] == "complete"
+
+
+@pytest.mark.parametrize("state", ["owned", "deleted"])
+def test_blog_identity_cannot_be_adopted_from_changed_page_update_result(
+    blog_run, state
+):
+    run, data, answers, recorded, stream = blog_run
+    blog = Resource("blog", "789", None, run.name("blog"), state)
+    run.resources[blog.token] = blog
+    data["123"]["version"] = {"number": 1}
+    answers["updatePage"] = {**data["123"], "id": "789", "version": {"number": 2}}
+    with pytest.raises(LiveContractError):
+        run.update_page(run.root)
+    assert run.resources[blog.token] is blog and blog.state == state
+    assert ("page", "789") not in run.resources
+    assert list(run.pending.values()) == [run.root.token]
+    events = rows(stream)
+    candidate = next(
+        i
+        for i, row in enumerate(events)
+        if row["event"] == "candidate" and row.get("id") == "789"
+    )
+    unknown = next(
+        i for i, row in enumerate(events) if row["event"] == "unknown-outcome"
+    )
+    assert candidate < unknown

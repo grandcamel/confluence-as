@@ -428,10 +428,10 @@
     "module": "jira_cmds.py",
     "verb": "jira create-from-page",
     "classification": "B",
-    "decision": "deferred",
-    "reason": "Explicit release-ticket deferral; current module remains untouched.",
+    "decision": "survivor",
+    "reason": "Guarded Confluence Surface reads/update around the JAS-51 Jira HTTPTransport createIssue exception; no Jira project guard or jira-as dependency.",
     "replacement": "\u2014",
-    "ticket": "jira-as release ticket (per JAS-41)"
+    "ticket": "JAS-51"
   },
   {
     "module": "jira_cmds.py",

@@ -30,6 +30,9 @@ def check_release_tag(tag: str, root: Path) -> None:
     if versions != [package_version]:
         raise ValueError("__version__ does not match pyproject.toml")
     changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8")
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    if "RELEASE_DATE" in changelog or "RELEASE_DATE" in readme:
+        raise ValueError("release date placeholder RELEASE_DATE must be replaced")
     headings = re.findall(r"(?m)^## \[([^\]\n]+)\]", changelog)
     releases = [heading for heading in headings if heading != "Unreleased"]
     if not releases or releases[0] != package_version:

@@ -1,11 +1,13 @@
 # Confluence AS
 
-> **2.0.0 release candidate:** Confluence now exposes a spec-driven `api`
-> surface through as-engine. The reviewed CLI inventory retains 37 workflows,
-> replaces 70 verbs with migration hints, and defers `jira create-from-page`;
-> `attachment download` is available on the shared binary path. Start with
-> `confluence-as help`, then read the [migration notes](CHANGELOG.md#migration)
-> and [complete rename table](CHANGELOG.md#removed) before updating scripts.
+> **2.0.0:** Confluence exposes a spec-driven `api` surface through as-engine.
+> The reviewed 108-verb inventory retains 38 workflows, replaces 70 verbs with
+> migration hints, and has no deferred implementations. `jira create-from-page`
+> now creates Jira issues through the shared engine transport; its Confluence
+> reads and page update use indexed operations, while the Jira transport remains
+> the bounded JAS-51 exception. Start with `confluence-as help`, then read the
+> [migration notes](CHANGELOG.md#migration) and
+> [complete rename table](CHANGELOG.md#removed) before updating scripts.
 
 [![PyPI version](https://img.shields.io/pypi/v/confluence-as.svg)](https://pypi.org/project/confluence-as/)
 [![Python versions](https://img.shields.io/pypi/pyversions/confluence-as.svg)](https://pypi.org/project/confluence-as/)
@@ -327,14 +329,13 @@ runtime. Consumers use `as_engine.index.load_index(path)` for one document,
 or `ProductIndexes(generated_directory)` to load primary indexes eagerly and
 retrieve v1 on demand with `.get("v1")`.
 
-Until a compatible `as-engine` release is available on PyPI, install the
-engine from its source checkout (or `git+https://github.com/grandcamel/as-engine@main`)
-and install `hatchling` in the build environment before using
-`python -m pip install --no-build-isolation -e '.[dev]'`. For offline prepared
-lanes, `python -m build --wheel --no-isolation` uses the installed engine.
-CI follows the git-source route; the engine pipeline must land there first.
-An isolated build needs `as-engine>=0.1.0a0,<0.2` available from its package
-index. Package versions are unchanged by this pipeline.
+The runtime dependency is `as-engine>=0.1.2,<0.2`. Release and isolated builds
+use the verified `as-engine==0.1.2` wheel
+(SHA256 `ac4cb0b07effbecff812652a33aea54b036971e883d3fe349428c6d723d90d83`)
+and `hatchling==1.32.0`; do not use a moving source branch as the release
+baseline. Install the development extra with
+`python -m pip install --no-build-isolation -e '.[dev]'`, or build an sdist and
+wheel with `python -m build --no-isolation` in the prepared environment.
 
 Refresh deliberately with `python scripts/refresh_base_documents.py`, with
 `oasdiff` on PATH (or `OASDIFF=/path/to/oasdiff`). For an offline refresh use
@@ -356,7 +357,10 @@ lists require `--space-id`; page-id calls resolve metadata before checking the
 space. Local refusals exit 4. Site-level calls such as `getSpaces` require explicit
 `CONFLUENCE_ALLOW_SITE_OPERATIONS=1` (or `confluence.allow_site_operations`). This
 policy applies to tagged API calls and surviving wrapper workflows; untagged
-operations and the two deferred legacy implementations keep existing behavior. See as-engine's `docs/guard.md` for the exact 82-operation
+operations keep their documented existing behavior. The Jira issue creation
+leg in `jira create-from-page` uses a bounded JAS-51 `createIssue` operation
+through engine `HTTPTransport`; it does not establish a Jira project guard or
+universal `Surface.call` coverage. See as-engine's `docs/guard.md` for the exact 82-operation
 v2 coverage, untagged list, metadata-read exception, and request counts; the examples
 below require the corresponding scope flags and settings for tagged operations.
 
@@ -455,7 +459,10 @@ to send through the normal guard and transform pipeline. Previews validate local
 inputs but do not perform prerequisite or version lookups; unresolved requirements
 are identified in the output. Direct Python Surface calls retain their existing
 behavior. Discovery needs no credentials. API responder/cassette modes are distinct from the stateful simulation mode.
-`CONFLUENCE_MOCK_MODE` applies only to deferred legacy implementations.
+`CONFLUENCE_MOCK_MODE` applies to Python integrations that still use the
+legacy client. The Confluence calls in `jira create-from-page` use indexed
+operations and the selected engine transport; indexed API calls support the
+responder, cassette, simulation and HTTP transport modes.
 
 Help snapshots live in `tests/golden/help/`. Regenerate with
 `UPDATE_HELP_GOLDEN=1 .venv/bin/python -m pytest -q -p no:cacheprovider tests/test_help.py`
@@ -467,18 +474,20 @@ again. Regeneration never disables cap checks.
 
 ## Wrapper workflows and migration
 
-The reviewed 108-verb inventory retains 36 workflows, replaces 70 verbs with
-index-backed migration hints, and defers two implementations. See
+The reviewed 108-verb inventory retains 38 workflows, replaces 70 verbs with
+index-backed migration hints, and has no deferred implementations. See
 [the full decision table](docs/wrapper-verbs.md) for every old command, reason,
-replacement invocation and deferral. For example, executing `page create --space
+replacement invocation and disposition. For example, executing `page create --space
 DOCS --title T` now emits JSON on stderr, exits 2, and points to `api call createPage`;
 `page get --help` still succeeds. `help migration` discovers the rename topic.
 
 Survivors cover bulk selection/checkpoint/resume, hierarchy traversal/copy,
 CSV/history/cache/report transforms, permission decisions and Jira macro workflows.
-All survivor HTTP goes through Surface and the same scope/tag pipeline as `api`.
-Bulk dry-run resolves targets using reads, prints intended operations, and sends
-no writes. Both `bulk label add --labels reviewed --cql 'space=DOCS' --dry-run` and
+Confluence requests from surviving workflows use Surface and the same scope/tag
+pipeline as `api`, except for Jira issue creation in `jira create-from-page`.
+That bounded JAS-51 Jira leg uses engine HTTPTransport without a Jira project
+guard; see its documented seam above. Bulk dry-run resolves targets using reads,
+prints intended operations, and sends no writes. Both `bulk label add --labels reviewed --cql 'space=DOCS' --dry-run` and
 `bulk label --add reviewed --cql 'space=DOCS' --dry-run` are supported.
 
 For offline stateful workflows set `CONFLUENCE_AS_TRANSPORT=simulation` and an
@@ -489,5 +498,19 @@ remains stateless. See the engine's `docs/simulation.md` for supported operation
 CQL and explicit failures. `attachment download ATTACHMENT_ID` resolves safe
 metadata through the Surface and writes the binary response; use `--all` with a
 page ID to download every attachment into `--output-dir` (also accepted as
-`--output` or `-o`). `jira create-from-page` remains deferred to the jira-as
-release ticket.
+`--output` or `-o`). `jira create-from-page` creates the Jira issue with the
+JAS-51 hand-built `createIssue` operation through engine `HTTPTransport`, with
+the existing 30-second timeout, zero retries, flags and output, and no
+`jira-as` dependency. Its Confluence page reads and marker update use indexed
+engine operations and the Confluence scope guard. The Jira request is a bounded
+transport exception: it has no Jira project guard and is not universal
+`Surface.call` coverage. A cross-product operation is not transactional; if
+Jira creation succeeds and the Confluence update fails, inspect the reported
+issue before retrying.
+
+## 1.x support
+
+The `1.x` branch receives security and critical fixes only until one quarter
+after `RELEASE_DATE` (the final 2.0.0 release date placeholder). Replace this
+placeholder with the release date before creating the release tag; the release
+tag checker rejects an unset date.

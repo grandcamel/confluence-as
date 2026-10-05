@@ -19,6 +19,112 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   allowlist: responses carry Content-Type only (Authorization and Set-Cookie
   placeholders removed). (JAS-70)
 
+## [2.0.0] - RELEASE_DATE
+
+### Changed
+
+- Finalize the 2.0.0 migration: the reviewed 108-verb inventory contains 38
+  survivors, 70 dropped verbs and no deferred implementations. `jira
+  create-from-page` is a survivor with indexed guarded Confluence reads and
+  marker update; its Jira issue creation is the bounded JAS-51 `createIssue`
+  operation through engine `HTTPTransport` (30-second timeout, zero retries,
+  no `jira-as` dependency or Jira project guard). This exception does not claim
+  universal `Surface.call` coverage. See [wrapper decisions](docs/wrapper-verbs.md).
+- The JAS-51 transport path supersedes the rc1 migration statements that
+  `jira create-from-page` remains deferred. Historical rc1 entries below
+  describe the state of that release candidate and retain their original counts.
+
+### Removed
+
+The 70 dropped commands are the rename table, generated from the reviewed inventory. The full decision inventory records 38 survivors and no deferred implementations. Replace placeholders and inspect `api describe OPERATION` for required fields, scope and confirmation flags.
+
+- `admin group add-user` → `api call addUserToGroupByGroupId --group-id GROUP_ID --body @member.json`
+- `admin group create` → `api call createGroup --body @group.json`
+- `admin group delete` → `api call removeGroupById --id GROUP_ID`
+- `admin group get` → `api call getGroupByGroupId --id GROUP_ID`
+- `admin group list` → `api call getGroups --all`
+- `admin group members` → `api call getGroupMembersByGroupId --group-id GROUP_ID --all`
+- `admin group remove-user` → `api call removeMemberFromGroupByGroupId --group-id GROUP_ID --account-id ACCOUNT`
+- `admin space permissions` → `api call getSpacePermissionsAssignments --id SPACE_ID --all`
+- `admin space settings` → `api call getSpaceSettings --space-key KEY`
+- `admin space update` → `api call updateSpace --space-key KEY --body @space.json`
+- `admin template get` → `api call getContentTemplate --content-template-id TEMPLATE_ID`
+- `admin template list` → `api call getContentTemplates --space-key KEY --all`
+- `admin user get` → `api call getUser --account-id ACCOUNT`
+- `admin user groups` → `api call getGroupMembershipsForUser --account-id ACCOUNT --all`
+- `admin user search` → `api call searchUser --cql 'user.fullname ~ "NAME"'`
+- `analytics popular` → `api call searchByCQL --cql 'type=page ORDER BY lastmodified desc' --all`
+- `analytics views` → `api call getViews --content-id PAGE_ID`
+- `analytics watchers` → `api call getWatchesForPage --id PAGE_ID`
+- `attachment delete` → `api call deleteAttachment --id ATTACHMENT_ID`
+- `attachment list` → `api call getPageAttachments --id PAGE_ID --all`
+- `attachment update` → `api call updateAttachmentData --id PAGE_ID --attachment-id ATTACHMENT_ID`
+- `attachment upload` → `api call createAttachment --id PAGE_ID`
+- `comment add` → `api call createFooterComment --body @comment.json`
+- `comment add-inline` → `api call createInlineComment --body @comment.json`
+- `comment delete` → `api call deleteFooterComment --comment-id COMMENT_ID`
+- `comment list` → `api call getPageFooterComments --id PAGE_ID --all`
+- `comment resolve` → `api call updateInlineComment --comment-id COMMENT_ID --body @resolution.json`
+- `comment update` → `api call updateFooterComment --comment-id COMMENT_ID --body @comment.json`
+- `hierarchy ancestors` → `api call getPageAncestors --id PAGE_ID --all`
+- `hierarchy children` → `api call getChildPages --id PAGE_ID --all`
+- `hierarchy descendants` → `api call getPageDescendants --id PAGE_ID --all`
+- `label add` → `api call addLabelsToContent --id PAGE_ID --body @labels.json`
+- `label list` → `api call getPageLabels --id PAGE_ID --all`
+- `label remove` → `api call removeLabelFromContent --id PAGE_ID --label LABEL`
+- `label search` → `api call searchByCQL --cql 'label="LABEL"' --all`
+- `page blog create` → `api call createBlogPost --space DOCS --space-key DOCS --field title=T --field body=@body.md`
+- `page blog get` → `api call getBlogPostById --id BLOG_ID --body-format storage`
+- `page create` → `api call createPage --space DOCS --space-key DOCS --field title=T --field body=@body.md`
+- `page delete` → `api call deletePage --id PAGE_ID --confirm`
+- `page get` → `api call getPageById --id PAGE_ID --body-format storage`
+- `page move` → `api call updatePage --id PAGE_ID --body @move.json --confirm`
+- `page restore` → `api call restoreContentVersion --id PAGE_ID --body @version.json`
+- `page update` → `api call updatePage --id PAGE_ID --field title=T --field body=@body.md --confirm`
+- `page versions` → `api call getPageVersions --id PAGE_ID --all`
+- `permission page add` → `api call addRestrictions --id PAGE_ID --body @restrictions.json`
+- `permission page get` → `api call getRestrictions --id PAGE_ID`
+- `permission space add` → `api call addPermissionToSpace --space-key KEY --body @permission.json`
+- `permission space get` → `api call getSpacePermissionsAssignments --id SPACE_ID --all`
+- `property delete` → `api call deletePagePropertyById --page-id PAGE_ID --property-id PROPERTY_ID`
+- `property get` → `api call getPageContentPropertiesById --page-id PAGE_ID --property-id PROPERTY_ID`
+- `property list` → `api call getPageContentProperties --page-id PAGE_ID --all`
+- `search content` → `api call searchByCQL --cql 'space=DOCS AND text~"TEXT"' --all`
+- `search cql` → `api call searchByCQL --cql 'space=DOCS' --all`
+- `search interactive` → `api call searchByCQL --cql 'QUERY'`
+- `search validate` → `api call searchByCQL --cql 'QUERY' --limit 1`
+- `space content` → `api call getPagesInSpace --id SPACE_ID --all`
+- `space create` → `api call createSpace --body @space.json`
+- `space delete` → `api call deleteSpace --space-key KEY`
+- `space get` → `api call getSpaces --keys KEY`
+- `space list` → `api call getSpaces --all`
+- `space settings` → `api call getSpaces --keys KEY`
+- `space update` → `api call updateSpace --space-key KEY --body @space.json`
+- `template create` → `api call createContentTemplate --body @template.json`
+- `template get` → `api call getContentTemplate --content-template-id TEMPLATE_ID`
+- `template update` → `api call updateContentTemplate --body @template.json`
+- `watch list` → `api call getWatchesForPage --id PAGE_ID`
+- `watch page` → `api call addContentWatcher --content-id PAGE_ID`
+- `watch space` → `api call addSpaceWatcher --space-key KEY --x-atlassian-token no-check`
+- `watch status` → `api call getContentWatchStatus --content-id PAGE_ID`
+- `watch unwatch-page` → `api call removeContentWatcher --content-id PAGE_ID --x-atlassian-token no-check`
+
+### Migration
+
+- Replace the dropped commands using the operation table in
+  [Removed](#removed); the legacy shim prints the replacement and exits 2
+  without sending a request. `attachment download` and `jira create-from-page`
+  are implemented survivors.
+- For `jira create-from-page`, Confluence scope refusal precedes Jira issue
+  creation, and later Confluence calls recheck scope. A cross-product workflow
+  is not transactional; if Jira creation succeeds but the marker update fails,
+  inspect the reported issue before retrying.
+- The `1.x` branch receives security and critical fixes only until one quarter
+  after `RELEASE_DATE`. Replace the placeholder with the final release date
+  before tagging; `scripts/check_release_tag.py` rejects an unset date.
+- Legacy Python library exports remain available. New integrations should use
+  the generic API path and documented surviving workflows.
+
 ## [2.0.0rc1] - 2026-09-07
 
 Main is the 2.0 line (spec JAS-31; wayfinder map JAS-6). Fixes for the pinned 1.x line land on branch `1.x`.
@@ -228,11 +334,11 @@ confluence-as api topics                    # tagged guidance and gotchas
   the shared request/response seam, and the weekly/release drift job compares
   the pinned Base Documents with upstream and files a JAS ticket for breaking
   changes or changes to enriched operations (JAS-42).
-- Main is the 2.x line; the 1.x branch carries fixes for one quarter after
-  2.0.0. Legacy Python library exports remain available in this Confluence
-  candidate; new integrations should use the generic call path and surviving
-  workflows. Jira follows with its Compatibility Contract and separate
-  organizational Promotion acceptance.
+- This statement is historical rc1 migration guidance and is superseded by the
+  final 2.0.0 migration section above. Its support period was not anchored to
+  an actual release date; the final support window is one quarter after
+  `RELEASE_DATE`. Legacy Python library exports remain available. Jira follows
+  its Compatibility Contract and separate organizational Promotion acceptance.
 
 ## [1.1.1] - 2026-08-19
 

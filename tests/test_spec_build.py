@@ -27,6 +27,10 @@ def built_product(tmp_path_factory):
         root / "src",
         ignore=shutil.ignore_patterns("__pycache__", "_generated"),
     )
+    # Exercise tracked build scaffolding as well as pristine compiler inputs.
+    generated = root / "src/confluence_as/_generated"
+    generated.mkdir()
+    (generated / ".gitignore").write_text("*\n!.gitignore\n")
     artifacts = root / "dist"
     artifacts.mkdir()
     for kind in ("wheel", "editable", "sdist"):
@@ -108,3 +112,52 @@ def test_v2_fresh_process_load_budget(built_product):
     # Shared CI hosts vary; the reference-machine acceptance is separately
     # reported against 150 ms. This still catches expensive runtime imports.
     assert median < 500, f"fresh-process load regressed: {median:.3f} ms"
+
+
+def test_sdist_rebuild_matches_wheel_indexes_and_vendored_inputs(
+    built_product, tmp_path
+):
+    """Rebuilding source must preserve compiler output and audited inputs."""
+    sdist = next((built_product / "dist/sdist").glob("*.tar.gz"))
+    with tarfile.open(sdist) as archive:
+        for member in archive.getmembers():
+            target = tmp_path / member.name
+            assert target.resolve().is_relative_to(tmp_path.resolve())
+            assert not member.issym() and not member.islnk()
+            if member.isfile():
+                target.parent.mkdir(parents=True, exist_ok=True)
+                stream = archive.extractfile(member)
+                assert stream is not None
+                target.write_bytes(stream.read())
+    source = next(tmp_path.glob("confluence_as-*"))
+    output = tmp_path / "rebuilt"
+    output.mkdir()
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "build",
+            "--wheel",
+            "--no-isolation",
+            "--outdir",
+            str(output),
+        ],
+        cwd=source,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    original = next((built_product / "dist/wheel").glob("*.whl"))
+    rebuilt = next(output.glob("*.whl"))
+    assert original.read_bytes() == rebuilt.read_bytes()
+    with zipfile.ZipFile(original) as first, zipfile.ZipFile(rebuilt) as second:
+        names = [
+            name
+            for name in first.namelist()
+            if "/_generated/" in name or "/specs/" in name
+        ]
+        assert any(name.endswith("catalog.json") for name in names)
+        assert any(name.endswith("manifest.json") for name in names)
+        for name in names:
+            assert first.read(name) == second.read(name), name

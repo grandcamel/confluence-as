@@ -20,6 +20,9 @@ The active files are `test_page_live.py` (six cases) and
 `test_property_live.py` (three cases). They drive the real CLI through Click's
 runner, ordinary Surface guards and the HTTP transport supplied by the product.
 Four additional files now provide the fixed Tranche 2 cases described below.
+`test_blogpost_live.py` adds one rootless owned-blog candidate. Its offline
+contracts cover the ownership and admission rules below; HTTP acceptance remains
+a separate supervising-owner gate. No live blog run is claimed here.
 All remaining legacy live modules remain unchanged and HELD. The only supported live
 interface is `run_sbx.py`, invoked with the exact lane interpreter, `-I`, and the
 canonical absolute launcher path. Its standard-library admission runs before
@@ -35,8 +38,10 @@ optional `--collect-only`; help displays usage and exits.
 | `versions` | `test_page_versions_live.py::test_versions_match_owned_page_updates` |
 | `space-content` | `test_space_content_live.py::test_space_listing_matches_exact_owned_ids` |
 | `tranche2` | Exactly the four new cases above |
+| `blog` | `test_blogpost_live.py::test_owned_blog_create_read_delete` (one case; live acceptance pending) |
 
 There is no combined thirteen-case selection and no first-tranche rerun authority.
+The blog choice is excluded from both `all`/default (nine) and `tranche2` (four).
 No raw selector or additional pytest argument is forwarded.
 
 Raw `pytest --live` is unsupported. It may import external plugins or initial,
@@ -78,7 +83,7 @@ ancestor directories, avoiding unrelated siblings at the secondary file hook.
 This filter is not initial admission: raw arguments and source paths have already
 been validated before pytest imports, and automatic conftest loading is disabled.
 
-Supervisor-verified offline source contracts cover the following rejection/admission matrix:
+The offline admission matrix includes the separate `blog` choice:
 
 | Input or condition | Required result |
 |---|---|
@@ -107,8 +112,11 @@ workers performed source-only work, while the supervisor owned all execution.
 
 ## Permitted execution
 
-Only jas-supervisor-m may invoke the host broker for this exact lane. The
-supervisor runs long validation through a one-shot new-session controller and
+The September runs below were owned by jas-supervisor-m; their consumed
+clearances cannot authorize another run. A new live run requires the supervising
+owner to bind the exact candidate, interpreter, dependencies and selected case
+to a fresh execution packet. The supervisor runs validation through a one-shot
+new-session controller and
 `scripts/validate-battery` reservation, with a finite deadline and captured output.
 Neither a worker turn nor a raw product/HTTP command is an alternative.
 
@@ -137,18 +145,19 @@ provenance. The broker is not arbitrary-code/process containment; untagged
 operations and numeric ownership still need their own contracts. A broker
 refusal means stop and report, never bypass.
 
-Proposed targeted offline command, from the lane root, under later supervisor authority:
+Targeted offline command, from the prepared candidate root:
 
 ```sh
 .venv/bin/python -m pytest tests/test_live_sbx_contract.py tests/test_api_scope.py -q
 ```
 
-The supervisor must separately prepare the full offline command with the exact
-Claude E2E deselection because launching/resuming Claude sessions is forbidden.
-The full offline suite with that exclusion is required before any
-code commit. The existing prepared full-offline controller is unlaunched and
-its source hashes must be refreshed after this amendment. No runtime command,
-including lint, import, compile or installation, is authorized by this document.
+The complete offline suite uses `-m "not e2e"`; the root collection hook skips
+all live-directory cases unless the controlled live launcher is used. Full
+offline validation is required before any code commit. The October source
+reconciliation preserves the September receipts without replaying those cases.
+Its test counts and exact source hashes belong to the delivery receipt; they do
+not establish live acceptance or broad JAS-43 closure. This document itself
+authorizes no execution.
 
 ## Active behavior and ownership
 
@@ -198,6 +207,56 @@ session finalizer is registered before bootstrap and retains every successful
 creation even when fixture setup or a test fails. Resources remain in the
 session journal until explicitly deleted or final cleanup; there is no
 pre-existing-content adoption or per-space sweep.
+
+The separate blog case reuses the verified root page's numeric global-SBX space
+ID. That page is an independent resource, never the blog's parent. After a fresh
+current root read, `createBlogPost --space SBX --raw` submits one current blog
+with a fresh safe run title and exact storage body marker. No `--space-key`,
+parent, draft/private flag or caller-supplied ID is passed. A returned numeric ID
+is journaled before validation; exact create identity and guarded raw storage
+read-back establish ownership. A separate semantic read checks the same values.
+`getBlogPostById` uses exact ID, `--body-format storage` and current status.
+Page/blog numeric collisions in either direction, including deleted identities,
+are refused without replacing prior state. Property IDs retain their separate
+namespace and page-parent/key requirements.
+
+Before `deleteBlogPost`, the helper repeats the full guarded identity/body read,
+checks pending/dependency obligations, and sets the blog uncertain immediately
+before invocation. A successful response is followed by exactly one raw
+`getBlogPosts` query with exact space-ID/ID/current-status arrays and limit 2.
+Only an empty valid complete envelope, below the bound and without exposed
+continuation, proves removal from current content. Present, malformed, foreign,
+duplicate or incomplete rows leave an uncertain residual; no second DELETE,
+poll, title recovery, purge or inferred 404 cleanup is allowed.
+
+Pagination uses the documented v2 contract that `_links.next` mirrors the next
+URL. The eight-check historical `jas43-link-diagnostic-result.json` in
+`grand-camel-platform/docs/experiments/team-coordination/2026-09-06-jas-queue/`
+records the body-only CLI's inability to detect contradictory header-only
+continuation. That is a defensive limitation, not observed live-provider
+nonconformance or an unconditional-safety claim. This source does not change
+production pagination. One helper create invocation also does not promise one
+wire attempt: transport retry behavior is outside this helper's contract.
+
+Available blog create/read/list dictionaries with unexpected non-null
+`parentId` retain the exact already-owned page via the existing block/event
+before later identity or completeness rejection. Unknown or malformed parent
+IDs are refused without lookup/adoption; the blog's parent always stays None.
+Repeated observations emit one block event. An invalid candidate ID still
+retains an explicitly identified owned page before failure, while a valid
+candidate receipt precedes observation and collision refusal.
+
+The future successful blog workload target is **one test, two creations (root
+page and blog), two independently verified current-content removals, zero
+residuals/pending intents, terminal complete**. These are expected counts, not
+execution evidence. Known rootless candidate/uncertain blogs do not prevent
+independent root cleanup, but their residuals make the run incomplete. Unknown
+rootless creation retains pending None and blocks page/blog deletion. Unknown
+blog DELETE binds only that blog, permits independent page cleanup under the
+existing rules, and cannot be retried. Existing property cleanup semantics and
+the shipped session fixture are unchanged. Any eventual HTTP workload needs a
+separate one-run Clearance, frozen source/build/interpreter hashes, host-global
+reservation, finite timeout plus cleanup grace and externally captured receipts.
 
 A root page is created through `api call createPage --space SBX --space-key SBX`.
 The product scope transform performs its bounded metadata lookup. Its space ID
@@ -257,9 +316,10 @@ as deletion proof. No automatic retries after uncertain creates are allowed.
 The old suite contains 435 statically inventoried test methods in 91 modules.
 The first tranche replaced two modules and shared helper/fixture paths. Tranche 2
 replaces only four more named modules, one semantic case each. **The remaining
-85 test-bearing modules are retained.** The two verified tranches cover only
+84 test-bearing modules are retained** after the single legacy blog module is
+replaced. The two verified tranches cover only
 the named slices; broader runtime acceptance and legacy disposition remain held.
-The proposed later consolidation/deletion of 85 modules is NOT approved.
+The broader legacy consolidation/deletion campaign is NOT approved.
 
 | Domain or old entry point | Disposition |
 |---|---|
@@ -267,7 +327,7 @@ The proposed later consolidation/deletion of 85 modules is NOT approved.
 | Raw page CRUD duplicates in the two rewritten modules | Consolidated into six lifecycle cases; arbitrary/nonexistent foreign IDs are offline guard cases. Draft/purge/archive/restore and full prior breadth remain unaccepted. |
 | Raw v1 property operations in rewritten property module | Replaced by three indexed/wrapper cases using owned keys; full historical property type/search/bulk breadth remains unaccepted. |
 | Page copy, hierarchy tree, version list, owned-ID listing | Four verified cases above, with exact owned-content and cleanup evidence. Recursive copy, reorder, restore and broader version/history behavior remain held obligations. |
-| Blog posts | createBlogPost is scoped, but numeric get/update/delete lack scope tags; cleanup acceptance unresolved. |
+| Blog posts | JAS-80 guards numeric GET/DELETE. One owned current create/read/delete case is prepared here; runtime and cleanup acceptance remain held. `updateBlogPost`, properties and broader blog behavior remain outside this charge. |
 | Labels | addLabelsToContent/removeLabelFromContent and CQL paths are untagged; no label lifecycle acceptance. `label popular` and bulk wrappers still survive. |
 | Attachments | createAttachment/updateAttachmentData/downloadAttatchment are untagged; no upload/download/lifecycle acceptance. `attachment download` survives. |
 | Restrictions | Untagged addRestrictions/deleteRestrictions plus safe principal/ownership requirements remain unresolved. Permission/bulk wrappers are not declared retired. |

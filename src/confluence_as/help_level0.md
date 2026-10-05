@@ -9,7 +9,7 @@ API: `api search WORDS`, `api describe OPERATION [--full|--examples]`,
 
 Wrapper groups: page, search, label, hierarchy, permission, analytics, template,
 property, jira, admin, bulk, ops. Migration hints: `help migration`, or invoke an old group or verb.
-Deferred: attachment download (JAS-61), jira create-from-page (jira-as release).
+Implemented: attachment download (JAS-61), jira create-from-page (JAS-51; bounded Jira transport exception).
 
 Topics: adf, paging, search, fields, project-types, permissions, rate-limits,
 representations, sandbox, auth, scope, risk, errors, migration.

@@ -112,6 +112,10 @@ class LiveRun:
             "updatePagePropertyById",
             "deletePagePropertyById",
             "property set",
+            "createBlogPost",
+            "getBlogPostById",
+            "deleteBlogPost",
+            "getBlogPosts",
         }
     )
 
@@ -141,7 +145,8 @@ class LiveRun:
             row["operation"] = operation
         if resource is not None:
             require(
-                resource.kind in {"page", "property"}, "Unknown receipt resource kind"
+                resource.kind in {"page", "property", "blog"},
+                "Unknown receipt resource kind",
             )
             require(
                 resource.state in {"candidate", "owned", "uncertain", "deleted"},
@@ -149,6 +154,10 @@ class LiveRun:
             )
             row.update(
                 kind=resource.kind, id=numeric_id(resource.id), state=resource.state
+            )
+            require(
+                resource.kind != "blog" or resource.parent is None,
+                "Blog receipts must be rootless",
             )
             if resource.parent is not None:
                 require(
@@ -232,6 +241,9 @@ class LiveRun:
                 "updatePage",
                 "getPages",
                 "getPageVersions",
+                "createBlogPost",
+                "getBlogPostById",
+                "getBlogPosts",
             }:
                 argv.append("--raw")
             for key, value in parameters.items():
@@ -257,7 +269,14 @@ class LiveRun:
                 payload = (
                     result.get("property") if operation == "property set" else result
                 )
-                resource_id = numeric_id(payload.get("id"))
+                try:
+                    resource_id = numeric_id(
+                        payload.get("id") if isinstance(payload, dict) else None
+                    )
+                except LiveContractError:
+                    if kind == "blog":
+                        self._observe_blog_parent(payload)
+                    raise
                 resource = Resource(
                     kind, resource_id, dependency.token if dependency else None, name
                 )
@@ -265,15 +284,18 @@ class LiveRun:
                 self.emit(
                     "candidate", operation=operation, resource=resource, intent=intent
                 )
-                if (
-                    resource.token in self.resources
-                    and kind == "page"
-                    and "parentId" in payload
-                ):
-                    self._observe_relationship(payload)
-                require(
-                    resource.token not in self.resources, "Duplicate candidate identity"
+                collision = resource.token in self.resources or (
+                    kind in {"page", "blog"}
+                    and any(
+                        (content_kind, resource_id) in self.resources
+                        for content_kind in {"page", "blog"}
+                    )
                 )
+                if kind == "blog":
+                    self._observe_blog_parent(payload)
+                if collision and kind == "page" and "parentId" in payload:
+                    self._observe_relationship(payload)
+                require(not collision, "Duplicate candidate identity")
                 self.resources[resource.token] = resource
             elif mutation and operation in {
                 "updatePage",
@@ -294,8 +316,14 @@ class LiveRun:
                         resource=resource,
                         intent=intent,
                     )
+                    content_collision = (
+                        resource.kind == "page"
+                        and ("blog", returned_id) in self.resources
+                    )
+                    if content_collision and "parentId" in payload:
+                        self._observe_relationship(payload)
                     require(
-                        resource.token not in self.resources,
+                        resource.token not in self.resources and not content_collision,
                         "Duplicate returned identity",
                     )
                     self.resources[resource.token] = resource
@@ -401,6 +429,158 @@ class LiveRun:
         resource.state = "owned"
         self.emit("owned", resource=resource)
         return resource
+
+    def _observe_blog_parent(self, row):
+        """Retain only an explicitly identified owned page; never adopt a parent."""
+        if not isinstance(row, dict) or row.get("parentId") is None:
+            return
+        try:
+            parent_id = numeric_id(row["parentId"])
+        except LiveContractError:
+            return
+        parent = self.resources.get(("page", parent_id))
+        if (
+            parent is not None
+            and parent.kind == "page"
+            and parent.id == parent_id
+            and parent.state == "owned"
+            and parent.name.startswith(self.prefix)
+        ):
+            self._block_parent(parent)
+
+    def _blog_resource(self, resource: Resource, states):
+        require(
+            resource.kind == "blog"
+            and self.resources.get(resource.token) is resource
+            and resource.state in states
+            and resource.parent is None
+            and resource.name.startswith(self.prefix)
+            and bool(re.fullmatch(r"[a-z0-9-]+", resource.name)),
+            "Blog is not an exact run-owned rootless identity",
+        )
+        numeric_id(resource.id)
+        numeric_id(self.space_id)
+        require(
+            resource.token not in self.pending.values(),
+            "Blog has an unresolved mutation",
+        )
+
+    @staticmethod
+    def _blog_body(name):
+        require(bool(re.fullmatch(r"[a-z0-9-]+", name)), "Unsafe blog name")
+        return {
+            "representation": "storage",
+            "value": f"<p>JAS-43 owned blog {name}.</p>",
+        }
+
+    def _blog_identity(self, row, resource: Resource, *, body=False):
+        self._observe_blog_parent(row)
+        require(isinstance(row, dict), "Blog response shape is invalid")
+        require(row.get("parentId") is None, "Unexpected blog parent metadata")
+        require(numeric_id(row.get("id")) == resource.id, "Blog identity changed")
+        require(row.get("title") == resource.name, "Blog run title changed")
+        require(numeric_id(row.get("spaceId")) == self.space_id, "Blog space changed")
+        require(row.get("status") == "current", "Blog is not current")
+        if body:
+            content = row.get("body")
+            storage = content.get("storage") if isinstance(content, dict) else None
+            expected = self._blog_body(resource.name)
+            require(
+                isinstance(storage, dict)
+                and storage.get("representation") == "storage"
+                and isinstance(storage.get("value"), str)
+                and storage["value"] == expected["value"],
+                "Blog storage body changed",
+            )
+        return row
+
+    def _blog_data(self, resource: Resource):
+        self._blog_resource(resource, {"candidate", "owned"})
+        row = self.call(
+            "getBlogPostById",
+            {"id": resource.id, "body-format": "storage", "status": ["current"]},
+        )
+        return self._blog_identity(row, resource, body=True)
+
+    def create_blog(self):
+        require(self.root is not None, "Blog requires the verified run root")
+        self._owned(self.root, "page")
+        numeric_id(self.root.id)
+        numeric_id(self.space_id)
+        require(self.root.parent is None, "Blog requires the independent run root")
+        require(
+            not self.pending
+            and not any(r.kind == "blog" for r in self.resources.values()),
+            "A previous blog or unresolved mutation already exists",
+        )
+        title = self.name("blog")
+        body = self._blog_body(title)
+        root = self.read_page(self.root)
+        require(root.get("status") == "current", "Blog root is not current")
+        created = self.call(
+            "createBlogPost",
+            {"space": "SBX"},
+            {
+                "spaceId": self.space_id,
+                "status": "current",
+                "title": title,
+                "body": body,
+            },
+            mutation=True,
+            candidate=("blog", title),
+        )
+        resource = self.resources[("blog", numeric_id(created.get("id")))]
+        self._blog_identity(created, resource)
+        self._blog_data(resource)
+        resource.state = "owned"
+        self.emit("owned", resource=resource)
+        return resource
+
+    def read_blog(self, resource: Resource):
+        self._blog_resource(resource, {"owned"})
+        return self._blog_data(resource)
+
+    def list_owned_blog(self, resource: Resource):
+        self._blog_resource(resource, {"uncertain"})
+        result = self.call(
+            "getBlogPosts",
+            {
+                "space-id": [self.space_id],
+                "id": [resource.id],
+                "status": ["current"],
+                "limit": 2,
+            },
+        )
+        # Observe available rows before aggregate validation can hide a parent.
+        self._observe_blog_parent(result)
+        if isinstance(result, dict) and isinstance(result.get("results"), list):
+            for row in result["results"]:
+                self._observe_blog_parent(row)
+        rows = self._complete_rows(result, 2)
+        require(result.get("parentId") is None, "Unexpected blog list parent metadata")
+        for metadata in (result, result.get("_links", {})):
+            for key in ("next", "cursor"):
+                if key in metadata:
+                    require(
+                        isinstance(metadata[key], str) and metadata[key] == "",
+                        "Blog listing continuation is present or malformed",
+                    )
+        for row in rows:
+            self._blog_identity(row, resource)
+        return rows
+
+    def delete_blog(self, resource: Resource):
+        self._blog_resource(resource, {"owned"})
+        self._dependencies_removed(resource)
+        self.read_blog(resource)
+        # Unknown DELETE binds only this rootless blog and must never be replayed.
+        resource.state = "uncertain"
+        self.call(
+            "deleteBlogPost", {"id": resource.id}, mutation=True, dependency=resource
+        )
+        require(self.list_owned_blog(resource) == [], "Blog deletion is unproven")
+        resource.state = "deleted"
+        self.emit("cleanup", resource=resource)
 
     def update_page(self, resource: Resource, *, title=None, body=None):
         before = self.read_page(resource)
@@ -849,6 +1029,8 @@ class LiveRun:
             try:
                 if resource.kind == "property":
                     self.delete_property(resource)
+                elif resource.kind == "blog":
+                    self.delete_blog(resource)
                 elif resource.kind == "page":
                     self.delete_page(resource)
                 else:
