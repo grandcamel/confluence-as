@@ -17,6 +17,7 @@ import pytest
 
 LIVE_ROOT = Path(__file__).parent / "live"
 LIVE_FILES = {
+    "test_blogpost_live.py",
     "test_page_live.py",
     "test_property_live.py",
     "test_page_copy_live.py",
