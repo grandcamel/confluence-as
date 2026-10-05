@@ -1,4 +1,4 @@
-"""Every retained verb executes with legacy HTTP disabled and one shared seam."""
+"""Retained Confluence workflows use Surface; Jira creation has a bounded seam."""
 
 from __future__ import annotations
 
@@ -13,7 +13,13 @@ from click.testing import CliRunner
 
 from confluence_as import engine
 from confluence_as.cli import cli_utils
-from confluence_as.cli.commands import admin_cmds, bulk_cmds, ops_cmds, permission_cmds
+from confluence_as.cli.commands import (
+    admin_cmds,
+    bulk_cmds,
+    jira_cmds,
+    ops_cmds,
+    permission_cmds,
+)
 from confluence_as.cli.main import cli
 
 CASES = {
@@ -28,6 +34,7 @@ CASES = {
     "bulk update": ["--cql", "space=DOCS", "--title-prefix", "X "],
     "hierarchy tree": ["1"],
     "hierarchy reorder": ["1"],
+    "jira create-from-page": ["1", "--project", "SBX"],
     "jira link": ["1", "SBX-2", "--jira-url", "https://example.invalid"],
     "jira linked": ["1"],
     "jira embed": ["1", "--issues", "SBX-2"],
@@ -69,7 +76,7 @@ LOCAL = {"ops cache-status", "ops cache-clear"} | {
 
 def test_seam_covers_exactly_every_reviewed_survivor():
     rows = json.loads((Path(__file__).parent / "wrapper_verbs.json").read_text())
-    assert len(CASES) == 37
+    assert len(CASES) == 38
     assert set(CASES) == {row["verb"] for row in rows if row["decision"] == "survivor"}
 
 
@@ -127,6 +134,25 @@ def test_every_survivor_at_argv_transport_seam(verb, monkeypatch, tmp_path):
     monkeypatch.setattr(admin_cmds, "_surface", lambda: surface)
     monkeypatch.setattr(permission_cmds, "_surface", lambda: surface)
 
+    # Dedicated test_jira_create_seam tests the accepted Jira HTTPTransport
+    # exception. Only the Confluence legs use indexed Surface operations.
+    jira_calls = []
+
+    def create_issue(config, body):
+        jira_calls.append(body)
+        return {"key": "SBX-2", "id": "22"}
+
+    monkeypatch.setattr(jira_cmds, "_create_jira_issue", create_issue)
+    monkeypatch.setattr(
+        jira_cmds,
+        "_get_jira_client_config",
+        lambda *_: {
+            "url": "https://example.invalid",
+            "email": "fixture",
+            "token": "fixture",
+        },
+    )
+
     def forbidden(*_a, **_k):
         pytest.fail("survivor bypassed Surface transport or acquired legacy client")
 
@@ -140,6 +166,7 @@ def test_every_survivor_at_argv_transport_seam(verb, monkeypatch, tmp_path):
         [*verb.split(), *CASES[verb], *(["--yes"] if verb.startswith("bulk ") else [])],
     )
     assert result.exit_code == 0, (verb, result.output, result.exception)
+    assert len(jira_calls) == (1 if verb == "jira create-from-page" else 0)
     if verb in LOCAL:
         assert store.calls == []
     else:

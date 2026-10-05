@@ -75,7 +75,7 @@ confluence-as = "confluence_as.cli.main:cli"
 # Version is now static in [project]
 
 [tool.hatch.build.targets.sdist]
-exclude = ["/src/confluence_as/_generated"]
+exclude = ["/src/confluence_as/_generated", "/src/confluence_as/_generated/**"]
 include = [
     "/src",
     "/hatch_build.py",
@@ -86,7 +86,7 @@ path = "hatch_build.py"
 
 [tool.hatch.build.targets.wheel]
 dev-mode-dirs = ["src"]
-exclude = ["/src/confluence_as/_generated"]
+exclude = ["/src/confluence_as/_generated", "/src/confluence_as/_generated/**"]
 packages = ["src/confluence_as"]
 
 [tool.pytest.ini_options]

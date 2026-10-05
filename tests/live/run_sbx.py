@@ -62,6 +62,9 @@ CASES = {
     "tranche2": {
         path: names for choice in TRANCHE2.values() for path, names in choice.items()
     },
+    "blog": {
+        "tests/live/test_blogpost_live.py": ("test_owned_blog_create_read_delete",)
+    },
 }
 SUPPORT = (
     "tests/live/run_sbx.py",

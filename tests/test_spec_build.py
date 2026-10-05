@@ -27,6 +27,10 @@ def built_product(tmp_path_factory):
         root / "src",
         ignore=shutil.ignore_patterns("__pycache__", "_generated"),
     )
+    # Exercise tracked build scaffolding as well as pristine compiler inputs.
+    generated = root / "src/confluence_as/_generated"
+    generated.mkdir()
+    (generated / ".gitignore").write_text("*\n!.gitignore\n")
     artifacts = root / "dist"
     artifacts.mkdir()
     for kind in ("wheel", "editable", "sdist"):
@@ -146,6 +150,7 @@ def test_sdist_rebuild_matches_wheel_indexes_and_vendored_inputs(
     assert result.returncode == 0, result.stdout + result.stderr
     original = next((built_product / "dist/wheel").glob("*.whl"))
     rebuilt = next(output.glob("*.whl"))
+    assert original.read_bytes() == rebuilt.read_bytes()
     with zipfile.ZipFile(original) as first, zipfile.ZipFile(rebuilt) as second:
         names = [
             name
