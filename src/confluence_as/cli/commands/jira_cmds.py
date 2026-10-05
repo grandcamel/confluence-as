@@ -21,7 +21,6 @@ from confluence_as import (
     xhtml_to_markdown,
 )
 from confluence_as.cli.cli_utils import (
-    get_client_from_context,
     resolve_output_default,
 )
 from confluence_as.cli.legacy import command_errors
@@ -559,6 +558,7 @@ def _create_jira_issue(
 )
 @click.pass_context
 @handle_errors
+@command_errors
 def create_jira_from_page(
     ctx: click.Context,
     page_id: str,
@@ -583,14 +583,12 @@ def create_jira_from_page(
     # Get JIRA config
     jira_config = _get_jira_client_config(jira_url, jira_email, jira_token)
 
-    client = get_client_from_context(ctx)
+    client = engine.create_surface()
 
-    # Get page info
-    page = client.get(
-        f"/api/v2/pages/{page_id}",
-        params={"body-format": "storage"},
-        operation="get page",
-    )
+    # The guarded read must succeed before any Jira issue is created.
+    page = client.call(
+        "getPageById", {"id": page_id, "body-format": "storage"}, raw=True
+    ).body
 
     page_title = page.get("title", "Unknown")
     page_body = page.get("body", {}).get("storage", {}).get("value", "")
@@ -622,39 +620,38 @@ def create_jira_from_page(
     issue_key = result.get("key", "")
     issue_id = result.get("id", "")
 
-    # Link the page to the new issue
+    # Re-read after Jira creation so the marker uses the latest storage/version.
     if issue_key:
-        jira_config["url"].rstrip("/")
+        from as_engine.errors import SurfaceError  # type: ignore[import-untyped]
+
         link_marker = f"<!-- JIRA-LINK: {issue_key} -->"
-
-        # Add link marker to page
-        page_content = client.get(
-            f"/api/v2/pages/{page_id}",
-            params={"body-format": "storage"},
-            operation="get page content",
-        )
-
-        current_body = page_content.get("body", {}).get("storage", {}).get("value", "")
-        current_version = page_content.get("version", {}).get("number", 1)
-
-        if link_marker not in current_body:
-            new_body = current_body + f"\n{link_marker}"
-            update_data = {
-                "id": page_id,
-                "title": page_title,
-                "body": {
-                    "representation": "storage",
-                    "value": new_body,
-                },
-                "version": {
-                    "number": current_version + 1,
-                },
-            }
-            client.put(
-                f"/api/v2/pages/{page_id}",
-                json_data=update_data,
-                operation="link page to new issue",
+        try:
+            page_content = client.call(
+                "getPageById", {"id": page_id, "body-format": "storage"}, raw=True
+            ).body
+            current_body = (
+                page_content.get("body", {}).get("storage", {}).get("value", "")
             )
+            current_version = page_content.get("version", {}).get("number", 1)
+
+            if link_marker not in current_body:
+                update_data = {
+                    "id": page_id,
+                    "title": page_content.get("title", page_title),
+                    "body": {
+                        "representation": "storage",
+                        "value": current_body + f"\n{link_marker}",
+                    },
+                    "version": {"number": current_version + 1},
+                }
+                client.call("updatePage", {"id": page_id}, update_data)
+        except SurfaceError as exc:
+            exc.messages.insert(
+                0,
+                f"JIRA issue {issue_key} was created, but linking page {page_id} failed. "
+                "Do not repeat create-from-page to retry the link.",
+            )
+            raise
 
     if output == "json":
         click.echo(
