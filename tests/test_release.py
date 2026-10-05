@@ -154,7 +154,9 @@ def test_script_rejects_duplicate_dropped_verbs(tmp_path):
     assert "must be unique" in result.stderr
 
 
-def release_tree(tmp_path: Path, version: str = "2.0.0rc1") -> Path:
+def release_tree(
+    tmp_path: Path, version: str = "2.0.0rc1", release_date: str = "2026-09-07"
+) -> Path:
     root = tmp_path / "release"
     (root / "scripts").mkdir(parents=True)
     (root / "src/confluence_as").mkdir(parents=True)
@@ -166,7 +168,10 @@ def release_tree(tmp_path: Path, version: str = "2.0.0rc1") -> Path:
         '__version__ = "' + version + '"\n'
     )
     (root / "CHANGELOG.md").write_text(
-        "# Changelog\n\n## [" + version + "] - 2026-09-07\n"
+        "# Changelog\n\n## [" + version + "] - " + release_date + "\n"
+    )
+    (root / "README.md").write_text(
+        "Support ends one quarter after " + release_date + ".\n"
     )
     return root
 
@@ -248,6 +253,28 @@ def test_release_tag_checker_rejects_missing_tag(tmp_path):
     assert result.stderr == "release check: expected one v<version> tag\n"
 
 
+@pytest.mark.parametrize("placeholder_file", ["CHANGELOG.md", "README.md"])
+def test_release_tag_checker_rejects_unset_release_date(tmp_path, placeholder_file):
+    root = release_tree(tmp_path, "2.0.0", "2026-10-05")
+    target = root / placeholder_file
+    target.write_text(target.read_text().replace("2026-10-05", "RELEASE_DATE"))
+
+    result = run_tag_check(root, "v2.0.0")
+
+    assert result.returncode == 1
+    assert result.stdout == ""
+    assert "release date placeholder RELEASE_DATE must be replaced" in result.stderr
+
+
+def test_release_tag_checker_accepts_final_200_date(tmp_path):
+    root = release_tree(tmp_path, "2.0.0", "2026-10-05")
+    (root / "README.md").write_text("Support ends one quarter after 2026-10-05.\n")
+
+    result = run_tag_check(root, "v2.0.0")
+
+    assert result.returncode == 0, result.stderr
+
+
 def test_release_tag_checker_accepts_tag_time_copy_of_actual_release_files(tmp_path):
     root = tmp_path / "release"
     (root / "scripts").mkdir(parents=True)
@@ -259,9 +286,12 @@ def test_release_tag_checker_accepts_tag_time_copy_of_actual_release_files(tmp_p
     )
     changelog = (ROOT / "CHANGELOG.md").read_text()
     changelog = changelog.replace(
-        "## [2.0.0] - Unreleased", f"## [{__version__}] - 2026-09-07", 1
+        "## [2.0.0] - RELEASE_DATE", f"## [{__version__}] - 2026-09-07", 1
     )
+    changelog = changelog.replace("RELEASE_DATE", "2026-09-07")
     (root / "CHANGELOG.md").write_text(changelog)
+    readme = (ROOT / "README.md").read_text().replace("RELEASE_DATE", "2026-09-07")
+    (root / "README.md").write_text(readme)
 
     result = run_tag_check(root, f"v{__version__}")
 
@@ -271,6 +301,6 @@ def test_release_tag_checker_accepts_tag_time_copy_of_actual_release_files(tmp_p
 def test_cli_reports_exact_package_version():
     result = CliRunner().invoke(cli, ["--version"])
 
-    assert re.fullmatch(r"\d+\.\d+\.\d+(?:(?:a|b|rc)\d+)?", __version__)
+    assert __version__ == "2.0.0"
     assert result.exit_code == 0
     assert result.output == f"confluence-as, version {__version__}\n"

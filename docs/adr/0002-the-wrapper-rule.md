@@ -11,12 +11,11 @@ tag-driven transforms. Surviving HTTP workflows call Surface.call for every
 request and keep their 1.x group and verb names. We chose this over retaining a
 command per operation or a second client inside each wrapper, which would let
 command behavior, help and guard enforcement drift away from the Enriched Spec.
-Applied to Confluence's 108 reviewed verbs, the rule yields 37 survivors, 70
-dropped verbs and one deferred implementation, as recorded in
+Applied to Confluence's 108 reviewed verbs, the rule yields 38 survivors, 70
+dropped verbs and no deferred implementations, as recorded in
 [the decision table](../wrapper-verbs.md) and tests/wrapper_verbs.json. This
 records JAS-31's wrapper rule and the reviewed JAS-41/JAS-61 decisions (12 and
-13): attachment download now survives on the shared binary path, while jira
-create-from-page remains deferred until the jira-as release.
+13): attachment download now survives on the shared binary path.
 
 ## Consequences
 
@@ -32,6 +31,18 @@ create-from-page remains deferred until the jira-as release.
 - The opt-in stateful simulation tests decisions and loops at the transport
   seam; the stateless responder and cassette player use that same seam.
   Dropped implementations' per-verb tests give way to shim and generic tests.
-- The deferred jira create-from-page implementation is explicitly outside the
-  survivor seam until it can use the Jira core. Legacy Python library exports
-  remain available; their presence does not authorize new single-call verbs.
+- Legacy Python library exports remain available; their presence does not
+  authorize new single-call verbs.
+
+## Implementation status — 2026-10-05
+
+JAS-51 implemented `jira create-from-page` as a bounded cross-product survivor.
+Its Confluence reads and marker update use indexed operations through the
+guarded Surface. Jira issue creation uses a hand-built `createIssue` Operation
+through engine `HTTPTransport`, retaining the 30-second timeout, zero retries,
+flags and output without a `jira-as` dependency or Jira project guard. This is
+an explicit transport exception to the every-request `Surface.call` rule; it
+does not establish universal Surface coverage. Scope refusal precedes Jira
+creation, later Confluence calls recheck scope, and the workflow is not
+transactional. This note updates implementation disposition while preserving
+the accepted architectural rule and its historical rationale.

@@ -1,6 +1,6 @@
 # Wrapper verbs and migration
 
-The reviewed inventory is 108 legacy verbs: **37 survivors, 70 dropped, 1 deferred**.
+The reviewed inventory is 108 legacy verbs: **38 survivors, 70 dropped, 0 deferred**.
 The original research classifications remain A27 / B63 / C6 / D12. A is a single
 indexed operation; B adds prerequisite lookups; C combines independent operations;
 D is a local transform or workflow. The reviewed decision reflects the current
@@ -15,9 +15,15 @@ needed lookup. File bodies must match the operation schema: `api describe OPERAT
 and `api call OPERATION --help` document fields, guards and required parameters.
 Generic destructive calls preview by default and require `--confirm` to send.
 
-Surviving HTTP workflows use `Surface.call` for every request, including reads.
-They use the same paging, prerequisite, version, rich-text and scope tags as the
-API group. Configure `CONFLUENCE_ALLOWED_SPACES`; site operations also require
+Surviving Confluence HTTP workflows use `Surface.call` for their requests,
+including reads, and use the same paging, prerequisite, version, rich-text and
+scope tags as the API group. `jira create-from-page` is a bounded cross-product
+exception: its Confluence page reads and marker update use indexed operations
+through the guarded Surface, while Jira `createIssue` uses the JAS-51 hand-built
+operation through engine `HTTPTransport`. It retains the 30-second timeout,
+zero retries, existing flags and output, and adds no `jira-as` dependency or Jira
+project guard. This does not establish universal `Surface.call` coverage.
+Configure `CONFLUENCE_ALLOWED_SPACES`; site operations also require
 `CONFLUENCE_ALLOW_SITE_OPERATIONS=1`. Local history/cache operations keep their
 existing file behavior. Legacy Python library APIs remain available.
 
@@ -68,7 +74,7 @@ existing file behavior. Legacy Python library APIs remain available.
 | jira link | B | survivor | Read, optional duplicate decision, append marker and write. | — |
 | jira linked | C | survivor | Local storage macro/reference extraction is not covered by rich-text tags. | — |
 | jira embed | B | survivor | Local macro insertion/replacement is not generic Markdown conversion. | — |
-| jira create-from-page | B | deferred | Explicit release-ticket deferral; current module remains untouched. | — |
+| jira create-from-page | B | survivor | Indexed guarded Confluence page reads/update plus bounded JAS-51 Jira createIssue through engine HTTPTransport; no Jira project guard. | — |
 | jira sync-macro | B | survivor | Local macro extraction/JQL rewriting has no tag. | — |
 | label list | B | dropped | Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. | api call getPageLabels --id PAGE_ID --all |
 | label add | A | dropped | Single indexed operation. | api call addLabelsToContent --id PAGE_ID --body @labels.json |
@@ -132,11 +138,19 @@ existing file behavior. Legacy Python library APIs remain available.
 | watch status | B | dropped | Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. | api call getContentWatchStatus --content-id PAGE_ID |
 | watch list | B | dropped | Only context/identity/version prerequisite reads, a confirmation preview, or a direct indexed replacement. | api call getWatchesForPage --id PAGE_ID |
 
-## Deferred
+## Cross-product transport exception
 
-- `jira create-from-page`: **the jira-as release ticket** identified by the briefing
-  (no numeric ticket key supplied). Its Jira dependency and old implementation
-  remain unchanged, outside the Surface survivor seam.
+`jira create-from-page` is implemented and counted among the 38 survivors. Its
+Confluence reads use indexed `getPageById` operations with storage requested
+and raw output; its marker update uses guarded indexed `updatePage` with the
+explicit storage envelope and version from the latest content read. Jira issue
+creation uses the accepted JAS-51 `createIssue` Operation through engine
+`HTTPTransport`, with a 30-second timeout and zero retries. There is no
+`jira-as` dependency, Jira project guard, or claim of universal
+`Surface.call` coverage. Scope refusal occurs before Jira creation, later
+Confluence calls recheck scope, and post-create Confluence errors report the
+created issue to discourage duplicate retries. The cross-product sequence is
+not transactional.
 
 ## Workflow behavior
 
