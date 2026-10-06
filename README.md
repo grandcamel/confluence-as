@@ -511,6 +511,4 @@ issue before retrying.
 ## 1.x support
 
 The `1.x` branch receives security and critical fixes only until one quarter
-after `RELEASE_DATE` (the final 2.0.0 release date placeholder). Replace this
-placeholder with the release date before creating the release tag; the release
-tag checker rejects an unset date.
+after the 2.0.0 release date, 2026-10-06; support ends on 2027-01-06.
