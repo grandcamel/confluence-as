@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   allowlist: responses carry Content-Type only (Authorization and Set-Cookie
   placeholders removed). (JAS-70)
 
-## [2.0.0] - RELEASE_DATE
+## [2.0.0] - 2026-10-06
 
 ### Changed
 
@@ -120,8 +120,7 @@ The 70 dropped commands are the rename table, generated from the reviewed invent
   is not transactional; if Jira creation succeeds but the marker update fails,
   inspect the reported issue before retrying.
 - The `1.x` branch receives security and critical fixes only until one quarter
-  after `RELEASE_DATE`. Replace the placeholder with the final release date
-  before tagging; `scripts/check_release_tag.py` rejects an unset date.
+  after the 2.0.0 release date, 2026-10-06; support ends on 2027-01-06.
 - Legacy Python library exports remain available. New integrations should use
   the generic API path and documented surviving workflows.
 
@@ -337,7 +336,7 @@ confluence-as api topics                    # tagged guidance and gotchas
 - This statement is historical rc1 migration guidance and is superseded by the
   final 2.0.0 migration section above. Its support period was not anchored to
   an actual release date; the final support window is one quarter after
-  `RELEASE_DATE`. Legacy Python library exports remain available. Jira follows
+  2026-10-06. Legacy Python library exports remain available. Jira follows
   its Compatibility Contract and separate organizational Promotion acceptance.
 
 ## [1.1.1] - 2026-08-19
